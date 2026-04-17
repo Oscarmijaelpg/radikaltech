@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: hsl(var(--color-bg));
+  color: hsl(var(--color-fg));
+}
+
+:root {
+  --color-bg: 210 40% 98%;
+  --color-fg: 222 47% 11%;
+  --color-muted: 215 16% 47%;
+  --color-border: 214 32% 91%;
+  --color-card: 0 0% 100%;
+  --color-card-hover: 210 40% 96%;
+}
+
+.dark {
+  --color-bg: 222 47% 8%;
+  --color-fg: 210 40% 98%;
+  --color-muted: 215 20% 65%;
+  --color-border: 217 32% 20%;
+  --color-card: 222 47% 12%;
+  --color-card-hover: 217 32% 17%;
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--color-primary));
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid hsl(var(--color-primary));
+  outline-offset: 2px;
+}
+
+@layer utilities {
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
+  }
+  .btn-ripple:active {
+    transform: scale(0.95);
+    transition: transform 80ms ease-out;
+  }
+}

@@ -1,0 +1,47 @@
+name: CI
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @radikal/db exec prisma generate
+      - name: Typecheck shared
+        run: pnpm --filter @radikal/shared exec tsc --noEmit
+      - name: Typecheck UI
+        run: pnpm --filter @radikal/ui exec tsc --noEmit
+      - name: Typecheck API
+        run: pnpm --filter @radikal/api exec tsc --noEmit
+        env:
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+          DATABASE_URL: postgresql://placeholder@localhost/db
+      - name: Typecheck Web
+        run: pnpm --filter @radikal/web exec tsc --noEmit
+      - name: Test API
+        run: pnpm --filter @radikal/api test
+        env:
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+          DATABASE_URL: postgresql://placeholder@localhost/db
+      - name: Build Web
+        run: pnpm --filter @radikal/web build
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder
+          VITE_API_URL: http://localhost:3001/api/v1

@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+@layer base {
+  :root {
+    --color-primary: 327 100% 51%;
+    --color-primary-hover: 327 100% 45%;
+    --color-secondary: 182 53% 50%;
+    --color-secondary-hover: 182 53% 40%;
+    --color-bg: 210 40% 98%;
+    --color-border: 214 32% 91%;
+    --color-foreground: 222 47% 11%;
+    --color-muted: 215 16% 47%;
+  }
+
+  html,
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background-color: hsl(var(--color-bg));
+    color: hsl(var(--color-foreground));
+    -webkit-font-smoothing: antialiased;
+  }
+
+  *,
+  *::before,
+  *::after {
+    border-color: hsl(var(--color-border));
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--color-border));
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--color-muted));
+  }
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--color-border)) transparent;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .font-display {
+    font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+  }
+}

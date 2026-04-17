@@ -1,0 +1,659 @@
+// Prisma schema for @radikal/db
+// Database: Supabase Postgres
+// Tables already exist; this schema mirrors them.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = []
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- Enums ----------
+
+enum UserRole {
+  user
+  admin
+
+  @@map("user_role")
+}
+
+enum OnboardingStep {
+  welcome
+  company
+  brand
+  objectives
+  team_intro
+  content
+  completed
+
+  @@map("onboarding_step")
+}
+
+enum WebsiteSource {
+  url
+  manual
+  none
+
+  @@map("website_source")
+}
+
+enum SocialPlatform {
+  instagram
+  tiktok
+  linkedin
+  youtube
+  facebook
+  x
+  threads
+  pinterest
+  other
+
+  @@map("social_platform")
+}
+
+enum SocialSource {
+  url
+  manual
+  none
+
+  @@map("social_source")
+}
+
+enum ObjectiveStatus {
+  pending
+  in_progress
+  completed
+  cancelled
+
+  @@map("objective_status")
+}
+
+enum AssetType {
+  image
+  video
+  document
+  audio
+
+  @@map("asset_type")
+}
+
+enum ReportType {
+  competition
+  monthly_audit
+  brand_strategy
+  news
+  general
+
+  @@map("report_type")
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+
+  @@map("message_role")
+}
+
+enum AiJobStatus {
+  queued
+  running
+  succeeded
+  failed
+
+  @@map("ai_job_status")
+}
+
+enum ScheduledPostStatus {
+  scheduled
+  published
+  cancelled
+  failed
+
+  @@map("scheduled_post_status")
+}
+
+enum ScheduledPostPlatform {
+  instagram
+  tiktok
+  linkedin
+  facebook
+  x
+  threads
+  pinterest
+  youtube
+  other
+
+  @@map("scheduled_post_platform")
+}
+
+enum RecommendationStatus {
+  new
+  saved
+  in_progress
+  completed
+  dismissed
+
+  @@map("recommendation_status")
+}
+
+enum RecommendationKind {
+  post
+  campaign
+  strategy
+  report
+  content_improvement
+  competitor_response
+  news_reaction
+
+  @@map("recommendation_kind")
+}
+
+enum RecommendationImpact {
+  high
+  medium
+  low
+
+  @@map("recommendation_impact")
+}
+
+enum ScheduledReportKind {
+  news_digest
+  competition_weekly
+  brand_monthly
+  custom
+
+  @@map("scheduled_report_kind")
+}
+
+enum ScheduledReportFrequency {
+  daily
+  weekly
+  monthly
+
+  @@map("scheduled_report_frequency")
+}
+
+// ---------- Models ----------
+
+model Profile {
+  id                   String         @id @db.Uuid
+  email                String         @unique
+  fullName             String?        @map("full_name")
+  phone                String?
+  language             String         @default("es")
+  role                 UserRole       @default(user)
+  avatarUrl            String?        @map("avatar_url")
+  onboardingCompleted  Boolean        @default(false) @map("onboarding_completed")
+  onboardingStep       OnboardingStep @default(welcome) @map("onboarding_step")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+
+  projects        Project[]
+  socialAccounts  SocialAccount[]
+  brandProfiles   BrandProfile[]
+  brandHistory    BrandHistory[]
+  objectives      Objective[]
+  competitors     Competitor[]
+  contentAssets   ContentAsset[]
+  reports         Report[]
+  memories        Memory[]
+  chats           Chat[]
+  messages        Message[]
+  projectFolders  ProjectFolder[]
+  aiJobs          AiJob[]
+  tokenUsage      TokenUsage[]
+  recommendations Recommendation[]
+  scheduledReports ScheduledReport[]
+  notifications   Notification[]
+
+  @@map("profiles")
+}
+
+model Project {
+  id                        String   @id @default(uuid()) @db.Uuid
+  userId                    String   @map("user_id") @db.Uuid
+  name                      String
+  companyName               String?  @map("company_name")
+  industry                  String?
+  industryCustom            String?  @map("industry_custom")
+  websiteSource             WebsiteSource? @map("website_source")
+  websiteUrl                String?  @map("website_url")
+  websiteManualDescription  String?  @map("website_manual_description")
+  businessSummary           String?  @map("business_summary")
+  idealCustomer             String?  @map("ideal_customer")
+  uniqueValue               String?  @map("unique_value")
+  mainProducts              String?  @map("main_products")
+  additionalContext         String?  @map("additional_context")
+  operatingCountries           String[] @default([]) @map("operating_countries")
+  operatingCountriesSuggested  String[] @default([]) @map("operating_countries_suggested")
+  isDefault                 Boolean  @default(false) @map("is_default")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  user            Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccounts  SocialAccount[]
+  brandProfile    BrandProfile?
+  brandHistory    BrandHistory[]
+  objectives      Objective[]
+  competitors     Competitor[]
+  contentAssets   ContentAsset[]
+  reports         Report[]
+  memories        Memory[]
+  chats           Chat[]
+  projectFolders  ProjectFolder[]
+  aiJobs          AiJob[]
+  tokenUsage      TokenUsage[]
+  recommendations Recommendation[]
+  scheduledReports ScheduledReport[]
+  notifications   Notification[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model SocialAccount {
+  id                 String         @id @default(uuid()) @db.Uuid
+  projectId          String         @map("project_id") @db.Uuid
+  userId             String         @map("user_id") @db.Uuid
+  platform           SocialPlatform
+  platformCustom     String?        @map("platform_custom")
+  source             SocialSource?
+  url                String?
+  handle             String?
+  manualDescription  String?        @map("manual_description")
+  followers          Int?
+  isActive           Boolean        @default(true) @map("is_active")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("social_accounts")
+}
+
+model BrandProfile {
+  id                    String   @id @default(uuid()) @db.Uuid
+  projectId             String   @unique @map("project_id") @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  essence               String?
+  mission               String?
+  vision                String?
+  brandValues           String[] @map("brand_values")
+  keywords              String[]
+  targetAudience        String?  @map("target_audience")
+  competitiveAdvantage  String?  @map("competitive_advantage")
+  portfolio             String?
+  voiceTone             String?  @map("voice_tone")
+  visualDirection       String?  @map("visual_direction")
+  colorPalette          Json?    @map("color_palette")
+  colorPaletteSuggested Json?    @map("color_palette_suggested")
+  visualAnalysisSummary String?  @map("visual_analysis_summary")
+  moodboardData         Json?    @map("moodboard_data")
+  aiGenerated           Boolean  @default(false) @map("ai_generated")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("brand_profiles")
+}
+
+model BrandHistory {
+  id             String   @id @default(uuid()) @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  snapshotType   String   @map("snapshot_type")
+  previous       Json?
+  current        Json
+  changeSummary  String?  @map("change_summary")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("brand_history")
+}
+
+model Objective {
+  id           String          @id @default(uuid()) @db.Uuid
+  projectId    String          @map("project_id") @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  name         String
+  description  String?
+  targetValue  Decimal?        @map("target_value") @db.Decimal
+  currentValue Decimal?        @map("current_value") @db.Decimal
+  unit         String?
+  status       ObjectiveStatus @default(pending)
+  deadline     DateTime?       @db.Date
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("objectives")
+}
+
+model Competitor {
+  id              String    @id @default(uuid()) @db.Uuid
+  projectId       String    @map("project_id") @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  name            String
+  website         String?
+  socialLinks     Json?     @map("social_links")
+  notes           String?
+  lastAnalyzedAt  DateTime? @map("last_analyzed_at")
+  analysisData    Json?     @map("analysis_data")
+  syncStatus      Json?     @map("sync_status")
+  engagementStats Json?     @map("engagement_stats")
+  status          String    @default("confirmed")
+  source          String    @default("manual")
+  detectedAt      DateTime? @map("detected_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts   SocialPost[]
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("competitors")
+}
+
+model SocialPost {
+  id            String         @id @default(uuid()) @db.Uuid
+  competitorId  String?        @map("competitor_id") @db.Uuid
+  userId        String         @map("user_id") @db.Uuid
+  projectId     String         @map("project_id") @db.Uuid
+  platform      SocialPlatform
+  postUrl       String         @map("post_url")
+  postId        String?        @map("post_id")
+  caption       String?
+  imageUrl      String?        @map("image_url")
+  postType      String?        @map("post_type")
+  likes         Int            @default(0)
+  comments      Int            @default(0)
+  views         Int            @default(0)
+  shares        Int            @default(0)
+  postedAt      DateTime?      @map("posted_at")
+  scrapedAt     DateTime       @default(now()) @map("scraped_at")
+  raw           Json?
+  visualAnalysis Json?         @map("visual_analysis")
+  competitor    Competitor?    @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([competitorId, postUrl])
+  @@index([competitorId])
+  @@index([projectId])
+  @@index([platform])
+  @@map("social_posts")
+}
+
+model ContentAsset {
+  id                 String    @id @default(uuid()) @db.Uuid
+  projectId          String    @map("project_id") @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  assetUrl           String    @map("asset_url")
+  assetType          AssetType @map("asset_type")
+  aiDescription      String?   @map("ai_description")
+  aestheticScore     Decimal?  @map("aesthetic_score") @db.Decimal
+  marketingFeedback  String?   @map("marketing_feedback")
+  tags               String[]
+  metadata           Json?
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("content_assets")
+}
+
+model Report {
+  id           String     @id @default(uuid()) @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  title        String
+  reportType   ReportType @map("report_type")
+  content      String?
+  summary      String?
+  keyInsights  String[]   @map("key_insights")
+  version      Int        @default(1)
+  sourceData   Json?      @map("source_data")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("reports")
+}
+
+model Memory {
+  id         String   @id @default(uuid()) @db.Uuid
+  projectId  String?  @map("project_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  category   String
+  key        String
+  value      String
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("memories")
+}
+
+model Chat {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  projectId   String?  @map("project_id") @db.Uuid
+  objectiveId String?  @map("objective_id")
+  agentId     String?  @map("agent_id")
+  agentIds    String[] @default([]) @map("agent_ids")
+  title       String?
+  isArchived  Boolean  @default(false) @map("is_archived")
+  folderId    String?  @map("folder_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user     Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  folder   ProjectFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([folderId])
+  @@map("chats")
+}
+
+model Message {
+  id          String      @id @default(uuid()) @db.Uuid
+  chatId      String      @map("chat_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  role        MessageRole
+  content     String
+  metadata    Json?
+  tokensUsed  Int?        @map("tokens_used")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  chat Chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([userId])
+  @@map("messages")
+}
+
+model ProjectFolder {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  projectId   String?  @map("project_id") @db.Uuid
+  name        String
+  description String?
+  color       String?
+  icon        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  chats   Chat[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("project_folders")
+}
+
+model AiJob {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  projectId   String?     @map("project_id") @db.Uuid
+  kind        String
+  status      AiJobStatus @default(queued)
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime?   @map("started_at")
+  finishedAt  DateTime?   @map("finished_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@map("ai_jobs")
+}
+
+model ScheduledPost {
+  id           String                    @id @default(uuid()) @db.Uuid
+  projectId    String                    @map("project_id") @db.Uuid
+  userId       String                    @map("user_id") @db.Uuid
+  assetId      String?                   @map("asset_id") @db.Uuid
+  platforms    ScheduledPostPlatform[]
+  caption      String?
+  hashtags     String[]                  @default([])
+  scheduledAt  DateTime                  @map("scheduled_at")
+  status       ScheduledPostStatus       @default(scheduled)
+  publishedAt  DateTime?                 @map("published_at")
+  externalIds  Json?                     @map("external_ids")
+  notes        String?
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("scheduled_posts")
+}
+
+model TokenUsage {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  projectId        String?  @map("project_id") @db.Uuid
+  provider         String
+  model            String
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  totalTokens      Int?     @map("total_tokens")
+  costUsd          Decimal? @map("cost_usd") @db.Decimal
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("token_usage")
+}
+
+model Recommendation {
+  id            String               @id @default(uuid()) @db.Uuid
+  projectId     String               @map("project_id") @db.Uuid
+  userId        String               @map("user_id") @db.Uuid
+  kind          RecommendationKind
+  title         String
+  why           String
+  actionLabel   String               @map("action_label")
+  actionKind    String               @map("action_kind")
+  actionPayload Json?                @map("action_payload")
+  impact        RecommendationImpact @default(medium)
+  sources       Json                 @default("[]")
+  status        RecommendationStatus @default(new)
+  userNotes     String?              @map("user_notes")
+  completedAt   DateTime?            @map("completed_at")
+  generatedAt   DateTime             @default(now()) @map("generated_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([kind])
+  @@map("recommendations")
+}
+
+model ScheduledReport {
+  id          String                   @id @default(uuid()) @db.Uuid
+  projectId   String                   @map("project_id") @db.Uuid
+  userId      String                   @map("user_id") @db.Uuid
+  kind        ScheduledReportKind
+  frequency   ScheduledReportFrequency
+  title       String
+  config      Json?                    @default("{}")
+  nextRunAt   DateTime                 @map("next_run_at")
+  lastRunAt   DateTime?                @map("last_run_at")
+  enabled     Boolean                  @default(true)
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  updatedAt   DateTime                 @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([nextRunAt])
+  @@map("scheduled_reports")
+}
+
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  projectId  String?  @map("project_id") @db.Uuid
+  kind       String
+  title      String
+  body       String?
+  actionUrl  String?  @map("action_url")
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}

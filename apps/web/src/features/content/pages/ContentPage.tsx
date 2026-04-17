@@ -1,0 +1,107 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@radikal/ui';
+import { AssetGallery } from '../components/AssetGallery';
+import { AssetUploader } from '../components/AssetUploader';
+import { ImageGenerator } from '../components/ImageGenerator';
+import { ScheduledPostsTab } from '../components/ScheduledPostsTab';
+import { HelpButton } from '@/shared/ui/HelpButton';
+import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
+
+type TabId = 'gallery' | 'upload' | 'generate' | 'scheduled';
+
+export function ContentPage() {
+  const [searchParams] = useSearchParams();
+  const initial = (searchParams.get('tab') as TabId) || 'gallery';
+  const [tab, setTab] = useState<TabId>(
+    ['gallery', 'upload', 'generate', 'scheduled'].includes(initial) ? initial : 'gallery',
+  );
+  useEffect(() => {
+    const t = searchParams.get('tab') as TabId | null;
+    if (t && ['gallery', 'upload', 'generate', 'scheduled'].includes(t)) setTab(t);
+  }, [searchParams]);
+
+  const TAB_SUB: Record<TabId, string> = {
+    gallery: 'Galería',
+    upload: 'Subir archivos',
+    generate: 'Generar con IA',
+    scheduled: 'Agendados',
+  };
+
+  return (
+    <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-cyan-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Mini breadcrumb */}
+      <div className="px-4 sm:px-6 md:px-8 pt-3 pb-1 max-w-7xl mx-auto flex items-center justify-between gap-3 text-[11px] text-slate-500">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]">palette</span>
+          <span className="font-semibold truncate">Crear</span>
+          <span className="opacity-40">›</span>
+          <span className="truncate">Contenido · {TAB_SUB[tab]}</span>
+        </div>
+        <kbd className="hidden md:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">
+          ⌘K Buscar
+        </kbd>
+      </div>
+      <div className="p-4 sm:p-6 md:p-8 pt-2 max-w-7xl mx-auto">
+        <FeatureHint
+          id="content-first-v1"
+          title="Sube imágenes existentes o genera nuevas con IA"
+          description="Aquí vive tu banco visual. Analizamos cada asset y generamos contenido fiel a tu marca."
+        >
+        <header className="mb-8 md:mb-10 relative overflow-hidden rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-amber-500 to-orange-600 p-6 md:p-10 text-white shadow-2xl">
+          <div className="absolute top-4 right-4 z-20">
+            <HelpButton
+              title="Contenido"
+              description="Sube tus imágenes existentes o genera nuevas con IA. Después puedes agendarlas en el calendario editorial."
+              tips={[
+                'Usa Galería para ver y organizar todo tu contenido visual.',
+                'Generar con IA respeta tu logo y paleta de marca si lo activas.',
+                'Agenda posts multiplataforma desde la pestaña Agendados.',
+              ]}
+            />
+          </div>
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+                Biblioteca visual
+              </p>
+              <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight">
+                Contenido
+              </h1>
+              <p className="text-white/80 mt-3 text-base md:text-lg">
+                Sube, evalúa y organiza los archivos de tu marca con IA.
+              </p>
+            </div>
+          </div>
+        </header>
+        </FeatureHint>
+
+        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+          <TabsList>
+            <TabsTrigger value="gallery">Galería</TabsTrigger>
+            <TabsTrigger value="upload">Subir</TabsTrigger>
+            <TabsTrigger value="generate">Generar con IA</TabsTrigger>
+            <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="gallery" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <AssetGallery />
+          </TabsContent>
+
+          <TabsContent value="upload" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <AssetUploader />
+          </TabsContent>
+
+          <TabsContent value="generate" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <ImageGenerator />
+          </TabsContent>
+
+          <TabsContent value="scheduled" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <ScheduledPostsTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
