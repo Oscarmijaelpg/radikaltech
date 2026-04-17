@@ -1,0 +1,67 @@
+# =============================================================================
+# Archivos y carpetas que NO entran al contexto de build de Docker.
+# Reduce el tamaño del context y evita leaks de secretos.
+# =============================================================================
+
+# Node / pnpm
+node_modules/
+**/node_modules/
+.pnpm-store/
+.pnp.*
+
+# Variables de entorno (NUNCA en la imagen)
+.env
+.env.*
+!.env.example
+
+# Build artifacts de cada paquete
+**/dist/
+**/build/
+**/.next/
+**/.turbo/
+**/.vercel/
+**/.vite/
+**/tsconfig.tsbuildinfo
+
+# Tests y fixtures — el API runtime no los necesita
+**/tests/
+**/*.test.ts
+**/*.spec.ts
+**/coverage/
+**/playwright-report/
+**/test-results/
+apps/web/playwright.config.ts
+
+# Frontend — no va en la imagen del backend
+apps/web/
+
+# Docs y CI
+docs/
+.github/
+*.md
+!README.md
+
+# IDE / editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Herramientas de agente
+.claude/
+memory/
+.cursor/
+.windsurf/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Otros
+*.log
+*.tmp
+*.swp
+*.bak
+.cache/

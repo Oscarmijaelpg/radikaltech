@@ -1,133 +1,229 @@
 # Guía de Deploy
 
-Esta guía cubre el despliegue de producción recomendado: **Supabase** (DB/Auth/Storage) + **Vercel** (web + api).
+Esta guía cubre el despliegue de producción recomendado: **Supabase** (DB/Auth/Storage) + **Vercel** (web) + **EasyPanel** (API en tu VPS).
+
+## Índice
+
+1. [Supabase — base de datos, auth y storage](#1-supabase)
+2. [Vercel — frontend](#2-vercel--frontend)
+3. [EasyPanel — backend API](#3-easypanel--backend-api)
+4. [Conectar front ↔ back](#4-conectar-front--back)
+5. [Monitoreo y troubleshooting](#5-monitoreo-y-troubleshooting)
+
+---
 
 ## 1. Supabase
 
 ### Crear el proyecto
 
-1. Ir a [supabase.com/dashboard](https://supabase.com/dashboard) → "New project".
-2. Elegir región cerca de tus usuarios.
-3. Guardar **Project URL**, **anon public key** y **service role key** (Settings → API).
-4. Guardar la **connection string** del pooler (Settings → Database → Connection string → "Transaction"). Será tu `DATABASE_URL`.
-5. Guardar también la **connection string directa** (pestaña "Session"). Será tu `DIRECT_URL`.
+1. Entra a [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
+2. Elige región cerca de tus usuarios (Sao Paulo para LATAM).
+3. Guarda de **Settings → API**:
+   - **Project URL** → `SUPABASE_URL`
+   - **anon public key** → `SUPABASE_ANON_KEY` (también `VITE_SUPABASE_ANON_KEY`)
+   - **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (¡secreto!)
+4. Guarda de **Settings → Database → Connection string**:
+   - Pooler "Transaction" → `DATABASE_URL`
+   - Directa "Session" → `DIRECT_URL`
 
 ### Aplicar el schema
 
-En local, con `.env` apuntando al proyecto de producción:
+Desde tu máquina local, con un `.env` apuntando al proyecto de producción:
 
 ```bash
 pnpm --filter @radikal/db exec prisma db push
 ```
 
-> ⚠️ `db push` aplica el schema sin migraciones. Para producción "grown up" considera usar `prisma migrate`.
-
 ### Crear el bucket de Storage
 
-1. Dashboard → Storage → "Create bucket" → nombre `assets`, **público**.
-2. Políticas:
-   - **SELECT** (read) público: `true`.
-   - **INSERT** (write) solo con service role: se hace desde el API con `SUPABASE_SERVICE_ROLE_KEY`, no necesitas política para clientes.
+1. Dashboard → **Storage** → **Create bucket**.
+2. Nombre: `assets`. **Public bucket: ✓**.
+3. No necesitas políticas especiales — el API usa `SUPABASE_SERVICE_ROLE_KEY` que hace bypass de RLS.
 
-### Row Level Security (RLS)
+---
 
-Radikal usa el pattern de **"service role desde API"**: todas las queries de usuario pasan por el API que ya valida `userId`. Por eso no dependemos de RLS cliente-a-Postgres. Aun así, es buena práctica dejar RLS **habilitado** en todas las tablas sensibles (el API usa service role que hace bypass).
+## 2. Vercel — Frontend
 
-## 2. Vercel — Web (frontend)
+### Paso 1: Import
 
-1. "New Project" → importar el repo de GitHub.
-2. **Root directory**: `apps/web`.
-3. **Framework Preset**: Vite.
-4. **Build command**: `cd ../.. && pnpm --filter @radikal/web build`.
-5. **Output directory**: `apps/web/dist`.
-6. **Install command**: `cd ../.. && pnpm install --frozen-lockfile`.
-7. **Environment variables**:
-   ```
-   VITE_SUPABASE_URL=https://...
-   VITE_SUPABASE_ANON_KEY=...
-   VITE_API_URL=https://api.tudominio.com/api/v1
-   ```
-8. Deploy. Obtendrás una URL tipo `radikal-web.vercel.app`.
+1. Entra a [vercel.com/new](https://vercel.com/new).
+2. **Import Git Repository** → selecciona `Oscarmijaelpg/radikaltech`.
+3. En **Configure Project**:
+   - **Root Directory**: `apps/web` (click en "Edit" y pega).
+   - **Framework Preset**: Vite (se detecta automático).
+   - **Build Command**: `cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @radikal/web build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `echo "Installed in build step"`
 
-## 3. Vercel — API (backend)
+> Vercel detecta `pnpm-workspace.yaml` y maneja workspaces nativamente; la línea del build forza el install desde la raíz para que pnpm resuelva bien el monorepo.
 
-> Alternativas: Railway, Fly.io, Render. Los pasos son similares.
+### Paso 2: Environment Variables
 
-1. "New Project" → mismo repo, otro proyecto.
-2. **Root directory**: `apps/api`.
-3. **Framework Preset**: Other.
-4. **Build command**: `cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @radikal/db exec prisma generate && pnpm --filter @radikal/api build`.
-5. **Output directory**: `apps/api/dist` (si builds a dist/; de lo contrario usa un serverless function).
-6. **Environment variables**: todas las que salen en [`apps/api/.env.example`](../apps/api/.env.example).
-7. **Asegura CORS**: el API aplica CORS desde `WEB_URL`. Pon tu dominio web allí (`WEB_URL=https://radikal-web.vercel.app`).
+Añade estas tres en **Environment Variables** → todas los 3 ambientes (Production/Preview/Development):
 
-### Alternativa: Railway / Fly.io
-
-Si prefieres un runtime Node persistente (mejor para los SSE del chat):
-
-```bash
-# Railway
-railway login
-railway link <tu-proyecto>
-railway up --filter @radikal/api
+```
+VITE_SUPABASE_URL        = https://your-ref.supabase.co
+VITE_SUPABASE_ANON_KEY   = eyJhbGciOiJIUzI1NiIs...
+VITE_API_URL             = https://api.tudominio.com/api/v1
 ```
 
-Asegúrate de que el servicio exponga el puerto `PORT` (env) y tenga healthcheck en `/api/v1/health`.
+> `VITE_API_URL` debes ponerla DESPUÉS del deploy del API (paso 3). Puedes dejarla con un valor placeholder primero y editarla luego.
 
-## 4. CI/CD (GitHub Actions)
+### Paso 3: Deploy
 
-El workflow en `.github/workflows/ci.yml` ya corre en cada push/PR:
+Click **Deploy**. Primera build tarda ~3-5 min. Obtendrás un dominio tipo `radikaltech.vercel.app`.
 
-- `pnpm install --frozen-lockfile`
-- `prisma generate`
-- Typecheck de todos los packages
-- Tests del API (Vitest)
-- Build del Web
+### Paso 4: Dominio custom (opcional)
 
-Para deploy automático tras merge a `main`:
+**Project Settings → Domains** → añade `app.tudominio.com`. Vercel te da los CNAME/A records para tu DNS.
 
-- Vercel: activa "Auto-deploy on push to main" en Project Settings.
-- Railway: `railway up` en un step adicional.
+---
 
-## 5. Dominios personalizados
+## 3. EasyPanel — Backend API
 
-1. En Vercel → Project → Domains → añade `app.tudominio.com` (web) y `api.tudominio.com` (api).
-2. Ajusta `VITE_API_URL` en el proyecto web con el dominio del API.
-3. Ajusta `WEB_URL` en el proyecto API con el dominio del web.
+### Prerrequisitos
 
-## 6. Primeros usuarios
+- Tu VPS con EasyPanel instalado y accesible.
+- Tu repo ya subido a GitHub con:
+  - `apps/api/Dockerfile` ✓ (creado)
+  - `.dockerignore` ✓ (creado)
 
-- Supabase Auth soporta **email + password** listo para usar. Activa magic links / OAuth si quieres en Auth → Providers.
-- La primera cuenta no es admin automáticamente. Para hacerla admin:
-  ```sql
-  -- en el SQL Editor de Supabase
-  update auth.users
-  set raw_app_meta_data = jsonb_set(coalesce(raw_app_meta_data, '{}'), '{role}', '"admin"')
-  where email = 'tu@email.com';
-  ```
+### Paso 1: Crear el servicio
 
-## 7. Monitoreo recomendado
+1. En EasyPanel → elige tu proyecto (o créalo con **+ Project**).
+2. **+ Service** → **App**.
+3. **Source**:
+   - **GitHub**: conecta tu cuenta si no lo hiciste antes.
+   - **Repository**: `Oscarmijaelpg/radikaltech`
+   - **Branch**: `main`
+4. **Build**:
+   - **Build Method**: **Dockerfile**
+   - **Dockerfile Path**: `apps/api/Dockerfile`
+   - **Build Context**: `.` (raíz del repo — el Dockerfile necesita ver todo el workspace)
+5. **Deploy**:
+   - **Port**: `3001` (o el que pongas en `PORT`)
 
-- **Sentry** para el web y el api (no está integrado aún — si quieres lo sumamos).
-- **Logflare** o **Axiom** para logs de Pino en producción.
-- **Supabase Dashboard** para Postgres, Auth y Storage.
+### Paso 2: Environment Variables
 
-## 8. Costos aproximados (referencia)
+En la pestaña **Environment** pega todas estas (valores reales de tu Supabase + API keys):
 
-- **Supabase**: Free tier para arrancar. $25/mes a partir de Pro.
-- **Vercel Hobby**: gratis para web + api pequeño. Pro ($20/mes) si pasas límites.
-- **OpenAI / OpenRouter**: pay-as-you-go, ~$5-50/mes según uso.
-- **Apify**: $49/mes plan Starter cubre scraping razonable.
-- **Firecrawl**: $19/mes Hobby (250 páginas).
-- **Tavily**: free tier 1000 queries.
-- **Gemini**: cuota gratuita generosa.
+```env
+NODE_ENV=production
+PORT=3001
+LOG_LEVEL=info
 
-## 9. Troubleshooting deploy
+# Web URL — necesario para CORS (apunta al dominio de Vercel)
+WEB_URL=https://app.tudominio.com
 
-| Error                                              | Causa probable                                                     |
-| -------------------------------------------------- | ------------------------------------------------------------------ |
-| Vercel build OOM                                   | Turbopack grande — sube plan o excluye `node_modules` con `.vercelignore` |
-| `Prisma client not generated`                      | Falta `prisma generate` en build command                           |
-| API 500 sin logs                                   | `SUPABASE_SERVICE_ROLE_KEY` mal o faltante                         |
-| Web no conecta al API (CORS)                       | `WEB_URL` en el API no coincide con el dominio del frontend        |
-| SSE se cae cada N segundos                         | Vercel corta conexiones largas — usa Railway/Fly para el API       |
+# Supabase
+SUPABASE_URL=https://your-ref.supabase.co
+SUPABASE_ANON_KEY=eyJhbGc...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+
+# Database
+DATABASE_URL=postgresql://postgres:[PASS]@...pooler.supabase.com:6543/postgres
+DIRECT_URL=postgresql://postgres:[PASS]@db.your-ref.supabase.co:5432/postgres
+
+# Proveedores de IA
+OPENAI_API_KEY=sk-...
+OPENROUTER_API_KEY=sk-or-...
+GEMINI_API_KEY=...
+FIRECRAWL_API_KEY=fc-...
+APIFY_API_KEY=apify_api_...
+TAVILY_API_KEY=tvly-...
+```
+
+### Paso 3: Dominio
+
+En EasyPanel → **Domains** del servicio:
+
+1. **+ Add Domain**
+2. Pon `api.tudominio.com`
+3. **Port**: `3001`
+4. Activa **HTTPS** (Let's Encrypt automático con Traefik).
+
+Configura en tu DNS: `api.tudominio.com` → `A` record hacia la IP de tu VPS.
+
+### Paso 4: Health check
+
+EasyPanel te muestra el estado. Verifica con:
+
+```bash
+curl https://api.tudominio.com/api/v1/health
+# { "status": "ok", "db": "connected", "timestamp": "..." }
+```
+
+El Dockerfile ya incluye un `HEALTHCHECK` que EasyPanel lee automáticamente.
+
+### Paso 5: Resources (opcional pero recomendado)
+
+Para 100-200 usuarios:
+- **Memory**: 512 MB (mínimo) — 1 GB (cómodo).
+- **CPU**: 0.5 vCPU (mínimo) — 1 vCPU (cómodo).
+- **Restart Policy**: `unless-stopped`.
+
+Configúralo en **Service Settings → Resources**.
+
+### Paso 6: Auto-deploy en git push
+
+**Settings → Deploy** → **Enable auto-deploy**. Cada `git push origin main` disparará un rebuild.
+
+---
+
+## 4. Conectar front ↔ back
+
+Una vez ambos estén arriba:
+
+1. **Vercel** → Project → Settings → Environment Variables → edita:
+   ```
+   VITE_API_URL = https://api.tudominio.com/api/v1
+   ```
+2. **Vercel** → Deployments → **Redeploy** la última (necesita rebuild con la nueva env var).
+3. **EasyPanel** → edita env:
+   ```
+   WEB_URL = https://app.tudominio.com
+   ```
+4. EasyPanel → **Restart** el servicio API.
+
+Prueba el flujo completo: login → onboarding → creación de proyecto.
+
+---
+
+## 5. Monitoreo y troubleshooting
+
+### Logs
+
+- **Vercel**: Dashboard → Deployments → Function Logs (para el SSR) y Runtime Logs.
+- **EasyPanel**: Service → **Logs** tab. Streaming en vivo + histórico.
+- **Supabase**: Dashboard → Logs (API, Database, Auth).
+
+### Problemas comunes
+
+| Error                                                      | Causa                                                               | Solución                                                          |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Frontend `Network Error`                                   | `VITE_API_URL` incorrecto o CORS bloquea                            | Verifica que `WEB_URL` del API coincida con el dominio del web    |
+| API 500 al arrancar                                        | `SUPABASE_SERVICE_ROLE_KEY` faltante o mal                          | Revisa env en EasyPanel                                           |
+| `Prisma client not generated`                              | Falló `prisma generate` en el build                                 | Revisa logs del build, verifica `DATABASE_URL`                    |
+| SSE del chat se corta                                      | Reverse proxy cerrando conexión idle                                | EasyPanel usa Traefik que soporta SSE OK; si sigue, aumenta timeout en settings |
+| Build en EasyPanel OOM                                     | VPS con poca RAM                                                    | Dale al menos 1 GB al contenedor build-time, o usa swap           |
+| Docker build tarda mucho                                   | No hay cache layers válidos                                         | Normal la primera vez (~5-8 min). Cambios de código siguientes 1-2 min |
+| `EACCES: permission denied` en storage                     | Bucket `assets` no creado o no público                              | Verifica paso 1.3                                                 |
+| `oklch` colors roto en PDF export                          | Plugin personalizado del Toaster ya lo maneja                       | Asegúrate de actualizar el frontend tras commits                  |
+
+### Escalado a 500+ usuarios
+
+Cuando te acerques a ese volumen:
+
+1. **Supabase Pro** ($25/mes) si estás en Free.
+2. **Separar workers**: saca los scrapers a un servicio EasyPanel separado que consuma un queue. No urgente hasta 1000 DAU.
+3. **Redis** para rate-limiting distribuido (hoy es in-memory).
+4. **Sentry** para tracking de errores en producción.
+5. **Connection pooling**: ya usamos el pooler de Supabase (`DATABASE_URL` con `pgbouncer`), perfecto.
+
+---
+
+## Alternativas al setup recomendado
+
+Si prefieres TODO en Vercel, ver la versión anterior de esta guía en el historial de git — funciona pero el chat SSE con reportes largos se cortará a los 60s (límite de Vercel serverless).
+
+Si prefieres Railway en lugar de EasyPanel, la config es idéntica: mismo Dockerfile, mismas env vars, solo cambia la UI del panel.
