@@ -7,7 +7,7 @@ import { api } from '@/lib/api';
 import { useProject } from '@/providers/ProjectProvider';
 import { streamMessage, type Chat } from '@/features/chat/api/chat';
 import SiraAvatar from '@/media/sira_profile.webp';
-import { useSiraContextual, type SiraContext } from './SiraContextualProvider';
+import { useSiraContextual, type SiraContext } from '../SiraContextualProvider';
 
 interface UIMessage {
   id: string;
