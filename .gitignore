@@ -47,7 +47,7 @@ desktop.ini
 # Lo local de cada dev NO:
 .claude/settings.local.json
 .claude/*.local.json
-memory/
+/memory/
 .cursor/
 .windsurf/
 
@@ -59,3 +59,5 @@ packages/db/src/generated/
 *.swp
 *.bak
 .cache/
+
+.vercel
