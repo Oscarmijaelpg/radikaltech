@@ -6,6 +6,7 @@ import type { AuthVariables } from '../../middleware/auth.js';
 import { ok } from '../../lib/response.js';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { AGENTS, getAgent } from './agents.js';
 import { ChatContextBuilder } from './context-builder.js';
 import { ChatSummarizer } from './summarizer.js';
@@ -343,17 +344,17 @@ async function* streamChatCompletions(
 function pickProvider(): { url: string; apiKey: string; model: string; extraHeaders: Record<string, string> } {
   if (env.OPENROUTER_API_KEY) {
     return {
-      url: 'https://openrouter.ai/api/v1/chat/completions',
+      url: PROVIDER_URLS.openrouter.chatCompletions,
       apiKey: env.OPENROUTER_API_KEY,
-      model: 'openai/gpt-4o-mini',
+      model: LLM_MODELS.chat.openrouter,
       extraHeaders: { 'HTTP-Referer': env.WEB_URL, 'X-Title': 'Radikal' },
     };
   }
   if (env.OPENAI_API_KEY) {
     return {
-      url: 'https://api.openai.com/v1/chat/completions',
+      url: PROVIDER_URLS.openai.chatCompletions,
       apiKey: env.OPENAI_API_KEY,
-      model: 'gpt-4o-mini',
+      model: LLM_MODELS.chat.openai,
       extraHeaders: {},
     };
   }

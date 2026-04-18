@@ -1,5 +1,6 @@
 import { prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { preferredChatEndpoint, preferredChatModel } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 
 export interface DetectMarketsInput {
@@ -20,7 +21,7 @@ async function callOpenRouter(system: string, user: string): Promise<string> {
     throw new Error('No hay proveedor de IA configurado');
   }
   const payload = {
-    model: env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
+    model: preferredChatModel(),
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -28,9 +29,7 @@ async function callOpenRouter(system: string, user: string): Promise<string> {
     response_format: { type: 'json_object' },
     temperature: 0.2,
   };
-  const url = env.OPENROUTER_API_KEY
-    ? 'https://openrouter.ai/api/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions';
+  const url = preferredChatEndpoint();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY}`,

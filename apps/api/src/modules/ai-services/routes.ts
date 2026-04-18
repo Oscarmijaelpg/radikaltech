@@ -24,6 +24,7 @@ import { prisma, Prisma } from '@radikal/db';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
 import { aiRateLimits } from '../../middleware/rate-limit.js';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 
 const rlAnalyzeWebsite = aiRateLimits.default('analyze-website');
 const rlAnalyzeCompetitor = aiRateLimits.default('analyze-competitor');
@@ -454,7 +455,7 @@ ${platformStyles}
 Devuelve SOLO JSON con esta forma exacta:
 { "per_platform": { "<platform>": { "variants": [{ "length": "short|medium|long", "caption": "...", "hashtags": ["tag1","tag2"], "emoji_suggested": ["✨","🔥"] }] } } }`;
 
-    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const r = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -463,7 +464,7 @@ Devuelve SOLO JSON con esta forma exacta:
         'X-Title': 'Radikal',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
+        model: LLM_MODELS.chat.openrouter,
         response_format: { type: 'json_object' },
         temperature: 0.8,
         messages: [

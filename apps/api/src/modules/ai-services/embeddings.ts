@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 
 export interface SimilarMemory {
   id: string;
@@ -26,8 +27,8 @@ interface FindSimilarInput {
  * search.
  */
 export class EmbeddingsService {
-  private readonly model = 'text-embedding-3-small';
-  private readonly dims = 1536;
+  private readonly model = LLM_MODELS.embedding.base;
+  private readonly dims = LLM_MODELS.embedding.dims;
 
   async embed(text: string): Promise<number[] | null> {
     const clean = (text ?? '').replace(/\s+/g, ' ').trim().slice(0, 8000);
@@ -44,7 +45,7 @@ export class EmbeddingsService {
     if (env.OPENAI_API_KEY) {
       try {
         return await this.callEmbeddings(
-          'https://api.openai.com/v1/embeddings',
+          PROVIDER_URLS.openai.embeddings,
           env.OPENAI_API_KEY,
           this.model,
           inputs,
@@ -57,9 +58,9 @@ export class EmbeddingsService {
     if (env.OPENROUTER_API_KEY) {
       try {
         return await this.callEmbeddings(
-          'https://openrouter.ai/api/v1/embeddings',
+          PROVIDER_URLS.openrouter.embeddings,
           env.OPENROUTER_API_KEY,
-          `openai/${this.model}`,
+          LLM_MODELS.embedding.openrouter,
           inputs,
           { 'HTTP-Referer': env.WEB_URL, 'X-Title': 'Radikal' },
         );

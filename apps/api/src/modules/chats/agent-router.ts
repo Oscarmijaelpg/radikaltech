@@ -1,4 +1,5 @@
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { AGENTS } from './agents.js';
 
 export interface RouteInput {
@@ -50,13 +51,18 @@ export class AgentRouter {
 
     const userPrompt = `Agentes disponibles:\n${agentList}\n\nMensaje del usuario:\n"""${input.message.slice(0, 1500)}"""\n\nResponde solo el JSON.`;
 
-    const body = {
-      model: 'openai/gpt-4o-mini',
+    const body: {
+      model: string;
+      temperature: number;
+      response_format: { type: 'json_object' };
+      messages: Array<{ role: 'system' | 'user'; content: string }>;
+    } = {
+      model: LLM_MODELS.chat.openrouter,
       temperature: 0,
-      response_format: { type: 'json_object' as const },
+      response_format: { type: 'json_object' },
       messages: [
-        { role: 'system' as const, content: systemPrompt },
-        { role: 'user' as const, content: userPrompt },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
       ],
     };
 
@@ -65,14 +71,14 @@ export class AgentRouter {
       let apiKey: string | undefined;
       const extraHeaders: Record<string, string> = {};
       if (env.OPENROUTER_API_KEY) {
-        url = 'https://openrouter.ai/api/v1/chat/completions';
+        url = PROVIDER_URLS.openrouter.chatCompletions;
         apiKey = env.OPENROUTER_API_KEY;
         extraHeaders['HTTP-Referer'] = env.WEB_URL;
         extraHeaders['X-Title'] = 'Radikal';
       } else if (env.OPENAI_API_KEY) {
-        url = 'https://api.openai.com/v1/chat/completions';
+        url = PROVIDER_URLS.openai.chatCompletions;
         apiKey = env.OPENAI_API_KEY;
-        body.model = 'gpt-4o-mini';
+        body.model = LLM_MODELS.chat.openai;
       } else {
         return null;
       }

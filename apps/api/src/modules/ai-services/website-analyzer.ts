@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { notificationService } from '../notifications/service.js';
@@ -54,7 +55,7 @@ interface FirecrawlScrapeResponse {
 const STORAGE_BUCKET = 'assets';
 
 async function firecrawlScrape(url: string): Promise<FirecrawlScrapeResponse> {
-  const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+  const res = await fetch(PROVIDER_URLS.firecrawl.scrape, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -77,7 +78,7 @@ async function firecrawlScrape(url: string): Promise<FirecrawlScrapeResponse> {
 
 async function callChatCompletion(prompt: string): Promise<string> {
   const payload = {
-    model: 'gpt-4o-mini',
+    model: LLM_MODELS.chat.openai,
     messages: [
       { role: 'system', content: 'Eres un analista de marcas experto. Respondes siempre con JSON válido.' },
       { role: 'user', content: prompt },
@@ -87,7 +88,7 @@ async function callChatCompletion(prompt: string): Promise<string> {
   };
 
   if (env.OPENAI_API_KEY) {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch(PROVIDER_URLS.openai.chatCompletions, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ async function callChatCompletion(prompt: string): Promise<string> {
   }
 
   if (env.OPENROUTER_API_KEY) {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ async function callChatCompletion(prompt: string): Promise<string> {
         'HTTP-Referer': env.WEB_URL,
         'X-Title': 'Radikal',
       },
-      body: JSON.stringify({ ...payload, model: 'openai/gpt-4o-mini' }),
+      body: JSON.stringify({ ...payload, model: LLM_MODELS.chat.openrouter }),
       signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text().catch(() => '')}`);

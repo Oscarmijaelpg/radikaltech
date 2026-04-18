@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { NotFound, Forbidden } from '../../lib/errors.js';
@@ -76,7 +77,7 @@ interface FirecrawlScrape {
 async function firecrawlScrape(url: string): Promise<FirecrawlScrape | null> {
   if (!env.FIRECRAWL_API_KEY) return null;
   try {
-    const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    const res = await fetch(PROVIDER_URLS.firecrawl.scrape, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

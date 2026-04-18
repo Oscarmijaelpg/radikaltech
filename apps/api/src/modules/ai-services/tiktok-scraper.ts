@@ -1,10 +1,11 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { APIFY_ACTORS, apifyRunSyncUrl } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { runVisualAnalysisForCompetitor } from './instagram-scraper.js';
 import { notificationService } from '../notifications/service.js';
 
-const ACTOR_ID = 'OtzYfK1ndEGdwWFKQ';
+const ACTOR_ID = APIFY_ACTORS.tiktok;
 
 export interface ScrapeTikTokInput {
   handle: string;
@@ -77,7 +78,7 @@ export class TikTokScraper {
     try {
       logger.info({ handle }, 'apify tiktok scrape start');
       const res = await fetch(
-        `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${env.APIFY_API_KEY}`,
+        apifyRunSyncUrl(ACTOR_ID, env.APIFY_API_KEY ?? ''),
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

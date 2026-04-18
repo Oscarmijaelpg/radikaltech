@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 
@@ -34,7 +35,7 @@ interface TavilyResponse {
 }
 
 async function tavilySearch(query: string, maxResults = 8): Promise<TavilyResponse> {
-  const res = await fetch('https://api.tavily.com/search', {
+  const res = await fetch(PROVIDER_URLS.tavily.search, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -59,7 +60,7 @@ async function synthesizeWithOpenRouter(
     .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content.slice(0, 500)}`)
     .join('\n\n');
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ async function synthesizeWithOpenRouter(
       'X-Title': 'Radikal',
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: LLM_MODELS.chat.openrouter,
       response_format: { type: 'json_object' },
       temperature: 0.4,
       messages: [

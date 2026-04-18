@@ -1,5 +1,6 @@
 import { prisma, Prisma, type Recommendation, RecommendationKind, RecommendationImpact } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { NotFound, Forbidden, BadRequest } from '../../lib/errors.js';
 import { embeddingsService } from './embeddings.js';
@@ -277,7 +278,7 @@ Devuelve SOLO JSON válido con la estructura pedida.`;
 
     let raw: { recommendations?: RawRecommendation[] } = {};
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -286,7 +287,7 @@ Devuelve SOLO JSON válido con la estructura pedida.`;
           'X-Title': 'Radikal',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-4o-mini',
+          model: LLM_MODELS.chat.openrouter,
           response_format: { type: 'json_object' },
           temperature: 0.5,
           messages: [

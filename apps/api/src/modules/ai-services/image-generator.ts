@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import {
+  LLM_MODELS,
+  PROVIDER_URLS,
+  geminiGenerateContentUrl,
+} from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { imageAnalyzer, type ImageVisualAnalysis } from './image-analyzer.js';
@@ -58,8 +63,6 @@ export interface EditImageOutput {
 }
 
 const STORAGE_BUCKET = 'assets';
-const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
-const OPENROUTER_IMAGES_URL = 'https://openrouter.ai/api/v1/images/generations';
 
 const VARIATION_SUFFIXES: string[] = [
   '',
@@ -98,7 +101,7 @@ async function tryGeminiModel(
     generationConfig: { responseModalities: ['IMAGE'] },
   };
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
+    geminiGenerateContentUrl(model, env.GEMINI_API_KEY),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -136,12 +139,7 @@ async function generateWithGemini(
   prompt: string,
   refs: Array<{ base64: string; mimeType: string }>,
 ): Promise<Buffer | undefined> {
-  const candidates = [
-    'gemini-2.5-flash-image',
-    'gemini-2.0-flash-preview-image-generation',
-    'gemini-2.5-flash-image-preview',
-  ];
-  for (const m of candidates) {
+  for (const m of LLM_MODELS.image.geminiCandidates) {
     const buf = await tryGeminiModel(m, prompt, refs);
     if (buf) return buf;
   }
@@ -155,7 +153,7 @@ async function generateWithDalle(
   style: ImageStyle,
 ): Promise<Buffer | undefined> {
   const payload = {
-    model: 'dall-e-3',
+    model: LLM_MODELS.image.dalle3,
     prompt,
     n: 1,
     size,
@@ -168,7 +166,7 @@ async function generateWithDalle(
 
   if (env.OPENROUTER_API_KEY) {
     try {
-      const res = await fetch(OPENROUTER_IMAGES_URL, {
+      const res = await fetch(PROVIDER_URLS.openrouter.imageGenerations, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +174,7 @@ async function generateWithDalle(
           'HTTP-Referer': env.WEB_URL,
           'X-Title': 'Radikal',
         },
-        body: JSON.stringify({ ...payload, model: 'openai/dall-e-3' }),
+        body: JSON.stringify({ ...payload, model: `openai/${LLM_MODELS.image.dalle3}` }),
         signal: AbortSignal.timeout(60_000),
       });
       if (res.ok) {
@@ -193,7 +191,7 @@ async function generateWithDalle(
   }
 
   if (!imageUrl && env.OPENAI_API_KEY) {
-    const res = await fetch(OPENAI_IMAGES_URL, {
+    const res = await fetch(PROVIDER_URLS.openai.imageGenerations, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -321,11 +319,11 @@ export class ImageGenerator {
 
         if (refs.length > 0) {
           buf = await generateWithGemini(variantPrompt, refs);
-          if (buf) modelUsed = 'gemini-2.5-flash-image';
+          if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
         }
         if (!buf) {
           buf = await generateWithDalle(variantPrompt, size, style);
-          if (buf) modelUsed = 'dall-e-3';
+          if (buf) modelUsed = LLM_MODELS.image.dalle3;
         }
         if (!buf || !modelUsed) return null;
 
@@ -481,12 +479,11 @@ export class ImageGenerator {
 
       if (refs.length > 0) {
         buf = await generateWithGemini(enrichedPrompt, refs);
-        if (buf) modelUsed = 'gemini-2.5-flash-image';
+        if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
       }
       if (!buf) {
-        // fallback to DALL-E (text-only, no ref support)
         buf = await generateWithDalle(enrichedPrompt, '1024x1024', 'vivid');
-        if (buf) modelUsed = 'dall-e-3';
+        if (buf) modelUsed = LLM_MODELS.image.dalle3;
       }
       if (!buf || !modelUsed) {
         throw new Error('No image editor provider succeeded');

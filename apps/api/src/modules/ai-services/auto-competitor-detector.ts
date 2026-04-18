@@ -1,5 +1,10 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import {
+  PROVIDER_URLS,
+  preferredChatEndpoint,
+  preferredChatModel,
+} from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 
@@ -31,7 +36,7 @@ interface TavilyResult {
 
 async function tavilySearch(query: string): Promise<TavilyResult[]> {
   if (!env.TAVILY_API_KEY) return [];
-  const res = await fetch('https://api.tavily.com/search', {
+  const res = await fetch(PROVIDER_URLS.tavily.search, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -59,9 +64,7 @@ async function synthesize(
     .slice(0, 10)
     .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content.slice(0, 500)}`)
     .join('\n\n');
-  const url = env.OPENROUTER_API_KEY
-    ? 'https://openrouter.ai/api/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions';
+  const url = preferredChatEndpoint();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY}`,
@@ -74,7 +77,7 @@ async function synthesize(
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model: env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
+      model: preferredChatModel(),
       response_format: { type: 'json_object' },
       temperature: 0.3,
       messages: [

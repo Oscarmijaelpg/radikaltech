@@ -1,6 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
 import { env } from '../../config/env.js';
+import { preferredChatEndpoint, preferredChatModel } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 
 async function assertProjectOwner(projectId: string, userId: string) {
@@ -66,9 +67,7 @@ async function generateChangeSummary(
   if (diffs.length === 0) return null;
 
   try {
-    const url = env.OPENROUTER_API_KEY
-      ? 'https://openrouter.ai/api/v1/chat/completions'
-      : 'https://api.openai.com/v1/chat/completions';
+    const url = preferredChatEndpoint();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY}`,
@@ -81,7 +80,7 @@ async function generateChangeSummary(
       method: 'POST',
       headers,
       body: JSON.stringify({
-        model: env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
+        model: preferredChatModel(),
         temperature: 0.3,
         messages: [
           {

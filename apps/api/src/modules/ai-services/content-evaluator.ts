@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { NotFound, Forbidden } from '../../lib/errors.js';
 
@@ -32,14 +33,14 @@ async function callVision(imageUrl: string): Promise<ContentEvaluationResult> {
     throw new Error('OPENAI_API_KEY not configured');
   }
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch(PROVIDER_URLS.openai.chatCompletions, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: LLM_MODELS.evaluator,
       response_format: { type: 'json_object' },
       temperature: 0.4,
       messages: [

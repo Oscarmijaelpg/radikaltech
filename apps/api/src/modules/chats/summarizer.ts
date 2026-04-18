@@ -1,5 +1,6 @@
 import { prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { getAgent } from './agents.js';
 
 const SUMMARY_WINDOW_HOURS = 24;
@@ -74,7 +75,7 @@ export class ChatSummarizer {
 
   private async callLLM(prompt: string): Promise<string | null> {
     if (!env.OPENROUTER_API_KEY) return null;
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ export class ChatSummarizer {
         'X-Title': 'Radikal',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
+        model: LLM_MODELS.chat.openrouter,
         stream: false,
         temperature: 0.4,
         messages: [{ role: 'user', content: prompt }],

@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 
@@ -56,7 +57,7 @@ async function callOpenRouter(payload: SynthesizeBrandInput): Promise<BrandSynth
     .filter(Boolean)
     .join('\n');
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ async function callOpenRouter(payload: SynthesizeBrandInput): Promise<BrandSynth
       'X-Title': 'Radikal',
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: LLM_MODELS.chat.openrouter,
       response_format: { type: 'json_object' },
       temperature: 0.7,
       messages: [

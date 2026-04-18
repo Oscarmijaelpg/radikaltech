@@ -165,10 +165,11 @@ async function discoverSocialLinksFromWebsite(
   websiteUrl: string,
 ): Promise<Record<string, string>> {
   const { env } = await import('../../config/env.js');
+  const { PROVIDER_URLS } = await import('../../config/providers.js');
   if (!env.FIRECRAWL_API_KEY) return {};
 
   try {
-    const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    const res = await fetch(PROVIDER_URLS.firecrawl.scrape, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

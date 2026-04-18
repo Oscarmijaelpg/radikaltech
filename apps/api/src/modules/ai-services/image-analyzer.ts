@@ -1,5 +1,10 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import {
+  LLM_MODELS,
+  PROVIDER_URLS,
+  geminiGenerateContentUrl,
+} from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 
 export interface ImageVisualAnalysis {
@@ -106,7 +111,7 @@ export class ImageAnalyzer {
     // 1) Gemini 2.5 Flash (modelo estable)
     if (env.GEMINI_API_KEY) {
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+        const endpoint = geminiGenerateContentUrl(LLM_MODELS.vision.gemini, env.GEMINI_API_KEY);
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -142,7 +147,7 @@ export class ImageAnalyzer {
     // 2) Fallback: OpenRouter con GPT-4o (soporta vision)
     if (!parsed && env.OPENROUTER_API_KEY) {
       try {
-        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -151,7 +156,7 @@ export class ImageAnalyzer {
             'X-Title': 'Radikal',
           },
           body: JSON.stringify({
-            model: 'openai/gpt-4o-mini',
+            model: LLM_MODELS.chat.openrouter,
             response_format: { type: 'json_object' },
             temperature: 0.3,
             messages: [

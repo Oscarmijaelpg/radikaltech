@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { APIFY_ACTORS, apifyRunSyncUrl } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { imageAnalyzer } from './image-analyzer.js';
 import { notificationService } from '../notifications/service.js';
 
 const STORAGE_BUCKET = 'assets';
-const ACTOR_ID = 'dSCLg0C3YEZ83HzYX';
+const ACTOR_ID = APIFY_ACTORS.instagram;
 
 export interface ScrapeInstagramInput {
   handle: string;
@@ -138,7 +139,7 @@ export class InstagramScraper {
     try {
       logger.info({ handle }, 'apify instagram scrape start');
       const res = await fetch(
-        `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${env.APIFY_API_KEY}`,
+        apifyRunSyncUrl(ACTOR_ID, env.APIFY_API_KEY ?? ''),
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

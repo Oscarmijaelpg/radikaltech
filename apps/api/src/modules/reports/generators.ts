@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 
@@ -13,7 +14,7 @@ async function callOpenRouter(options: {
     return '# Resumen\n\nGeneración automática no disponible: falta configurar OPENROUTER_API_KEY.';
   }
   const body: Record<string, unknown> = {
-    model: 'openai/gpt-4o-mini',
+    model: LLM_MODELS.chat.openrouter,
     temperature: options.temperature ?? 0.4,
     messages: [
       { role: 'system', content: options.system },
@@ -23,7 +24,7 @@ async function callOpenRouter(options: {
   if (options.jsonMode) {
     body.response_format = { type: 'json_object' };
   }
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 
@@ -248,7 +249,7 @@ Devuelve SOLO JSON con:
 Devuelve SOLO JSON válido.`;
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -257,7 +258,7 @@ Devuelve SOLO JSON válido.`;
         'X-Title': 'Radikal',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
+        model: LLM_MODELS.chat.openrouter,
         response_format: { type: 'json_object' },
         temperature: 0.3,
         messages: [
@@ -399,7 +400,7 @@ export class NewsAggregator {
       logger.info({ original: input.topic, enhanced: enhancedQuery }, 'news query enhanced with brand context');
 
       if (env.TAVILY_API_KEY) {
-        const res = await fetch('https://api.tavily.com/search', {
+        const res = await fetch(PROVIDER_URLS.tavily.search, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
