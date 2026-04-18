@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Icon } from '@radikal/ui';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '@/providers/ProjectProvider';
 import { useChats } from '@/features/chat/api/chat';
@@ -276,7 +277,7 @@ export function CommandPalette() {
         className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200"
       >
         <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
-          <span className="material-symbols-outlined text-slate-400">search</span>
+          <Icon name="search" className="text-slate-400" />
           <input
             ref={inputRef}
             value={query}
@@ -321,16 +322,15 @@ export function CommandPalette() {
                         : 'hover:bg-slate-50',
                     )}
                   >
-                    <span
+                    <Icon
+                      name={r.icon}
                       className={cn(
-                        'material-symbols-outlined text-[20px]',
+                        'text-[20px]',
                         isSelected
                           ? 'text-[hsl(var(--color-primary))]'
                           : 'text-slate-400',
                       )}
-                    >
-                      {r.icon}
-                    </span>
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-900 truncate">
                         {r.title}
@@ -342,9 +342,7 @@ export function CommandPalette() {
                       )}
                     </div>
                     {isSelected && (
-                      <span className="material-symbols-outlined text-[16px] text-slate-400">
-                        keyboard_return
-                      </span>
+                      <Icon name="keyboard_return" className="text-[16px] text-slate-400" />
                     )}
                   </button>
                 );

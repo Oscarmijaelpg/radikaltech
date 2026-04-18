@@ -1,4 +1,8 @@
-import { Card, SectionTitle } from '@radikal/ui';
+import {
+  Card,
+  Icon,
+  SectionTitle,
+} from '@radikal/ui';
 import { JOB_LABELS } from './utils';
 
 export function ActiveJobsBanner({
@@ -10,7 +14,7 @@ export function ActiveJobsBanner({
     <Card className="p-4 sm:p-5 bg-gradient-to-r from-pink-50 via-cyan-50 to-pink-50 border-[hsl(var(--color-primary)/0.3)]">
       <div className="flex items-start sm:items-center gap-3 sm:gap-4">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] grid place-items-center text-white shadow-lg shrink-0">
-          <span className="material-symbols-outlined animate-spin text-[22px]">progress_activity</span>
+          <Icon name="progress_activity" className="animate-spin text-[22px]" />
         </div>
         <div className="flex-1 min-w-0">
           <SectionTitle className="text-[hsl(var(--color-primary))]">
@@ -29,9 +33,7 @@ export function ActiveJobsBanner({
                   key={j.id}
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/80 text-[11px] font-semibold text-slate-700 border border-slate-200"
                 >
-                  <span className="material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]">
-                    {meta.icon}
-                  </span>
+                  <Icon name={meta.icon} className="text-[14px] text-[hsl(var(--color-primary))]" />
                   {meta.label}
                 </span>
               );

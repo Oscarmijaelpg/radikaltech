@@ -5,14 +5,15 @@ import remarkGfm from 'remark-gfm';
 const SAVE_SUCCESS_DISMISS_MS = 600;
 
 import {
-  Spinner,
+  Button,
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
   DialogTitle,
-  Button,
+  Icon,
   Label,
+  Spinner,
   Textarea,
 } from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
@@ -146,9 +147,7 @@ export function MessageBubble({
           >
             {(routerReason || routerAgentName) && (
               <p className="text-[11px] text-slate-500 mb-2 animate-[fadeIn_.4s_ease] not-prose">
-                <span className="material-symbols-outlined text-[12px] align-middle mr-1">
-                  alt_route
-                </span>
+                <Icon name="alt_route" className="text-[12px] align-middle mr-1" />
                 {routerAgentName ? `${routerAgentName} elegido por el router` : 'Router'}
                 {routerReason ? ` · ${routerReason}` : ''}
               </p>
@@ -167,13 +166,11 @@ export function MessageBubble({
                           : 'bg-rose-50 text-rose-700 border-rose-200',
                     )}
                   >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {t.status === 'started'
+                    <Icon name={t.status === 'started'
                         ? 'terminal'
                         : t.status === 'done'
                           ? 'check_circle'
-                          : 'error'}
-                    </span>
+                          : 'error'} className="text-[14px]" />
                     {t.status === 'started'
                       ? `Ejecutando: ${t.label}`
                       : t.status === 'done'
@@ -213,7 +210,7 @@ export function MessageBubble({
               className="absolute -top-2 -right-2 p-1.5 sm:p-1 rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 shadow-sm opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
               aria-label="Opciones"
             >
-              <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+              <Icon name="more_horiz" className="text-[16px]" />
             </button>
             {menuOpen && (
               <div className="absolute z-20 top-6 right-0 sm:right-0 left-auto bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-44 sm:w-48">
@@ -222,7 +219,7 @@ export function MessageBubble({
                   onClick={handleCopy}
                   className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                  <Icon name="content_copy" className="text-[16px]" />
                   Copiar
                 </button>
                 <button
@@ -231,7 +228,7 @@ export function MessageBubble({
                   disabled={!activeProject}
                   className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2 disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[16px]">bookmark_add</span>
+                  <Icon name="bookmark_add" className="text-[16px]" />
                   Guardar en memoria
                 </button>
                 {content.length > 300 && (
@@ -243,7 +240,7 @@ export function MessageBubble({
                         onClick={() => { onOpenReport(content); setMenuOpen(false); }}
                         className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                       >
-                        <span className="material-symbols-outlined text-[16px] text-[hsl(var(--color-primary))]">article</span>
+                        <Icon name="article" className="text-[16px] text-[hsl(var(--color-primary))]" />
                         Ver como informe
                       </button>
                     )}
@@ -252,7 +249,7 @@ export function MessageBubble({
                       onClick={handleExportPDF}
                       className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-[16px] text-rose-500">picture_as_pdf</span>
+                      <Icon name="picture_as_pdf" className="text-[16px] text-rose-500" />
                       Exportar PDF
                     </button>
                     <button
@@ -260,7 +257,7 @@ export function MessageBubble({
                       onClick={handleExportWord}
                       className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-[16px] text-blue-500">description</span>
+                      <Icon name="description" className="text-[16px] text-blue-500" />
                       Exportar Word
                     </button>
                   </>

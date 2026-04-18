@@ -1,4 +1,7 @@
-import { Badge } from '@radikal/ui';
+import {
+  Badge,
+  Icon,
+} from '@radikal/ui';
 import { fmtDate, sentimentClasses, sentimentLabel } from './helpers';
 import type { NewsItemSimple } from './types';
 
@@ -12,9 +15,7 @@ export function LegacySourcesList({
   return (
     <div>
       <h3 className="font-display text-xl font-bold mb-3 flex items-center gap-2">
-        <span className="material-symbols-outlined text-cyan-600 text-[22px]">
-          format_list_numbered
-        </span>
+        <Icon name="format_list_numbered" className="text-cyan-600 text-[22px]" />
         Fuentes ({items.length})
       </h3>
       <ol className="space-y-2 list-none pl-0">

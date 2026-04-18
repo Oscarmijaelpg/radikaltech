@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 import { AGENTS } from '../agents';
 
@@ -64,7 +73,7 @@ export function AgentPicker({ open, onOpenChange, onPick, loading }: Props) {
               >
                 {isSelected && (
                   <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[hsl(var(--color-primary))] text-white grid place-items-center z-10 shadow-md">
-                    <span className="material-symbols-outlined text-[16px]">check</span>
+                    <Icon name="check" className="text-[16px]" />
                   </span>
                 )}
                 {/* Agent image - takes full card width */}

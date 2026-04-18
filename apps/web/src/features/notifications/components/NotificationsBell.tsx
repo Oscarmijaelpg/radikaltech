@@ -8,6 +8,7 @@ import {
   useMarkAllNotificationsRead,
   type Notification,
 } from '../api/notifications';
+import { Icon } from '@radikal/ui';
 
 export function NotificationsBell() {
   const navigate = useNavigate();
@@ -52,9 +53,7 @@ export function NotificationsBell() {
         aria-expanded={open}
         className="relative w-11 h-11 grid place-items-center rounded-xl hover:bg-slate-100 transition-colors"
       >
-        <span className="material-symbols-outlined text-slate-600 text-[22px]">
-          notifications
-        </span>
+        <Icon name="notifications" className="text-slate-600 text-[22px]" />
         {unread > 0 && (
           <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black grid place-items-center shadow">
             {unread > 9 ? '9+' : unread}

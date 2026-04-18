@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Badge, Button, Card, SectionTitle, Spinner } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+  Spinner,
+} from '@radikal/ui';
 import {
   useCompetitors,
   useSocialAccounts,
@@ -71,7 +78,7 @@ export function CompetitorStatusGrid({ projectId }: Props) {
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={() => setUserModalOpen(true)}>
-          <span className="material-symbols-outlined text-[16px]">add_link</span>
+          <Icon name="add_link" className="text-[16px]" />
           Mis redes
         </Button>
       </div>
@@ -99,9 +106,7 @@ export function CompetitorStatusGrid({ projectId }: Props) {
             <tr className="border-b border-slate-50 bg-[hsl(var(--color-primary)/0.02)]">
               <td className="px-4 py-3 font-bold text-slate-900">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px] text-[hsl(var(--color-primary))]">
-                    stars
-                  </span>
+                  <Icon name="stars" className="text-[18px] text-[hsl(var(--color-primary))]" />
                   Mi marca
                 </div>
               </td>
@@ -118,7 +123,7 @@ export function CompetitorStatusGrid({ projectId }: Props) {
                       }`}
                       title={active ? 'Conectada' : 'Añadir URL'}
                     >
-                      <span className="material-symbols-outlined text-[14px]">{n.icon}</span>
+                      <Icon name={n.icon} className="text-[14px]" />
                       {active ? 'OK' : '+'}
                     </button>
                   </td>
@@ -160,9 +165,7 @@ export function CompetitorStatusGrid({ projectId }: Props) {
                     return (
                       <td key={n.key} className="px-2 py-3 text-center">
                         <div className="inline-flex flex-col items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-slate-400">
-                            {n.icon}
-                          </span>
+                          <Icon name={n.icon} className="text-[14px] text-slate-400" />
                           {badge}
                         </div>
                       </td>
@@ -176,7 +179,7 @@ export function CompetitorStatusGrid({ projectId }: Props) {
                       disabled={analyzingId === c.id}
                     >
                       {analyzingId === c.id ? <Spinner /> : (
-                        <span className="material-symbols-outlined text-[14px]">sync</span>
+                        <Icon name="sync" className="text-[14px]" />
                       )}
                       Sincronizar
                     </Button>

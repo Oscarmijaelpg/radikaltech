@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Button, Card } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
 import type { ContentAsset } from '../api/content';
@@ -181,10 +185,10 @@ export function ScheduledCalendar({ posts, assetsById, onCreateAtDate, onEditPos
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goPrev} aria-label="Mes anterior">
-            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            <Icon name="chevron_left" className="text-[18px]" />
           </Button>
           <Button variant="outline" size="sm" onClick={goNext} aria-label="Mes siguiente">
-            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            <Icon name="chevron_right" className="text-[18px]" />
           </Button>
           <Button variant="outline" size="sm" onClick={goToday}>
             Hoy
@@ -279,9 +283,7 @@ export function ScheduledCalendar({ posts, assetsById, onCreateAtDate, onEditPos
                           />
                         ) : (
                           <span className="w-5 h-5 rounded bg-slate-100 grid place-items-center shrink-0">
-                            <span className="material-symbols-outlined text-[12px] text-slate-400">
-                              image
-                            </span>
+                            <Icon name="image" className="text-[12px] text-slate-400" />
                           </span>
                         )}
                         <span className="text-[9px] font-semibold text-slate-600 shrink-0">
@@ -289,12 +291,7 @@ export function ScheduledCalendar({ posts, assetsById, onCreateAtDate, onEditPos
                         </span>
                         <div className="flex items-center gap-0.5 min-w-0">
                           {p.platforms.slice(0, 3).map((pl) => (
-                            <span
-                              key={pl}
-                              className="material-symbols-outlined text-[11px] text-slate-500"
-                            >
-                              {PLATFORM_ICON[pl]}
-                            </span>
+                            <Icon key={pl} name={PLATFORM_ICON[pl]} className="text-[11px] text-slate-500" />
                           ))}
                         </div>
                       </div>

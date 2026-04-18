@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
+  Icon,
   Input,
   Label,
   Select,
@@ -83,7 +84,7 @@ export function ProfileTab() {
           {avatar ? (
             <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
-            <span className="material-symbols-outlined text-slate-400 text-[32px]">person</span>
+            <Icon name="person" className="text-slate-400 text-[32px]" />
           )}
         </div>
         <div>

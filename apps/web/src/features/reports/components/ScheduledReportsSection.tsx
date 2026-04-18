@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Skeleton,
   Spinner,
@@ -90,7 +91,7 @@ export function ScheduledReportsSection({ projectId }: Props) {
           </p>
         </div>
         <Button size="sm" onClick={() => setOpen(true)}>
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Icon name="add" className="text-[18px]" />
           Nuevo
         </Button>
       </div>
@@ -147,7 +148,7 @@ export function ScheduledReportsSection({ projectId }: Props) {
                 {runNowMut.isPending ? (
                   <Spinner className="h-4 w-4" />
                 ) : (
-                  <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+                  <Icon name="play_arrow" className="text-[18px]" />
                 )}
               </button>
               <button
@@ -164,7 +165,7 @@ export function ScheduledReportsSection({ projectId }: Props) {
                 {deleteMut.isPending ? (
                   <Spinner className="h-4 w-4" />
                 ) : (
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                  <Icon name="delete" className="text-[18px]" />
                 )}
               </button>
             </li>

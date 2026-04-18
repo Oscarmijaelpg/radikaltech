@@ -1,5 +1,6 @@
 import { cn } from '@/shared/utils/cn';
 import type { ToolChipState } from './MessageBubble';
+import { Icon } from '@radikal/ui';
 
 interface Props {
   tool: ToolChipState;
@@ -50,7 +51,7 @@ function ImageResultCard({ data }: { data: Record<string, unknown> }) {
         <img src={url} alt="Imagen generada" className="w-full max-h-[200px] sm:max-h-[300px] object-cover" />
       </div>
       <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-        <span className="material-symbols-outlined text-[14px]">palette</span>
+        <Icon name="palette" className="text-[14px]" />
         Imagen generada con IA
       </p>
     </CardWrapper>
@@ -64,7 +65,7 @@ function NewsResultCard({ data }: { data: Record<string, unknown> }) {
     <CardWrapper>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 grid place-items-center text-white">
-          <span className="material-symbols-outlined text-[16px]">newspaper</span>
+          <Icon name="newspaper" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">{items.length} noticias encontradas</p>
       </div>
@@ -78,7 +79,7 @@ function NewsResultCard({ data }: { data: Record<string, unknown> }) {
             </div>
             {item.url && (
               <a href={item.url} target="_blank" rel="noreferrer" className="shrink-0 text-cyan-600 hover:text-cyan-700">
-                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                <Icon name="open_in_new" className="text-[14px]" />
               </a>
             )}
           </div>
@@ -108,7 +109,7 @@ function TrendsResultCard({ data }: { data: Record<string, unknown> }) {
     <CardWrapper>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 grid place-items-center text-white">
-          <span className="material-symbols-outlined text-[16px]">trending_up</span>
+          <Icon name="trending_up" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">{trends.length} tendencias detectadas</p>
       </div>
@@ -137,7 +138,7 @@ function CompetitorDataCard({ data }: { data: Record<string, unknown> }) {
       <CardWrapper>
         <div className="flex items-center gap-2 mb-3">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 grid place-items-center text-white">
-            <span className="material-symbols-outlined text-[16px]">groups</span>
+            <Icon name="groups" className="text-[16px]" />
           </div>
           <p className="text-xs font-bold text-slate-700">{comps.length} competidores</p>
         </div>
@@ -173,7 +174,7 @@ function CompetitorDataCard({ data }: { data: Record<string, unknown> }) {
     <CardWrapper>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 grid place-items-center text-white">
-          <span className="material-symbols-outlined text-[16px]">person_search</span>
+          <Icon name="person_search" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">{name ?? 'Competidor'}</p>
       </div>
@@ -217,7 +218,7 @@ function BrandProfileCard({ data }: { data: Record<string, unknown> }) {
     <CardWrapper>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 grid place-items-center text-white">
-          <span className="material-symbols-outlined text-[16px]">badge</span>
+          <Icon name="badge" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">{(project.name as string) ?? 'Tu marca'}</p>
       </div>
@@ -329,7 +330,7 @@ function ReportCreatedCard({
     <CardWrapper className="border-violet-200 bg-gradient-to-br from-violet-50 to-white">
       <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 grid place-items-center text-white shadow-md shrink-0">
-          <span className="material-symbols-outlined text-[20px]">description</span>
+          <Icon name="description" className="text-[20px]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-violet-800 truncate">{title}</p>
@@ -355,7 +356,7 @@ function ReportCreatedCard({
             onClick={() => onOpenReport(content)}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors active:scale-95 min-h-[36px]"
           >
-            <span className="material-symbols-outlined text-[16px]">article</span>
+            <Icon name="article" className="text-[16px]" />
             Abrir informe
           </button>
         )}
@@ -384,7 +385,7 @@ function MarketsCard({ data }: { data: Record<string, unknown> }) {
     <CardWrapper>
       <div className="flex items-center gap-2 mb-2">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 grid place-items-center text-white">
-          <span className="material-symbols-outlined text-[16px]">public</span>
+          <Icon name="public" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">Mercados detectados</p>
       </div>

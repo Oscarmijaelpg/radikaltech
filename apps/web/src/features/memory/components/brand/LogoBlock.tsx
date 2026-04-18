@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Spinner } from '@radikal/ui';
+import {
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -106,7 +109,7 @@ export function LogoBlock({
             <Spinner />
           ) : (
             <div className="flex flex-col items-center gap-1">
-              <span className="material-symbols-outlined text-[24px]">upload</span>
+              <Icon name="upload" className="text-[24px]" />
               <span className="text-xs font-bold">{logo ? 'Reemplazar' : 'Subir logo'}</span>
             </div>
           )}

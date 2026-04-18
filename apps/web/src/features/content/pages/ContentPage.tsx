@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SectionTitle, Tabs, TabsList, TabsTrigger, TabsContent } from '@radikal/ui';
+import {
+  Icon,
+  SectionTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@radikal/ui';
 import { AssetGallery } from '../components/AssetGallery';
 import { AssetUploader } from '../components/AssetUploader';
 import { ImageGenerator } from '../components/ImageGenerator';
@@ -33,7 +40,7 @@ export function ContentPage() {
       {/* Mini breadcrumb */}
       <div className="px-4 sm:px-6 md:px-8 pt-3 pb-1 max-w-7xl mx-auto flex items-center justify-between gap-3 text-[11px] text-slate-500">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]">palette</span>
+          <Icon name="palette" className="text-[14px] text-[hsl(var(--color-primary))]" />
           <span className="font-semibold truncate">Crear</span>
           <span className="opacity-40">›</span>
           <span className="truncate">Contenido · {TAB_SUB[tab]}</span>

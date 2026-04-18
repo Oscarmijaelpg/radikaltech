@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Card, Skeleton } from '@radikal/ui';
+import {
+  Card,
+  Icon,
+  Skeleton,
+} from '@radikal/ui';
 import { useMemories } from '../api/memory';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 
@@ -32,7 +36,7 @@ export function SavedChatsTab({ projectId }: Props) {
         const body = (
           <>
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-slate-400">bookmark</span>
+              <Icon name="bookmark" className="text-slate-400" />
               <div className="min-w-0">
                 <h3 className="font-display font-bold text-slate-900 truncate">
                   {item.key || 'Chat guardado'}

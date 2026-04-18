@@ -1,4 +1,10 @@
-import { Badge, Button, Card, Spinner } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import type { GenerateResult } from './types';
 
 interface Props {
@@ -53,11 +59,11 @@ export function SingleResult({
       <p className="text-sm text-slate-600 mb-4 italic">&ldquo;{current.prompt}&rdquo;</p>
       <div className="flex flex-wrap gap-2 items-center">
         <Button variant="outline" onClick={onDownload}>
-          <span className="material-symbols-outlined text-[18px]">download</span>
+          <Icon name="download" className="text-[18px]" />
           Descargar
         </Button>
         <Button variant="outline" onClick={onRegenerate} disabled={loading}>
-          <span className="material-symbols-outlined text-[18px]">refresh</span>
+          <Icon name="refresh" className="text-[18px]" />
           Regenerar
         </Button>
         {current.assetId && (
@@ -65,7 +71,7 @@ export function SingleResult({
             variant="outline"
             onClick={() => onEdit(current.assetId!, current.url)}
           >
-            <span className="material-symbols-outlined text-[18px]">tune</span>
+            <Icon name="tune" className="text-[18px]" />
             Iterar
           </Button>
         )}
@@ -77,7 +83,7 @@ export function SingleResult({
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-[18px]">bookmark_add</span>
+              <Icon name="bookmark_add" className="text-[18px]" />
               Guardar en galería
             </>
           )}

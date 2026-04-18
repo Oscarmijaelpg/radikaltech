@@ -3,14 +3,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Button,
-  Spinner,
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Label,
+  Spinner,
 } from '@radikal/ui';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import { cn } from '@/shared/utils/cn';
@@ -168,7 +169,7 @@ export function ChatSidebar({
           aria-label="Opciones de chat"
           className="absolute right-2 top-3 p-1 rounded-md text-slate-400 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <span className="material-symbols-outlined text-[16px]" aria-hidden>more_horiz</span>
+          <Icon name="more_horiz" className="text-[16px]" aria-hidden />
         </button>
         {menuId === chat.id && (
           <div className="absolute right-2 top-10 z-20 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-44">
@@ -180,7 +181,7 @@ export function ChatSidebar({
               }}
               className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[16px]">drive_file_move</span>
+              <Icon name="drive_file_move" className="text-[16px]" />
               Mover a...
             </button>
             <button
@@ -191,9 +192,7 @@ export function ChatSidebar({
               }}
               className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[16px]">
-                {chat.isArchived ? 'unarchive' : 'archive'}
-              </span>
+              <Icon name={chat.isArchived ? 'unarchive' : 'archive'} className="text-[16px]" />
               {chat.isArchived ? 'Desarchivar' : 'Archivar'}
             </button>
             <button
@@ -205,7 +204,7 @@ export function ChatSidebar({
               }}
               className="w-full px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[16px]">delete</span>
+              <Icon name="delete" className="text-[16px]" />
               Eliminar
             </button>
           </div>
@@ -221,7 +220,7 @@ export function ChatSidebar({
               }}
               className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[16px]">folder_off</span>
+              <Icon name="folder_off" className="text-[16px]" />
               Sin carpeta
             </button>
             {folders.map((f) => (
@@ -264,9 +263,7 @@ export function ChatSidebar({
             onClick={() => toggleCollapse(key)}
             className="flex-1 flex items-center gap-2 text-left"
           >
-            <span className="material-symbols-outlined text-[16px] text-slate-400">
-              {isCollapsed ? 'chevron_right' : 'expand_more'}
-            </span>
+            <Icon name={isCollapsed ? 'chevron_right' : 'expand_more'} className="text-[16px] text-slate-400" />
             {color && (
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -289,7 +286,7 @@ export function ChatSidebar({
                 aria-label="Opciones de carpeta"
                 className="p-1 rounded-md text-slate-400 hover:bg-slate-200 opacity-0 group-hover/section:opacity-100"
               >
-                <span className="material-symbols-outlined text-[14px]" aria-hidden>more_horiz</span>
+                <Icon name="more_horiz" className="text-[14px]" aria-hidden />
               </button>
               {folderMenuId === folder.id && (
                 <div className="absolute right-0 top-7 z-20 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-36">
@@ -301,7 +298,7 @@ export function ChatSidebar({
                     }}
                     className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    <Icon name="edit" className="text-[16px]" />
                     Editar
                   </button>
                   <button
@@ -309,7 +306,7 @@ export function ChatSidebar({
                     onClick={() => handleDeleteFolder(folder)}
                     className="w-full px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <Icon name="delete" className="text-[16px]" />
                     Eliminar
                   </button>
                 </div>
@@ -346,7 +343,7 @@ export function ChatSidebar({
       {/* Mobile close button */}
       <div className="flex items-center justify-between p-4 border-b border-slate-200">
         <Button onClick={() => { onNew(); onMobileClose?.(); }} className="flex-1 justify-center">
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Icon name="add" className="text-[18px]" />
           <span className="ml-1">Nueva conversación</span>
         </Button>
         <button
@@ -355,7 +352,7 @@ export function ChatSidebar({
           className="ml-2 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 md:hidden"
           aria-label="Cerrar menú"
         >
-          <span className="material-symbols-outlined text-[20px]">close</span>
+          <Icon name="close" className="text-[20px]" />
         </button>
       </div>
 
@@ -388,7 +385,7 @@ export function ChatSidebar({
           onClick={openNewFolder}
           className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1"
         >
-          <span className="material-symbols-outlined text-[16px]">create_new_folder</span>
+          <Icon name="create_new_folder" className="text-[16px]" />
           Nueva carpeta
         </button>
       </div>

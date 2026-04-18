@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Icon } from '@radikal/ui';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -106,9 +107,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         'w-10 h-10 grid place-items-center rounded-xl bg-white/80 dark:bg-slate-800/80 border border-[hsl(var(--color-border))] hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-colors'
       }
     >
-      <span className="material-symbols-outlined text-[20px] text-slate-700 dark:text-slate-200">
-        {icon}
-      </span>
+      <Icon name={icon} className="text-[20px] text-slate-700 dark:text-slate-200" />
     </button>
   );
 }

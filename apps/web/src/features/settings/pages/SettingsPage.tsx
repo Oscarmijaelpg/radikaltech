@@ -1,4 +1,11 @@
-import { SectionTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@radikal/ui';
+import {
+  Icon,
+  SectionTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@radikal/ui';
 import { AppearanceTab } from '../components/AppearanceTab';
 import { DataTab } from '../components/DataTab';
 import { NotificationsTab } from '../components/NotificationsTab';
@@ -9,7 +16,7 @@ export function SettingsPage() {
   return (
     <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-cyan-50/40">
       <div className="px-4 sm:px-6 md:px-8 pt-3 pb-1 max-w-5xl mx-auto flex items-center gap-1.5 text-[11px] text-slate-500">
-        <span className="material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]">settings</span>
+        <Icon name="settings" className="text-[14px] text-[hsl(var(--color-primary))]" />
         <span className="font-semibold">Configurar</span>
         <span className="opacity-40">›</span>
         <span>Ajustes</span>
@@ -19,7 +26,7 @@ export function SettingsPage() {
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
           <div className="relative z-10 flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm grid place-items-center shrink-0">
-              <span className="material-symbols-outlined text-[24px] sm:text-[32px]">settings</span>
+              <Icon name="settings" className="text-[24px] sm:text-[32px]" />
             </div>
             <div>
               <SectionTitle className="opacity-80 text-white mb-1 sm:mb-2">Cuenta</SectionTitle>

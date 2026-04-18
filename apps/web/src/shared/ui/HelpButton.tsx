@@ -5,6 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  Icon,
 } from '@radikal/ui';
 
 export interface HelpButtonProps {
@@ -30,7 +31,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
           'w-10 h-10 grid place-items-center rounded-xl bg-white/90 dark:bg-slate-800/80 border border-[hsl(var(--color-border))] hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-sm transition-colors'
         }
       >
-        <span className="material-symbols-outlined text-[20px]">help_outline</span>
+        <Icon name="help_outline" className="text-[20px]" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -38,7 +39,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] grid place-items-center text-white shadow-md">
-                <span className="material-symbols-outlined text-[20px]">help_outline</span>
+                <Icon name="help_outline" className="text-[20px]" />
               </div>
               <DialogTitle>{title}</DialogTitle>
             </div>
@@ -58,9 +59,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
                     key={i}
                     className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200"
                   >
-                    <span className="material-symbols-outlined text-[16px] text-[hsl(var(--color-primary))] mt-0.5">
-                      auto_awesome
-                    </span>
+                    <Icon name="auto_awesome" className="text-[16px] text-[hsl(var(--color-primary))] mt-0.5" />
                     <span>{tip}</span>
                   </li>
                 ))}
@@ -76,7 +75,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 font-semibold text-[hsl(var(--color-primary))] hover:underline"
               >
-                <span className="material-symbols-outlined text-[16px]">play_circle</span>
+                <Icon name="play_circle" className="text-[16px]" />
                 Ver video
               </a>
             ) : (
@@ -88,7 +87,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
               className="inline-flex items-center gap-1 font-semibold text-[hsl(var(--color-primary))] hover:underline"
             >
               Ver ayuda completa
-              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              <Icon name="arrow_forward" className="text-[14px]" />
             </a>
           </div>
         </DialogContent>

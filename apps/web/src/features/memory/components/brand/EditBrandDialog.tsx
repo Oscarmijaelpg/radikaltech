@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Spinner,
   Textarea,
@@ -78,7 +79,7 @@ function ChipEditor({
               aria-label={`Quitar ${it}`}
               className="hover:opacity-70"
             >
-              <span className="material-symbols-outlined text-[14px]" aria-hidden>close</span>
+              <Icon name="close" className="text-[14px]" aria-hidden />
             </button>
           </span>
         ))}
@@ -97,7 +98,7 @@ function ChipEditor({
           containerClassName="flex-1"
         />
         <Button type="button" variant="outline" onClick={add}>
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Icon name="add" className="text-[18px]" />
         </Button>
       </div>
     </div>
@@ -137,7 +138,7 @@ function ColorEditor({
               size="icon"
               onClick={() => onChange(colors.filter((_, j) => j !== i))}
             >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
+              <Icon name="delete" className="text-[18px]" />
             </Button>
           </div>
         ))}
@@ -147,7 +148,7 @@ function ColorEditor({
         variant="outline"
         onClick={() => onChange([...colors, '#EC4899'])}
       >
-        <span className="material-symbols-outlined text-[18px]">add</span>
+        <Icon name="add" className="text-[18px]" />
         Añadir color
       </Button>
     </div>

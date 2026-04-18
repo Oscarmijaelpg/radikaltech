@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
-import { Stepper } from '@radikal/ui';
+import {
+  Icon,
+  Stepper,
+} from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 import { LoadingMessages, SAVING_MESSAGES } from './LoadingMessages';
 import { useActiveJobsForUser } from '@/features/memory/api/memory/jobs';
@@ -103,7 +106,7 @@ export function OnboardingLayout({
             >
               {errorMessage && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2">
-                  <span className="material-symbols-outlined text-red-500 text-[20px]">error</span>
+                  <Icon name="error" className="text-red-500 text-[20px]" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-red-700">No pudimos guardar</p>
                     <p className="text-xs text-red-600 mt-0.5 break-words">{errorMessage}</p>
@@ -115,16 +118,14 @@ export function OnboardingLayout({
                       className="text-red-400 hover:text-red-600 p-0.5 rounded-full hover:bg-red-100 transition-colors shrink-0"
                       aria-label="Cerrar"
                     >
-                      <span className="material-symbols-outlined text-[18px]">close</span>
+                      <Icon name="close" className="text-[18px]" />
                     </button>
                   )}
                 </div>
               )}
               {bgJobs.length > 0 && !saving && (
                 <div className="mb-4 p-3 bg-gradient-to-r from-[hsl(var(--color-primary)/0.06)] to-transparent border border-[hsl(var(--color-primary)/0.15)] rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <span className="material-symbols-outlined text-[18px] text-[hsl(var(--color-primary))] animate-spin shrink-0 mt-0.5">
-                    progress_activity
-                  </span>
+                  <Icon name="progress_activity" className="text-[18px] text-[hsl(var(--color-primary))] animate-spin shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-600">
                       <span className="font-bold text-slate-700">

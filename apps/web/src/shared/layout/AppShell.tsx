@@ -9,6 +9,7 @@ import { NotificationsBell } from '@/features/notifications/components/Notificat
 import { JobFailureToasts } from '@/features/notifications/components/JobFailureToasts';
 import { LevelBadge } from '@/shared/fte/FirstTimeExperience';
 import { GlobalJobsBanner } from './GlobalJobsBanner';
+import { Icon } from '@radikal/ui';
 
 interface NavItem {
   to: string;
@@ -68,7 +69,7 @@ function ProjectBadge({ projectId, label, size = 36 }: { projectId?: string | nu
       style={px}
       className="rounded-xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] grid place-items-center text-white shrink-0 text-xs font-bold"
     >
-      {label ? getInitials(label) : <span className="material-symbols-outlined text-[18px]">workspaces</span>}
+      {label ? getInitials(label) : <Icon name="workspaces" className="text-[18px]" />}
     </div>
   );
 }
@@ -156,7 +157,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
                   )}
                 >
-                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                  <Icon name={item.icon} className="text-[20px]" />
                 </NavLink>
               );
             })}
@@ -217,9 +218,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                 {activeProject?.industry ?? 'Sin industria'}
               </p>
             </div>
-            <span className="material-symbols-outlined text-slate-400 text-[18px]">
-              unfold_more
-            </span>
+            <Icon name="unfold_more" className="text-slate-400 text-[18px]" />
           </button>
 
           {projectMenuOpen && (
@@ -241,9 +240,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                     {p.company_name ?? p.name}
                   </span>
                   {activeProject?.id === p.id && (
-                    <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-[18px]">
-                      check
-                    </span>
+                    <Icon name="check" className="text-[hsl(var(--color-primary))] text-[18px]" />
                   )}
                 </button>
               ))}
@@ -256,7 +253,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                   }}
                   className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm font-semibold text-[hsl(var(--color-primary))] min-h-[48px]"
                 >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <Icon name="add" className="text-[18px]" />
                   Nuevo proyecto
                 </button>
               </div>
@@ -291,7 +288,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                         : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
                     )}
                   >
-                    <span className="material-symbols-outlined text-[20px] shrink-0">{item.icon}</span>
+                    <Icon name={item.icon} className="text-[20px] shrink-0" />
                     <span className="flex-1 truncate">{item.label}</span>
                     {item.badge && (
                       <span
@@ -336,9 +333,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
             </p>
             <p className="text-[11px] text-slate-500 truncate">{profile?.email}</p>
           </div>
-          <span className="material-symbols-outlined text-slate-400 text-[18px]">
-            more_vert
-          </span>
+          <Icon name="more_vert" className="text-slate-400 text-[18px]" />
         </button>
 
         {userMenuOpen && (
@@ -351,7 +346,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
               }}
               className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-h-[48px]"
             >
-              <span className="material-symbols-outlined text-[18px]">folder_special</span>
+              <Icon name="folder_special" className="text-[18px]" />
               Mis proyectos
             </button>
             <button
@@ -362,14 +357,14 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
               }}
               className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-h-[48px]"
             >
-              <span className="material-symbols-outlined text-[18px]">settings</span>
+              <Icon name="settings" className="text-[18px]" />
               Ajustes
             </button>
             <button
               onClick={handleSignOut}
               className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2 min-h-[48px] border-t border-slate-100 dark:border-slate-800"
             >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
+              <Icon name="logout" className="text-[18px]" />
               Cerrar sesion
             </button>
           </div>
@@ -440,7 +435,7 @@ export function AppShell() {
           aria-label="Abrir menu"
           className="w-11 h-11 -ml-2 grid place-items-center rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-colors"
         >
-          <span className="material-symbols-outlined">menu</span>
+          <Icon name="menu" />
         </button>
         <img src={radikalLogo} alt="Radikal" className="h-7 w-auto" />
         <div className="flex-1" />
@@ -499,7 +494,7 @@ export function AppShell() {
             className="absolute top-3 right-3 w-10 h-10 grid place-items-center rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-colors z-10"
             style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}
           >
-            <span className="material-symbols-outlined text-slate-500">close</span>
+            <Icon name="close" className="text-slate-500" />
           </button>
           <SidebarContent onNavigate={() => setDrawerOpen(false)} compact />
         </aside>

@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Spinner,
 } from '@radikal/ui';
@@ -119,9 +120,9 @@ export function ReportGeneratorButton({ projectId, onCreated }: Props) {
   return (
     <div className="relative">
       <Button onClick={() => setMenuOpen((v) => !v)}>
-        <span className="material-symbols-outlined text-[18px]">add</span>
+        <Icon name="add" className="text-[18px]" />
         Nuevo reporte
-        <span className="material-symbols-outlined text-[18px]">expand_more</span>
+        <Icon name="expand_more" className="text-[18px]" />
       </Button>
 
       {menuOpen && (
@@ -295,7 +296,7 @@ function MenuItem({
       onClick={onClick}
       className="w-full flex items-start gap-3 px-4 py-3 min-h-[48px] hover:bg-violet-50 transition-colors text-left"
     >
-      <span className="material-symbols-outlined text-violet-600 text-[22px]">{icon}</span>
+      <Icon name={icon} className="text-violet-600 text-[22px]" />
       <div>
         <p className="text-sm font-semibold text-slate-900">{title}</p>
         <p className="text-xs text-slate-500">{subtitle}</p>

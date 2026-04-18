@@ -1,6 +1,10 @@
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Badge, Card } from '@radikal/ui';
+import {
+  Badge,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import type { NewsItem } from '../api/news';
 
 function relativeDate(iso?: string): string {
@@ -68,7 +72,7 @@ export function NewsResultsGrid({ items, currentTopic, onAskSira }: Props) {
                 className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 hover:text-cyan-800"
               >
                 Leer más
-                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                <Icon name="open_in_new" className="text-[16px]" />
               </a>
               <button
                 type="button"
@@ -76,7 +80,7 @@ export function NewsResultsGrid({ items, currentTopic, onAskSira }: Props) {
                 className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-cyan-700 px-3 py-2 rounded-lg hover:bg-cyan-50 transition-colors min-h-[44px]"
                 aria-label="Preguntar a Sira"
               >
-                <span className="material-symbols-outlined text-[14px]">forum</span>
+                <Icon name="forum" className="text-[14px]" />
                 Preguntar a Sira
               </button>
             </div>

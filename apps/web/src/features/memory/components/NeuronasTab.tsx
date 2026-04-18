@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   FileUpload,
+  Icon,
   Input,
   Skeleton,
   Spinner,
@@ -143,9 +144,7 @@ export function NeuronasTab({ projectId }: Props) {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <div className="flex-1 relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
-            search
-          </span>
+          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -165,7 +164,7 @@ export function NeuronasTab({ projectId }: Props) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <h3 className="font-display text-base sm:text-lg font-bold">Recuerdos y notas</h3>
             <Button onClick={openNewNote}>
-              <span className="material-symbols-outlined text-[18px]">add</span>
+              <Icon name="add" className="text-[18px]" />
               Nueva nota
             </Button>
           </div>
@@ -188,7 +187,7 @@ export function NeuronasTab({ projectId }: Props) {
                 return (
                   <Card key={n.id} className="p-5 flex flex-col gap-3 hover:shadow-lg transition-shadow">
                     <div className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-violet-500">note</span>
+                      <Icon name="note" className="text-violet-500" />
                       <h4 className="font-display font-bold text-slate-900 flex-1 truncate">
                         {title}
                       </h4>
@@ -203,7 +202,7 @@ export function NeuronasTab({ projectId }: Props) {
                           className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600"
                           aria-label="Editar"
                         >
-                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                          <Icon name="edit" className="text-[18px]" />
                         </button>
                         <button
                           type="button"
@@ -211,7 +210,7 @@ export function NeuronasTab({ projectId }: Props) {
                           className="p-1.5 rounded-lg hover:bg-red-50 text-red-600"
                           aria-label="Eliminar"
                         >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                          <Icon name="delete" className="text-[18px]" />
                         </button>
                       </div>
                     </div>
@@ -372,9 +371,7 @@ function DocsSection({ projectId, docs, loading }: DocsSectionProps) {
             return (
               <Card key={a.id} className="p-5 flex flex-col gap-3 hover:shadow-lg transition-shadow">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-pink-500 text-[28px]">
-                    {iconForMime(mime)}
-                  </span>
+                  <Icon name={iconForMime(mime)} className="text-pink-500 text-[28px]" />
                   <div className="min-w-0 flex-1">
                     <h4 className="font-display font-bold text-slate-900 truncate">{name}</h4>
                     <p className="text-[11px] text-slate-500">
@@ -389,7 +386,7 @@ function DocsSection({ projectId, docs, loading }: DocsSectionProps) {
                     rel="noreferrer noopener"
                     className="inline-flex items-center gap-1 text-sm font-semibold text-violet-700 hover:text-violet-800"
                   >
-                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    <Icon name="open_in_new" className="text-[16px]" />
                     Ver
                   </a>
                   <button
@@ -398,7 +395,7 @@ function DocsSection({ projectId, docs, loading }: DocsSectionProps) {
                     className="p-1.5 rounded-lg hover:bg-red-50 text-red-600"
                     aria-label="Eliminar"
                   >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <Icon name="delete" className="text-[18px]" />
                   </button>
                 </div>
               </Card>

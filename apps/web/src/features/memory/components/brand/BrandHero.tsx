@@ -1,4 +1,9 @@
-import { Badge, Button, Card } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import type { Project } from '@/providers/ProjectProvider';
 import { LogoBlock } from './LogoBlock';
 import { AnalyzeBrandButton } from './AnalyzeBrandButton';
@@ -52,7 +57,7 @@ export function BrandHero({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-sm text-[hsl(var(--color-primary))] hover:underline font-medium"
               >
-                <span className="material-symbols-outlined text-[16px]">language</span>
+                <Icon name="language" className="text-[16px]" />
                 {project.website_url.replace(/^https?:\/\//, '')}
               </a>
             )}
@@ -60,7 +65,7 @@ export function BrandHero({
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 justify-center md:justify-start pt-2">
             <AnalyzeBrandButton projectId={projectId} />
             <Button variant="outline" onClick={onEdit}>
-              <span className="material-symbols-outlined text-[18px]">edit</span>
+              <Icon name="edit" className="text-[18px]" />
               Editar manualmente
             </Button>
           </div>

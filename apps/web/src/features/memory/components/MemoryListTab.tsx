@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Skeleton,
   Spinner,
@@ -97,7 +98,7 @@ export function MemoryListTab({ projectId, category, labels }: Props) {
     <div className="space-y-5">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Icon name="add" className="text-[18px]" />
           {labels.addButton}
         </Button>
       </div>
@@ -121,7 +122,7 @@ export function MemoryListTab({ projectId, category, labels }: Props) {
                 </h3>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(item)} aria-label="Editar">
-                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                    <Icon name="edit" className="text-[18px]" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -129,7 +130,7 @@ export function MemoryListTab({ projectId, category, labels }: Props) {
                     onClick={() => onDelete(item.id)}
                     aria-label="Eliminar"
                   >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <Icon name="delete" className="text-[18px]" />
                   </Button>
                 </div>
               </div>

@@ -9,7 +9,14 @@ import {
   Tooltip,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { Badge, Button, Card, SectionTitle, Skeleton } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+  Skeleton,
+} from '@radikal/ui';
 import {
   useCompetitorBenchmark,
   useCompetitorGaps,
@@ -124,7 +131,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
       {/* Posición actual */}
       <Card className="p-6 bg-gradient-to-br from-violet-50 to-fuchsia-50 border-violet-200">
         <div className="flex items-start gap-3 sm:gap-4">
-          <span className="material-symbols-outlined text-violet-600 text-[28px] sm:text-[36px] shrink-0">{pos.icon}</span>
+          <Icon name={pos.icon} className="text-violet-600 text-[28px] sm:text-[36px] shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <SectionTitle>
@@ -142,7 +149,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
       {/* Tabla comparativa */}
       <div>
         <h3 className="font-display text-lg font-bold mb-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-violet-600">table_chart</span>
+          <Icon name="table_chart" className="text-violet-600" />
           Comparativa vs Top 5
         </h3>
         <Card className="p-0 overflow-hidden">
@@ -220,7 +227,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
         <div>
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h3 className="font-display text-lg font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-violet-600">radar</span>
+              <Icon name="radar" className="text-violet-600" />
               Benchmark multidimensional
             </h3>
             <select
@@ -265,7 +272,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
       {/* Gaps / oportunidades */}
       <div>
         <h3 className="font-display text-lg font-bold mb-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-amber-600">lightbulb</span>
+          <Icon name="lightbulb" className="text-amber-600" />
           Oportunidades detectadas
         </h3>
         {loadingGaps ? (
@@ -282,7 +289,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
             {gaps.content_gaps.slice(0, 4).map((g) => (
               <Card key={`fmt-${g.format}`} className="p-4 border-amber-200 bg-amber-50/40">
                 <div className="flex items-start gap-2 mb-2">
-                  <span className="material-symbols-outlined text-amber-600">warning</span>
+                  <Icon name="warning" className="text-amber-600" />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm text-slate-900">
                       Formato: <span className="capitalize">{g.format}</span>
@@ -308,7 +315,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
             {gaps.temporal_gaps.slice(0, 3).map((g) => (
               <Card key={`day-${g.weekday}`} className="p-4 border-amber-200 bg-amber-50/40">
                 <div className="flex items-start gap-2 mb-2">
-                  <span className="material-symbols-outlined text-amber-600">calendar_today</span>
+                  <Icon name="calendar_today" className="text-amber-600" />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm text-slate-900 capitalize">{g.weekday}</h4>
                     <p className="text-xs text-slate-600 mt-1">
@@ -324,7 +331,7 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
             {gaps.theme_gaps.length > 0 && (
               <Card className="p-4 border-amber-200 bg-amber-50/40 sm:col-span-2">
                 <div className="flex items-start gap-2 mb-2">
-                  <span className="material-symbols-outlined text-amber-600">topic</span>
+                  <Icon name="topic" className="text-amber-600" />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm text-slate-900">Temas sin explorar</h4>
                     <p className="text-xs text-slate-600 mt-1">

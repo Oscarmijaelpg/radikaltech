@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Badge, Button, Spinner } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 import { api } from '@/lib/api';
 import { useProject } from '@/providers/ProjectProvider';
@@ -195,7 +200,7 @@ export function SiraContextualPanel() {
             className="w-8 h-8 rounded-lg hover:bg-white/70 grid place-items-center text-slate-600"
             aria-label="Minimizar"
           >
-            <span className="material-symbols-outlined text-[20px]">remove</span>
+            <Icon name="remove" className="text-[20px]" />
           </button>
           <button
             type="button"
@@ -203,7 +208,7 @@ export function SiraContextualPanel() {
             className="w-8 h-8 rounded-lg hover:bg-white/70 grid place-items-center text-slate-600"
             aria-label="Cerrar"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <Icon name="close" className="text-[20px]" />
           </button>
         </div>
 
@@ -258,7 +263,7 @@ export function SiraContextualPanel() {
           {showReportButton && (
             <div className="pt-2">
               <Button onClick={triggerReport} className="w-full">
-                <span className="material-symbols-outlined text-[18px]">description</span>
+                <Icon name="description" className="text-[18px]" />
                 Generar reporte
               </Button>
             </div>
@@ -289,7 +294,7 @@ export function SiraContextualPanel() {
               className="h-10"
               aria-label="Enviar"
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
+              <Icon name="send" className="text-[18px]" />
             </Button>
           </div>
           <p className="text-center text-[10px] text-slate-400 mt-1.5">

@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Dialog, DialogContent, SectionTitle } from '@radikal/ui';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  Icon,
+  SectionTitle,
+} from '@radikal/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
@@ -113,12 +119,12 @@ export function WelcomeModal() {
                     className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-2"
                   >
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 grid place-items-center text-white shadow-md">
-                      <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
+                      <Icon name={t.icon} className="text-[20px]" />
                     </div>
                     <p className="text-sm font-bold text-slate-900">{t.title}</p>
                     <p className="text-[11px] text-slate-500 line-clamp-2">{t.description}</p>
                     <span className="text-[11px] font-semibold text-pink-600 inline-flex items-center gap-1 mt-auto">
-                      <span className="material-symbols-outlined text-[13px]">schedule</span>~
+                      <Icon name="schedule" className="text-[13px]" />~
                       {t.estimatedMinutes} min
                     </span>
                   </div>
@@ -138,7 +144,7 @@ export function WelcomeModal() {
               }}
             >
               Empezar
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <Icon name="arrow_forward" className="text-[18px]" />
             </Button>
           </div>
         </div>

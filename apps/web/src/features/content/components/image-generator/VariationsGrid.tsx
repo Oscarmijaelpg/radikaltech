@@ -1,4 +1,9 @@
-import { Badge, Button, Card } from '@radikal/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import type { GenerateResult } from './types';
 
 interface Props {
@@ -31,7 +36,7 @@ export function VariationsGrid({
           <Badge variant="muted">{current.style}</Badge>
           {current.variations.length >= 2 && (
             <Button variant="outline" size="sm" onClick={onOpenCompare}>
-              <span className="material-symbols-outlined text-[16px]">compare</span>
+              <Icon name="compare" className="text-[16px]" />
               Comparar A vs B
             </Button>
           )}
@@ -62,7 +67,7 @@ export function VariationsGrid({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" onClick={() => void onSelectVariant(i)}>
-                    <span className="material-symbols-outlined text-[16px]">favorite</span>
+                    <Icon name="favorite" className="text-[16px]" />
                     Elegir esta
                   </Button>
                   <Button
@@ -73,7 +78,7 @@ export function VariationsGrid({
                     }}
                     disabled={!v.assetId}
                   >
-                    <span className="material-symbols-outlined text-[16px]">tune</span>
+                    <Icon name="tune" className="text-[16px]" />
                     Iterar
                   </Button>
                   <Button
@@ -81,7 +86,7 @@ export function VariationsGrid({
                     variant="outline"
                     onClick={() => onDownloadVariant(v.url, i, current.jobId)}
                   >
-                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    <Icon name="download" className="text-[16px]" />
                   </Button>
                 </div>
               </div>

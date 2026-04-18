@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Spinner } from '@radikal/ui';
+import {
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
@@ -192,7 +195,7 @@ export function ChatPage() {
                 className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden shrink-0"
                 aria-label="Abrir menú"
               >
-                <span className="material-symbols-outlined text-[24px]">menu</span>
+                <Icon name="menu" className="text-[24px]" />
               </button>
               <Breadcrumb
                 items={[
@@ -243,7 +246,7 @@ export function ChatPage() {
             {isMultiAgent && (
               <div className="px-2 sm:px-4 pt-2 pb-1 max-w-3xl mx-auto w-full">
                 <label className="text-[11px] font-semibold text-slate-500 flex flex-wrap items-center gap-2">
-                  <span className="material-symbols-outlined text-[14px]">record_voice_over</span>
+                  <Icon name="record_voice_over" className="text-[14px]" />
                   <span className="hidden sm:inline">Hablar con:</span>
                   <select
                     value={targetAgentId}

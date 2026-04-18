@@ -1,4 +1,10 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radikal/ui';
+import {
+  Icon,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@radikal/ui';
 import { logoContainerStyle, useProjectLogoWithBrightness } from '@/shared/hooks/useProjectLogo';
 import { useProject } from '@/providers/ProjectProvider';
 import type { AgentMeta } from '../agents';
@@ -58,9 +64,7 @@ export function ChatHeader({
           <button type="button" onClick={onStartEdit} className="text-left group">
             <p className="text-base font-bold text-slate-900 truncate flex items-center gap-2">
               {chatTitle ?? 'Sin título'}
-              <span className="material-symbols-outlined text-[16px] text-slate-400 opacity-0 group-hover:opacity-100">
-                edit
-              </span>
+              <Icon name="edit" className="text-[16px] text-slate-400 opacity-0 group-hover:opacity-100" />
             </p>
           </button>
         )}
@@ -81,7 +85,7 @@ export function ChatHeader({
                 aria-label="Memoria activa"
                 className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100 transition shrink-0"
               >
-                <span className="material-symbols-outlined text-[14px]">psychology</span>
+                <Icon name="psychology" className="text-[14px]" />
                 Memoria activa
               </button>
             </TooltipTrigger>

@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   Spinner,
 } from '@radikal/ui';
 import { useAnalyzeBrand } from '../../api/memory';
@@ -64,9 +65,7 @@ export function AnalyzeBrandButton({ projectId }: { projectId: string }) {
         {analyze.isPending ? (
           <Spinner />
         ) : (
-          <span className="material-symbols-outlined text-[18px]">
-            auto_awesome
-          </span>
+          <Icon name="auto_awesome" className="text-[18px]" />
         )}
         Actualizar con IA
       </Button>

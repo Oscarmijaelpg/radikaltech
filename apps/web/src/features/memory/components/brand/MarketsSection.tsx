@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   Spinner,
 } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
@@ -83,9 +84,7 @@ export function MarketsSection({ projectId }: { projectId: string }) {
       {suggestedDistinct.length > 0 && (
         <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-amber-700 text-[20px]">
-              auto_awesome
-            </span>
+            <Icon name="auto_awesome" className="text-amber-700 text-[20px]" />
             <p className="text-sm text-amber-900 font-semibold">
               IA detectó estos mercados. ¿Confirmas?
             </p>

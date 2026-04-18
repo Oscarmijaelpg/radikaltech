@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Card,
   Button,
-  Textarea,
-  Spinner,
+  Card,
+  Icon,
+  OptionCard,
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-  OptionCard,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+  Textarea,
 } from '@radikal/ui';
 import { api } from '@/lib/api';
 import { useProject } from '@/providers/ProjectProvider';
@@ -255,7 +256,7 @@ export function ImageGenerator() {
       <Card className="p-6 relative">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 grid place-items-center text-white">
-            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+            <Icon name="auto_awesome" className="text-[20px]" />
           </div>
           <div>
             <h3 className="font-display text-lg font-bold">Generar imagen con IA</h3>
@@ -286,7 +287,7 @@ export function ImageGenerator() {
                   key={p.id}
                   selected={active}
                   onClick={() => applyPreset(p)}
-                  icon={<span className="material-symbols-outlined text-[20px]">{p.icon}</span>}
+                  icon={<Icon name={p.icon} className="text-[20px]" />}
                   title={<span className="text-sm">{p.label}</span>}
                   className="p-4"
                 />
@@ -311,7 +312,7 @@ export function ImageGenerator() {
               onClick={() => setPickerOpen(true)}
               disabled={!activeProject}
             >
-              <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+              <Icon name="add_photo_alternate" className="text-[18px]" />
               Elegir de mi galería
             </Button>
             {!activeProject && (
@@ -350,7 +351,7 @@ export function ImageGenerator() {
                     className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white grid place-items-center hover:bg-black/80"
                     aria-label="Quitar referencia"
                   >
-                    <span className="material-symbols-outlined text-[14px]">close</span>
+                    <Icon name="close" className="text-[14px]" />
                   </button>
                 </div>
               ))}
@@ -417,7 +418,7 @@ export function ImageGenerator() {
             disabled={prompt.trim().length < 3 || loading}
             className="h-12 px-6"
           >
-            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            <Icon name="auto_awesome" className="text-[18px]" />
             Generar
           </Button>
           {!activeProject && (

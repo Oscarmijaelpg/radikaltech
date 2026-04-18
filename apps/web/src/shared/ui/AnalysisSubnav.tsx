@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/shared/utils/cn';
+import { Icon } from '@radikal/ui';
 
 const TABS = [
   { to: '/news', label: 'Noticias', icon: 'newspaper' },
@@ -25,7 +26,7 @@ export function AnalysisSubnav() {
               )
             }
           >
-            <span className="material-symbols-outlined text-[18px]">{t.icon}</span>
+            <Icon name={t.icon} className="text-[18px]" />
             {t.label}
             {t.badge && (
               <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/20">

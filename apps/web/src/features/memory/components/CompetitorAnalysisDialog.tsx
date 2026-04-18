@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   SectionTitle,
   Tabs,
   TabsContent,
@@ -43,12 +44,7 @@ function KpiCard({ icon, label, value }: { icon: string; label: string; value: s
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
-        <span
-          className="material-symbols-outlined text-[28px] text-[hsl(var(--color-primary))]"
-          aria-hidden
-        >
-          {icon}
-        </span>
+        <Icon name={icon} className="text-[28px] text-[hsl(var(--color-primary))]" aria-hidden />
         <div className="min-w-0">
           <SectionTitle className="text-slate-400">{label}</SectionTitle>
           <p className="text-xl font-bold text-slate-900 truncate">{value}</p>
@@ -415,7 +411,7 @@ export function CompetitorAnalysisDialog({
           </Button>
           {result && (
             <Button onClick={save} disabled={createMemory.isPending}>
-              <span className="material-symbols-outlined text-[18px]">bookmark_add</span>
+              <Icon name="bookmark_add" className="text-[18px]" />
               Guardar en Memoria
             </Button>
           )}
@@ -428,9 +424,7 @@ export function CompetitorAnalysisDialog({
 function NoSocialDataEmpty({ competitorName }: { competitorName: string }) {
   return (
     <div className="p-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 text-center">
-      <span className="material-symbols-outlined text-[40px] text-slate-400 mb-3 block">
-        query_stats
-      </span>
+      <Icon name="query_stats" className="text-[40px] text-slate-400 mb-3 block" />
       <h4 className="font-display text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
         Aún no hay datos sociales de {competitorName}
       </h4>

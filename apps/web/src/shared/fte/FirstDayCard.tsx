@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, SectionTitle, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+  Spinner,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
@@ -163,9 +169,7 @@ export function FirstDayCard() {
                           : 'bg-gradient-to-br from-slate-300 to-slate-400',
                     ].join(' ')}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {isDone ? 'check' : task.icon}
-                    </span>
+                    <Icon name={isDone ? 'check' : task.icon} className="text-[20px]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p
@@ -180,7 +184,7 @@ export function FirstDayCard() {
                       {task.description}
                       {isCurrent && (
                         <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-pink-600">
-                          <span className="material-symbols-outlined text-[12px]">schedule</span>~
+                          <Icon name="schedule" className="text-[12px]" />~
                           {task.estimatedMinutes} min
                         </span>
                       )}
@@ -192,7 +196,7 @@ export function FirstDayCard() {
                   {isCurrent && (
                     <Button size="sm" onClick={() => navigate(task.cta.to)}>
                       {task.cta.label}
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      <Icon name="arrow_forward" className="text-[16px]" />
                     </Button>
                   )}
                 </li>

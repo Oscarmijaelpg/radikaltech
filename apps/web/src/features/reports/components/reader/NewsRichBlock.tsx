@@ -10,7 +10,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Badge, Card, SectionTitle } from '@radikal/ui';
+import {
+  Badge,
+  Card,
+  Icon,
+  SectionTitle,
+} from '@radikal/ui';
 import { authorityStars, relevanceClasses, sentimentClasses, sentimentLabel } from './helpers';
 import { LegacySourcesList } from './LegacySourcesList';
 import { NarrativeWithCitations } from './NarrativeWithCitations';
@@ -134,7 +139,7 @@ export function NewsRichBlock({
     <div className="mb-6">
       {highImpactCount > 0 && (
         <div className="mb-4 rounded-2xl border-l-4 border-red-500 bg-red-50 p-4 flex items-start gap-3">
-          <span className="material-symbols-outlined text-red-600 text-[22px]">warning</span>
+          <Icon name="warning" className="text-red-600 text-[22px]" />
           <p className="text-sm text-red-900 font-semibold">
             {highImpactCount} noticia{highImpactCount !== 1 ? 's' : ''} de alto impacto para tu marca (relevancia ≥ 80).
           </p>
@@ -144,7 +149,7 @@ export function NewsRichBlock({
       {hasTimeline && (
         <div className="mb-6 p-4 rounded-2xl border border-slate-200 bg-white">
           <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-cyan-600 text-[18px]">timeline</span>
+            <Icon name="timeline" className="text-cyan-600 text-[18px]" />
             Noticias por día (últimos 21 días)
           </h4>
           <ResponsiveContainer width="100%" height={140}>
@@ -161,9 +166,7 @@ export function NewsRichBlock({
       {analysis?.executive_summary && (
         <Card className="p-6 bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 mb-6">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-cyan-600 text-[24px] mt-1">
-              insights
-            </span>
+            <Icon name="insights" className="text-cyan-600 text-[24px] mt-1" />
             <div className="flex-1 min-w-0">
               <h3 className="font-display font-bold text-lg mb-2">Resumen ejecutivo</h3>
               <p className="text-sm text-slate-700 leading-relaxed break-words whitespace-pre-wrap">
@@ -243,7 +246,7 @@ export function NewsRichBlock({
       {themes.length > 0 && (
         <div className="mb-6">
           <h3 className="font-display font-bold text-lg mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-cyan-600">category</span>
+            <Icon name="category" className="text-cyan-600" />
             Temas principales
           </h3>
           <div className="space-y-2">
@@ -267,7 +270,7 @@ export function NewsRichBlock({
       {keywords.length > 0 && (
         <div className="mb-6">
           <h3 className="font-display font-bold text-lg mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-cyan-600">trending_up</span>
+            <Icon name="trending_up" className="text-cyan-600" />
             Palabras clave
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -286,7 +289,7 @@ export function NewsRichBlock({
       {analysis?.narrative && (
         <div className="mb-8">
           <h3 className="font-display text-xl font-bold mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-cyan-600 text-[22px]">article</span>
+            <Icon name="article" className="text-cyan-600 text-[22px]" />
             Análisis completo
           </h3>
           <div className="prose prose-slate prose-sm md:prose-base max-w-none text-slate-800 leading-relaxed break-words">
@@ -321,9 +324,7 @@ export function NewsRichBlock({
       {enrichedView ? (
         <div>
           <h3 className="font-display text-xl font-bold mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-cyan-600 text-[22px]">
-              format_list_numbered
-            </span>
+            <Icon name="format_list_numbered" className="text-cyan-600 text-[22px]" />
             Fuentes ({enrichedView.length})
           </h3>
           <ol className="space-y-2 list-none pl-0">

@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import {
   Button,
+  Card,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  SectionTitle,
-  Spinner,
-  Card,
+  Icon,
   Input,
+  SectionTitle,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Spinner,
 } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
@@ -106,7 +107,7 @@ export function CaptionGeneratorDialog({
           </div>
 
           <Button onClick={() => void handleGenerate()} disabled={mut.isPending}>
-            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            <Icon name="auto_awesome" className="text-[18px]" />
             {mut.isPending ? 'Generando...' : mut.isError ? 'Reintentar' : result ? 'Regenerar' : 'Generar 3 variantes'}
           </Button>
 
@@ -149,7 +150,7 @@ export function CaptionGeneratorDialog({
                       onOpenChange(false);
                     }}
                   >
-                    <span className="material-symbols-outlined text-[16px]">check</span>
+                    <Icon name="check" className="text-[16px]" />
                     Usar esta
                   </Button>
                 </Card>

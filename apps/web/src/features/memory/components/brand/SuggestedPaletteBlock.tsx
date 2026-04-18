@@ -1,4 +1,8 @@
-import { Button, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { useAcceptBrandSuggestion } from '../../api/memory';
 
 export function SuggestedPaletteBlock({
@@ -13,9 +17,7 @@ export function SuggestedPaletteBlock({
     <div className="mt-5 pt-4 border-t border-white/60">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]">
-            auto_awesome
-          </span>
+          <Icon name="auto_awesome" className="text-[14px] text-[hsl(var(--color-primary))]" />
           Paleta sugerida por IA
         </p>
         <Button

@@ -1,18 +1,19 @@
 import { useMemo, useState } from 'react';
 import {
+  Badge,
   Button,
   Card,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   EmptyState,
+  Icon,
   Input,
   Spinner,
   Textarea,
-  Checkbox,
-  Badge,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -91,7 +92,7 @@ function PostCard({ post, asset, onCancel, onEdit, cancelling }: PostCardProps) 
         {asset ? (
           <img src={asset.asset_url} alt="" className="w-full h-full object-cover" />
         ) : (
-          <span className="material-symbols-outlined text-[28px] text-slate-400">image</span>
+          <Icon name="image" className="text-[28px] text-slate-400" />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -101,7 +102,7 @@ function PostCard({ post, asset, onCancel, onEdit, cancelling }: PostCardProps) 
               key={p}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-semibold text-slate-700"
             >
-              <span className="material-symbols-outlined text-[14px]">{platformIcon(p)}</span>
+              <Icon name={platformIcon(p)} className="text-[14px]" />
               {platformLabel(p)}
             </span>
           ))}
@@ -133,11 +134,11 @@ function PostCard({ post, asset, onCancel, onEdit, cancelling }: PostCardProps) 
         )}
         <div className="flex gap-2 flex-wrap">
           <Button size="sm" variant="outline" onClick={onEdit} disabled={isCancelled} className="min-h-[44px] sm:min-h-0">
-            <span className="material-symbols-outlined text-[16px]">edit</span>
+            <Icon name="edit" className="text-[16px]" />
             Editar
           </Button>
           <Button size="sm" variant="outline" onClick={onCancel} disabled={isCancelled || cancelling} className="min-h-[44px] sm:min-h-0">
-            {cancelling ? <Spinner size="sm" /> : <span className="material-symbols-outlined text-[16px]">cancel</span>}
+            {cancelling ? <Spinner size="sm" /> : <Icon name="cancel" className="text-[16px]" />}
             Cancelar
           </Button>
         </div>
@@ -318,7 +319,7 @@ export function ScheduledPostsTab() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-2xl bg-cyan-50 border border-cyan-100 px-4 py-3 text-sm text-cyan-900 flex items-start gap-2">
-        <span className="material-symbols-outlined text-[18px] mt-0.5">info</span>
+        <Icon name="info" className="text-[18px] mt-0.5" />
         <p>
           Los posts se guardan en Radikal como recordatorio. La publicación automática en redes
           requiere integración con OAuth (próximamente).
@@ -343,7 +344,7 @@ export function ScheduledPostsTab() {
                   : 'px-3 py-1.5 text-xs font-semibold bg-white text-slate-600 hover:bg-slate-50 flex items-center gap-1'
               }
             >
-              <span className="material-symbols-outlined text-[16px]">view_list</span>
+              <Icon name="view_list" className="text-[16px]" />
               Lista
             </button>
             <button
@@ -355,12 +356,12 @@ export function ScheduledPostsTab() {
                   : 'px-3 py-1.5 text-xs font-semibold bg-white text-slate-600 hover:bg-slate-50 flex items-center gap-1'
               }
             >
-              <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+              <Icon name="calendar_month" className="text-[16px]" />
               Calendario
             </button>
           </div>
           <Button onClick={() => openCreate()}>
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Icon name="add" className="text-[18px]" />
             Nuevo post
           </Button>
         </div>
@@ -379,12 +380,12 @@ export function ScheduledPostsTab() {
         />
       ) : grouped.length === 0 ? (
         <EmptyState
-          icon={<span className="material-symbols-outlined text-[28px]">event_upcoming</span>}
+          icon={<Icon name="event_upcoming" className="text-[28px]" />}
           title="Sin posts agendados"
           description="Crea tu primer post agendado para planificar tu contenido."
           action={
             <Button onClick={() => openCreate()}>
-              <span className="material-symbols-outlined text-[18px]">add</span>
+              <Icon name="add" className="text-[18px]" />
               Agendar post
             </Button>
           }
@@ -441,7 +442,7 @@ export function ScheduledPostsTab() {
                         : 'aspect-square rounded-xl border-2 border-slate-200 bg-slate-50 grid place-items-center hover:border-slate-300'
                     }
                   >
-                    <span className="material-symbols-outlined text-[20px] text-slate-400">block</span>
+                    <Icon name="block" className="text-[20px] text-slate-400" />
                   </button>
                   {preferredAssets.map((a) => (
                     <button
@@ -473,7 +474,7 @@ export function ScheduledPostsTab() {
                       variant="outline"
                       onClick={() => setCaptionDialogOpen(true)}
                     >
-                      <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                      <Icon name="auto_awesome" className="text-[16px]" />
                       Generar caption con IA
                     </Button>
                   </TooltipTrigger>
@@ -501,7 +502,7 @@ export function ScheduledPostsTab() {
                   >
                     #{h}
                     <button type="button" onClick={() => removeHashtag(h)} aria-label={`Quitar ${h}`}>
-                      <span className="material-symbols-outlined text-[14px]">close</span>
+                      <Icon name="close" className="text-[14px]" />
                     </button>
                   </span>
                 ))}
@@ -520,7 +521,7 @@ export function ScheduledPostsTab() {
                   containerClassName="flex-1"
                 />
                 <Button type="button" variant="outline" onClick={addHashtag}>
-                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <Icon name="add" className="text-[18px]" />
                 </Button>
               </div>
             </div>
@@ -541,7 +542,7 @@ export function ScheduledPostsTab() {
                       }
                     >
                       <Checkbox checked={checked} onCheckedChange={() => togglePlatform(p.id)} />
-                      <span className="material-symbols-outlined text-[18px]">{p.icon}</span>
+                      <Icon name={p.icon} className="text-[18px]" />
                       <span className="text-sm font-semibold">{p.label}</span>
                     </label>
                   );
@@ -584,7 +585,7 @@ export function ScheduledPostsTab() {
                   setDialog(initialDialogState);
                 }}
               >
-                <span className="material-symbols-outlined text-[18px]">delete</span>
+                <Icon name="delete" className="text-[18px]" />
                 Eliminar
               </Button>
             )}

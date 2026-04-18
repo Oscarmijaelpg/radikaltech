@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Input,
+} from '@radikal/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import radikalLogo from '@/media/radikal-logo.png';
 
@@ -67,9 +72,7 @@ export function AuthPage() {
         <Card className="p-5 sm:p-8 md:p-10 relative overflow-hidden">
           {loading && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-50 flex items-center justify-center rounded-[32px]">
-              <span className="material-symbols-outlined animate-spin text-4xl text-[hsl(var(--color-primary))]">
-                progress_activity
-              </span>
+              <Icon name="progress_activity" className="animate-spin text-4xl text-[hsl(var(--color-primary))]" />
             </div>
           )}
 
@@ -84,14 +87,14 @@ export function AuthPage() {
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2">
-              <span className="material-symbols-outlined text-red-500">error</span>
+              <Icon name="error" className="text-red-500" />
               <p className="text-sm text-red-600 font-medium">{error}</p>
             </div>
           )}
 
           {success && (
             <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2">
-              <span className="material-symbols-outlined text-emerald-500">check_circle</span>
+              <Icon name="check_circle" className="text-emerald-500" />
               <p className="text-sm text-emerald-600 font-medium">{success}</p>
             </div>
           )}

@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Icon,
   SectionTitle,
 } from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
@@ -47,7 +48,7 @@ export function TeamPage() {
           </p>
           <div className="mt-6">
             <Button variant="outline" onClick={() => setCompareOpen(true)}>
-              <span className="material-symbols-outlined text-[18px]">help</span>
+              <Icon name="help" className="text-[18px]" />
               ¿Qué hace cada agente?
             </Button>
           </div>
@@ -61,7 +62,7 @@ export function TeamPage() {
             aria-label="Agente anterior"
             className="absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-slate-200 grid place-items-center text-slate-700 hover:bg-slate-50 hover:scale-105 transition-all md:-left-4"
           >
-            <span className="material-symbols-outlined">chevron_left</span>
+            <Icon name="chevron_left" />
           </button>
           <button
             type="button"
@@ -69,7 +70,7 @@ export function TeamPage() {
             aria-label="Agente siguiente"
             className="absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-slate-200 grid place-items-center text-slate-700 hover:bg-slate-50 hover:scale-105 transition-all md:-right-4"
           >
-            <span className="material-symbols-outlined">chevron_right</span>
+            <Icon name="chevron_right" />
           </button>
 
           {/* Card */}
@@ -128,14 +129,13 @@ export function TeamPage() {
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {agent.expertise.map((e) => (
                       <li key={e} className="flex items-start gap-2 text-sm text-slate-700">
-                        <span
+                        <Icon
+                          name="check_circle"
                           className={cn(
-                            'material-symbols-outlined text-[18px] bg-gradient-to-br bg-clip-text text-transparent',
+                            'text-[18px] bg-gradient-to-br bg-clip-text text-transparent',
                             agent.color,
                           )}
-                        >
-                          check_circle
-                        </span>
+                        />
                         <span>{e}</span>
                       </li>
                     ))}
@@ -166,7 +166,7 @@ export function TeamPage() {
                       agent.color,
                     )}
                   >
-                    <span className="material-symbols-outlined text-[20px]">forum</span>
+                    <Icon name="forum" className="text-[20px]" />
                     Hablar con {agent.name}
                   </Button>
                 </div>

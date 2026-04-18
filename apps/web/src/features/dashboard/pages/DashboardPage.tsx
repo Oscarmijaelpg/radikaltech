@@ -1,6 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import { CountUp } from '@/shared/ui/CountUp';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { useAuth } from '@/providers/AuthProvider';
@@ -243,7 +247,7 @@ export function DashboardPage() {
         <section>
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 grid place-items-center text-white shadow-md">
-              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">today</span>
+              <Icon name="today" className="text-[16px] sm:text-[18px]" />
             </div>
             <div>
               <h2 className="font-display font-black text-lg sm:text-xl">Qué hacer hoy</h2>
@@ -271,7 +275,7 @@ export function DashboardPage() {
                   <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/15 blur-2xl pointer-events-none group-hover:bg-white/25 transition-colors" />
                   <div className="relative z-10 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                      <span className="material-symbols-outlined text-[20px] sm:text-[22px]">{a.icon}</span>
+                      <Icon name={a.icon} className="text-[20px] sm:text-[22px]" />
                       {a.tag && (
                         <span className="px-2 py-0.5 rounded-full bg-white/25 text-[9px] font-black uppercase tracking-wider">
                           {a.tag}
@@ -282,9 +286,7 @@ export function DashboardPage() {
                     <p className="text-xs sm:text-sm text-white/80 mt-0.5 sm:mt-1 leading-snug line-clamp-2">{a.description}</p>
                     <span className="mt-auto inline-flex items-center gap-1 text-xs font-bold pt-2 opacity-80 group-hover:opacity-100">
                       Ir
-                      <span className="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-1">
-                        arrow_forward
-                      </span>
+                      <Icon name="arrow_forward" className="text-[14px] transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
                 </button>
@@ -306,7 +308,7 @@ export function DashboardPage() {
                 <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 grid place-items-center text-white shadow-md shrink-0">
-                      <span className="material-symbols-outlined text-[18px] sm:text-[20px]">tips_and_updates</span>
+                      <Icon name="tips_and_updates" className="text-[18px] sm:text-[20px]" />
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-display font-black text-sm sm:text-base">Sugerencias</h3>
@@ -392,7 +394,7 @@ export function DashboardPage() {
                           className="w-full text-left py-2 flex items-center gap-3 hover:bg-slate-50 px-2 rounded-lg transition-colors"
                         >
                           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 grid place-items-center text-white shrink-0">
-                            <span className="material-symbols-outlined text-[16px]">schedule</span>
+                            <Icon name="schedule" className="text-[16px]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold text-slate-800 truncate">
@@ -435,7 +437,7 @@ export function DashboardPage() {
                       <div
                         className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br ${m.color} grid place-items-center text-white shadow-sm shrink-0`}
                       >
-                        <span className="material-symbols-outlined text-[14px] sm:text-[16px]">{m.icon}</span>
+                        <Icon name={m.icon} className="text-[14px] sm:text-[16px]" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-[9px] font-black uppercase tracking-wider opacity-50">{m.label}</p>

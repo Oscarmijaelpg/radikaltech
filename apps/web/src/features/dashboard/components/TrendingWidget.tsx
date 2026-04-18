@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, Button, SectionTitle, Spinner, EmptyState } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Icon,
+  SectionTitle,
+  Spinner,
+} from '@radikal/ui';
 import { api } from '@/lib/api';
 import { useToast } from '@/shared/ui/Toaster';
 
@@ -94,7 +101,7 @@ export function TrendingWidget({ projectId }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 grid place-items-center text-white shadow-md shrink-0">
-            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">local_fire_department</span>
+            <Icon name="local_fire_department" className="text-[18px] sm:text-[20px]" />
           </div>
           <div className="min-w-0">
             <h3 className="font-display font-black text-base sm:text-lg">Tendencias en tu sector</h3>
@@ -117,7 +124,7 @@ export function TrendingWidget({ projectId }: Props) {
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-[16px]">bolt</span>
+              <Icon name="bolt" className="text-[16px]" />
               Detectar ahora
             </>
           )}
@@ -132,13 +139,13 @@ export function TrendingWidget({ projectId }: Props) {
         </div>
       ) : trends === null ? (
         <EmptyState
-          icon={<span className="material-symbols-outlined text-[28px]">insights</span>}
+          icon={<Icon name="insights" className="text-[28px]" />}
           title="Aún no has detectado tendencias"
           description="Cruzamos noticias de los últimos 7 días con los posts virales de tus competidores."
           action={
             projectId ? (
               <Button onClick={handleDetect}>
-                <span className="material-symbols-outlined text-[18px]">bolt</span>
+                <Icon name="bolt" className="text-[18px]" />
                 Detectar ahora
               </Button>
             ) : undefined
@@ -161,7 +168,7 @@ export function TrendingWidget({ projectId }: Props) {
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white ${meta.className}`}
                   >
-                    <span className="material-symbols-outlined text-[12px]">{meta.icon}</span>
+                    <Icon name={meta.icon} className="text-[12px]" />
                     {meta.label}
                   </span>
                   <SectionTitle as="span" className="text-slate-400">
@@ -184,7 +191,7 @@ export function TrendingWidget({ projectId }: Props) {
                     variant="outline"
                     onClick={() => handleCreateRec(t)}
                   >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    <Icon name="add" className="text-[14px]" />
                     Crear recomendación
                   </Button>
                 </div>

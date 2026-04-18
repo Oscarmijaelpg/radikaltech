@@ -1,4 +1,7 @@
-import { Button } from '@radikal/ui';
+import {
+  Button,
+  Icon,
+} from '@radikal/ui';
 import onboardingVideo from '@/media/onboarding.mp4';
 import radikalLogo from '@/media/radikal-logo.png';
 
@@ -25,27 +28,21 @@ export function WelcomeStep({ onStart }: WelcomeStepProps) {
         </p>
         <ul className="grid gap-2 text-sm text-[hsl(var(--color-foreground))]">
           <li className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-[18px]">
-              check_circle
-            </span>
+            <Icon name="check_circle" className="text-[hsl(var(--color-primary))] text-[18px]" />
             Cuéntanos sobre tu empresa e industria
           </li>
           <li className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-[18px]">
-              check_circle
-            </span>
+            <Icon name="check_circle" className="text-[hsl(var(--color-primary))] text-[18px]" />
             Conecta tu sitio web y redes (opcional)
           </li>
           <li className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-[18px]">
-              check_circle
-            </span>
+            <Icon name="check_circle" className="text-[hsl(var(--color-primary))] text-[18px]" />
             Define tono de marca y objetivos
           </li>
         </ul>
         <Button size="lg" onClick={onStart} className="self-start mt-2">
           Empezar
-          <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+          <Icon name="arrow_forward" className="text-[20px]" />
         </Button>
       </div>
       <div className="order-1 md:order-2 relative">

@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Input, Label, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Input,
+  Label,
+  Spinner,
+} from '@radikal/ui';
 import { useToast } from '@/shared/ui/Toaster';
 import { supabase } from '@/lib/supabase';
 
@@ -79,7 +86,7 @@ export function SecurityTab() {
         </div>
         {sessionInfo ? (
           <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
-            <span className="material-symbols-outlined text-slate-500">devices</span>
+            <Icon name="devices" className="text-slate-500" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{sessionInfo.email}</p>
               <p className="text-xs text-slate-500">Cuenta desde {sessionInfo.created_at}</p>

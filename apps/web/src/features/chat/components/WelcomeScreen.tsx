@@ -1,5 +1,6 @@
 import { ChatInput } from './ChatInput';
 import { QuickPrompts } from './QuickPrompts';
+import { Icon } from '@radikal/ui';
 
 interface Props {
   disabled: boolean;
@@ -18,13 +19,13 @@ export function WelcomeScreen({ disabled, onStart, onOpenPicker, onOpenSidebar }
           className="p-2 rounded-lg text-slate-500 hover:bg-slate-100"
           aria-label="Abrir menú"
         >
-          <span className="material-symbols-outlined text-[24px]">menu</span>
+          <Icon name="menu" className="text-[24px]" />
         </button>
       </div>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] grid place-items-center text-white shadow-xl mb-4">
-            <span className="material-symbols-outlined text-[32px]">forum</span>
+            <Icon name="forum" className="text-[32px]" />
           </div>
           <h2 className="font-display font-black text-2xl md:text-3xl text-slate-900">
             ¿En qué te ayudamos?

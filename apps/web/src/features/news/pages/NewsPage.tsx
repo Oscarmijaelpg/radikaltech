@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Card, Input, Button, SectionTitle, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Input,
+  SectionTitle,
+  Spinner,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import {
   useAggregateNews,
@@ -122,7 +129,7 @@ export function NewsPage() {
                 disabled={!topic.trim() || loading}
                 className="h-14 px-8 bg-white !text-cyan-700 hover:bg-white/90"
               >
-                <span className="material-symbols-outlined text-[20px]">search</span>
+                <Icon name="search" className="text-[20px]" />
                 Buscar
               </Button>
             </div>

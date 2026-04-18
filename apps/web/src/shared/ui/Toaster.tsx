@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  Icon,
   Toast,
   ToastClose,
   ToastDescription,
@@ -129,15 +130,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               }}
             >
               <div className="flex items-start gap-3 w-full">
-                <span
+                <Icon
+                  name={VARIANT_ICON[variant]}
                   className={cn(
-                    'material-symbols-outlined text-[22px] shrink-0',
+                    'text-[22px] shrink-0',
                     VARIANT_ICON_CLASSES[variant],
                   )}
-                  aria-hidden
-                >
-                  {VARIANT_ICON[variant]}
-                </span>
+                />
                 <div className="flex-1 min-w-0">
                   {t.title && <ToastTitle>{t.title}</ToastTitle>}
                   {t.description && (

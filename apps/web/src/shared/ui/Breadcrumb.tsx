@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Icon } from '@radikal/ui';
 
 export interface BreadcrumbItem {
   label: string;
@@ -48,9 +49,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
                 content
               )}
               {!isLast && (
-                <span className="material-symbols-outlined text-[14px] opacity-50">
-                  chevron_right
-                </span>
+                <Icon name="chevron_right" className="text-[14px] opacity-50" />
               )}
             </li>
           );

@@ -1,4 +1,7 @@
-import { Card } from '@radikal/ui';
+import {
+  Card,
+  Icon,
+} from '@radikal/ui';
 import type { BrandProfile } from '../../api/memory';
 import { SuggestedPaletteBlock } from './SuggestedPaletteBlock';
 
@@ -20,9 +23,7 @@ export function BrandStats({
       {/* Paleta */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-cyan-50 border-white">
         <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-[20px] text-[hsl(var(--color-primary))]">
-            palette
-          </span>
+          <Icon name="palette" className="text-[20px] text-[hsl(var(--color-primary))]" />
           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
             Colores de marca
           </h4>
@@ -53,9 +54,7 @@ export function BrandStats({
       {/* Voice tone */}
       <Card className="p-4 sm:p-6 bg-white border-white">
         <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-[20px] text-[hsl(var(--color-primary))]">
-            record_voice_over
-          </span>
+          <Icon name="record_voice_over" className="text-[20px] text-[hsl(var(--color-primary))]" />
           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
             Tono de voz
           </h4>
@@ -79,9 +78,7 @@ export function BrandStats({
       {/* Audiencia */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-cyan-50 to-pink-50 border-white sm:col-span-2 md:col-span-1">
         <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-[20px] text-[hsl(var(--color-primary))]">
-            groups
-          </span>
+          <Icon name="groups" className="text-[20px] text-[hsl(var(--color-primary))]" />
           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
             Audiencia
           </h4>

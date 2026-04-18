@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
   Input,
   Spinner,
 } from '@radikal/ui';
@@ -83,7 +84,7 @@ export function UserSocialAccountModal({ open, onOpenChange, projectId }: Props)
                     <span className="text-xs text-slate-600 truncate">{a.url ?? a.handle ?? '—'}</span>
                   </div>
                   <Button size="sm" variant="ghost" onClick={() => onRemove(a.id)}>
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <Icon name="delete" className="text-[16px]" />
                   </Button>
                 </div>
               ))
@@ -112,7 +113,7 @@ export function UserSocialAccountModal({ open, onOpenChange, projectId }: Props)
               </div>
             </div>
             <Button onClick={submit} disabled={create.isPending || !url.trim()} className="w-full">
-              {create.isPending ? <Spinner /> : <span className="material-symbols-outlined text-[16px]">add</span>}
+              {create.isPending ? <Spinner /> : <Icon name="add" className="text-[16px]" />}
               Añadir cuenta
             </Button>
           </div>

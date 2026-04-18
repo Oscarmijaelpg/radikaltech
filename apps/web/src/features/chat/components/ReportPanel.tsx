@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/shared/utils/cn';
 import { exportToPDF, exportToWord } from '@/shared/utils/exportUtils';
+import { Icon } from '@radikal/ui';
 
 interface ReportPanelProps {
   content: string;
@@ -116,9 +117,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
       <header className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 flex items-center justify-between bg-white shadow-sm z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[hsl(var(--color-primary)/0.1)] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-xl">
-              description
-            </span>
+            <Icon name="description" className="text-[hsl(var(--color-primary))] text-xl" />
           </div>
           <div>
             <h2 className="font-bold text-slate-900 leading-tight text-sm sm:text-base">
@@ -147,7 +146,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
             onClick={onClose}
             className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-600"
           >
-            <span className="material-symbols-outlined text-xl">close</span>
+            <Icon name="close" className="text-xl" />
           </button>
         </div>
       </header>
@@ -206,7 +205,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
                                 className,
                               )}
                             >
-                              <span className="material-symbols-outlined text-[16px]">link</span>
+                              <Icon name="link" className="text-[16px]" />
                               {children}
                             </h2>
                             <span className="h-px flex-1 bg-slate-200" />
@@ -336,9 +335,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
               <div className="relative">
                 <div className="absolute inset-0 bg-[hsl(var(--color-primary))] rounded-full blur-2xl opacity-20 animate-pulse" />
                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] border-4 border-white overflow-hidden shadow-2xl relative z-10 bg-[hsl(var(--color-primary)/0.1)] grid place-items-center">
-                  <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-[48px]">
-                    auto_awesome
-                  </span>
+                  <Icon name="auto_awesome" className="text-[hsl(var(--color-primary))] text-[48px]" />
                 </div>
               </div>
               <div className="space-y-3">
@@ -364,9 +361,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
         {!isThinking && content && (
           <div className="mx-4 sm:mx-6 mb-8 sm:mb-12 p-4 sm:p-6 bg-[hsl(var(--color-primary)/0.03)] border-2 border-[hsl(var(--color-primary)/0.1)] rounded-2xl sm:rounded-3xl flex items-center gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[hsl(var(--color-primary)/0.1)] grid place-items-center shrink-0">
-              <span className="material-symbols-outlined text-[hsl(var(--color-primary))] text-2xl sm:text-3xl">
-                check_circle
-              </span>
+              <Icon name="check_circle" className="text-[hsl(var(--color-primary))] text-2xl sm:text-3xl" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--color-primary))]">
@@ -391,7 +386,7 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
               onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
               className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white bg-[hsl(var(--color-primary))] rounded-xl shadow-lg hover:shadow-[hsl(var(--color-primary)/0.3)] transition-all active:scale-95 min-h-[44px]"
             >
-              <span className="material-symbols-outlined text-lg">download</span>
+              <Icon name="download" className="text-lg" />
               <span className="hidden sm:inline">Descargar Informe</span>
               <span className="sm:hidden">Descargar</span>
             </button>
@@ -402,14 +397,14 @@ export function ReportPanel({ content, isThinking, onClose }: ReportPanelProps) 
                   onClick={handleDownloadPDF}
                   className="w-full text-left px-4 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3 transition-colors min-h-[44px]"
                 >
-                  <span className="material-symbols-outlined text-rose-500">picture_as_pdf</span>
+                  <Icon name="picture_as_pdf" className="text-rose-500" />
                   Descargar PDF
                 </button>
                 <button
                   onClick={handleDownloadWord}
                   className="w-full text-left px-4 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-3 transition-colors border-t border-slate-100 min-h-[44px]"
                 >
-                  <span className="material-symbols-outlined text-blue-500">description</span>
+                  <Icon name="description" className="text-blue-500" />
                   Descargar Word
                 </button>
               </div>

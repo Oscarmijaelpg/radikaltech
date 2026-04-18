@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@radikal/ui';
+import {
+  Button,
+  Icon,
+} from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 
 interface Props {
@@ -50,7 +53,7 @@ export function ChatInput({ disabled, onSend, placeholder }: Props) {
           style={{ maxHeight: 240, minHeight: 44 }}
         />
         <Button type="button" disabled={disabled || !value.trim()} onClick={submit} className="h-11 px-3 sm:px-4 shrink-0">
-          <span className="material-symbols-outlined text-[18px]">send</span>
+          <Icon name="send" className="text-[18px]" />
           <span className="ml-1 hidden sm:inline">Enviar</span>
         </Button>
       </div>

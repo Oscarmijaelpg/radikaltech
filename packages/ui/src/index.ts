@@ -18,6 +18,7 @@ export * from "./components/badge";
 export * from "./components/skeleton";
 export * from "./components/toggle-group";
 export * from "./components/empty-state";
+export * from "./components/icon";
 export * from "./components/tabs";
 export * from "./components/tooltip";
 export * from "./components/option-card";

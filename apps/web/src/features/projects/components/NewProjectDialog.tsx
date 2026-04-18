@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  Button,
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  Button,
+  Icon,
   Input,
   Label,
   Spinner,
@@ -168,9 +169,7 @@ export function NewProjectDialog({ open, onOpenChange }: Props) {
           </div>
           {(form.website.trim() || form.instagram.trim()) && (
             <div className="flex items-start gap-2 rounded-xl bg-[hsl(var(--color-primary)/0.08)] border border-[hsl(var(--color-primary)/0.15)] px-3 py-2 text-xs text-slate-700">
-              <span className="material-symbols-outlined text-[16px] text-[hsl(var(--color-primary))] shrink-0 mt-0.5">
-                auto_awesome
-              </span>
+              <Icon name="auto_awesome" className="text-[16px] text-[hsl(var(--color-primary))] shrink-0 mt-0.5" />
               <span>
                 Analizaremos automáticamente
                 {form.website.trim() ? ' tu sitio web' : ''}

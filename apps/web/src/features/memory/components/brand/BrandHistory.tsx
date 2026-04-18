@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  Card,
   Button,
+  Card,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Icon,
   SectionTitle,
 } from '@radikal/ui';
 import { useBrandHistory, type BrandHistoryEntry } from '../../api/memory/brand';
@@ -120,7 +121,7 @@ export function BrandHistory({ projectId }: Props) {
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 grid place-items-center text-white shadow-md">
-            <span className="material-symbols-outlined text-[20px]">history</span>
+            <Icon name="history" className="text-[20px]" />
           </div>
           <div className="text-left">
             <h3 className="font-display font-black text-base sm:text-lg">Historial de identidad</h3>
@@ -129,9 +130,7 @@ export function BrandHistory({ projectId }: Props) {
             </p>
           </div>
         </div>
-        <span className="material-symbols-outlined text-slate-400">
-          {open ? 'expand_less' : 'expand_more'}
-        </span>
+        <Icon name={open ? 'expand_less' : 'expand_more'} className="text-slate-400" />
       </button>
 
       {open && (
@@ -155,9 +154,7 @@ export function BrandHistory({ projectId }: Props) {
                     <span
                       className={`absolute -left-[13px] w-6 h-6 rounded-full bg-gradient-to-br ${meta.color} grid place-items-center text-white shadow`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {meta.icon}
-                      </span>
+                      <Icon name={meta.icon} className="text-[14px]" />
                     </span>
                     <div className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="flex items-center justify-between gap-2 mb-1">
@@ -180,9 +177,7 @@ export function BrandHistory({ projectId }: Props) {
                           variant="outline"
                           onClick={() => setDiffEntry(entry)}
                         >
-                          <span className="material-symbols-outlined text-[16px]">
-                            compare_arrows
-                          </span>
+                          <Icon name="compare_arrows" className="text-[16px]" />
                           Ver diff
                         </Button>
                       </div>

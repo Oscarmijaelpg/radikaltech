@@ -3,6 +3,7 @@ import {
   Badge,
   Button,
   Card,
+  Icon,
   Skeleton,
   Spinner,
   Tooltip,
@@ -206,19 +207,19 @@ export function CompetitorsTab({ projectId }: Props) {
         {subTabToggle}
         <div className="flex flex-wrap justify-end gap-2">
         <Button variant="outline" onClick={() => setUserSocialOpen(true)}>
-          <span className="material-symbols-outlined text-[18px]">hub</span>
+          <Icon name="hub" className="text-[18px]" />
           Mis redes sociales
         </Button>
         <Button variant="outline" onClick={onDetect} disabled={detect.isPending}>
           {detect.isPending ? (
             <Spinner />
           ) : (
-            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            <Icon name="auto_awesome" className="text-[18px]" />
           )}
           Detectar competidores con IA
         </Button>
         <Button onClick={openCreate}>
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Icon name="add" className="text-[18px]" />
           Añadir competidor
         </Button>
         </div>
@@ -228,7 +229,7 @@ export function CompetitorsTab({ projectId }: Props) {
         <Card className="p-5 bg-amber-50 border-amber-200 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-amber-700">auto_awesome</span>
+              <Icon name="auto_awesome" className="text-amber-700" />
               <p className="text-sm font-semibold text-amber-900">
                 Sira detectó {suggested.length} competidores potenciales
               </p>
@@ -347,7 +348,7 @@ export function CompetitorsTab({ projectId }: Props) {
                         disabled={analyzingId === c.id}
                       >
                         {analyzingId === c.id ? <Spinner /> : (
-                          <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                          <Icon name="auto_awesome" className="text-[16px]" />
                         )}
                         Analizar
                       </Button>
@@ -362,10 +363,10 @@ export function CompetitorsTab({ projectId }: Props) {
                     </Button>
                   )}
                   <Button size="sm" variant="ghost" onClick={() => openEdit(c)} aria-label="Editar">
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    <Icon name="edit" className="text-[16px]" />
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => onDelete(c)} aria-label="Eliminar">
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <Icon name="delete" className="text-[16px]" />
                   </Button>
                 </div>
               </Card>
@@ -377,9 +378,7 @@ export function CompetitorsTab({ projectId }: Props) {
       {analyzedIds.length > 0 && (
         <div className="pt-2">
           <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-[hsl(var(--color-primary))]">
-              analytics
-            </span>
+            <Icon name="analytics" className="text-[hsl(var(--color-primary))]" />
             <h3 className="text-sm font-bold text-slate-900">Benchmark de inteligencia social</h3>
           </div>
           <CompetitionCharts projectId={projectId} competitorIds={analyzedIds} />

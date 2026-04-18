@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, SectionTitle } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
 import { cn } from '@/shared/utils/cn';
@@ -118,9 +123,7 @@ export function SetupWizard() {
                       : 'bg-gradient-to-br from-slate-300 to-slate-400',
                 )}
               >
-                <span className="material-symbols-outlined text-[22px]">
-                  {isDone ? 'check' : step.icon}
-                </span>
+                <Icon name={isDone ? 'check' : step.icon} className="text-[22px]" />
               </div>
 
               {/* Content */}
@@ -137,12 +140,12 @@ export function SetupWizard() {
               {/* Action */}
               {isDone ? (
                 <span className="text-emerald-500 shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                  <Icon name="check_circle" className="text-[20px]" />
                 </span>
               ) : isCurrent ? (
                 <Button size="sm" onClick={() => navigate(step.cta.to)} className="shrink-0">
                   {step.cta.label}
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <Icon name="arrow_forward" className="text-[16px]" />
                 </Button>
               ) : (
                 <span className="text-xs text-slate-400 shrink-0">Paso {step.step}</span>

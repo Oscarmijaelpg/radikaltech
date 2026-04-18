@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, SectionTitle, Skeleton, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+  Skeleton,
+  Spinner,
+} from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { useProject } from '@/providers/ProjectProvider';
 import { cn } from '@/shared/utils/cn';
@@ -117,7 +124,7 @@ export function RecommendationsPage() {
               disabled={generateMut.isPending}
               className="shrink-0 bg-white text-violet-700 hover:bg-white/90 shadow-xl"
             >
-              <span className="material-symbols-outlined">auto_awesome</span>
+              <Icon name="auto_awesome" />
               Generar nuevas sugerencias
             </Button>
           </div>

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogDescription,
-  Button,
+  DialogTitle,
+  Icon,
   Input,
   Spinner,
-  Badge,
 } from '@radikal/ui';
 import { useEditImage, type EditImageResult } from '../api/content';
 
@@ -178,7 +179,7 @@ export function ImageEditDialog({
                 }}
                 disabled={loading}
               >
-                <span className="material-symbols-outlined text-[18px]">tune</span>
+                <Icon name="tune" className="text-[18px]" />
                 Iterar otra vez
               </Button>
               <Button
@@ -195,7 +196,7 @@ export function ImageEditDialog({
               onClick={() => void onGenerate()}
               disabled={instruction.trim().length < 3 || loading}
             >
-              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+              <Icon name="auto_awesome" className="text-[18px]" />
               Generar iteración
             </Button>
           )}

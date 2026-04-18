@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Spinner, Textarea } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Spinner,
+  Textarea,
+} from '@radikal/ui';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -179,7 +185,7 @@ export function RecommendationCard({ rec }: Props) {
               kindMeta.tint,
             )}
           >
-            <span className="material-symbols-outlined text-[14px]">{kindMeta.icon}</span>
+            <Icon name={kindMeta.icon} className="text-[14px]" />
             {kindMeta.label}
           </span>
           <span
@@ -192,7 +198,7 @@ export function RecommendationCard({ rec }: Props) {
           </span>
           {isCompleted && (
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white">
-              <span className="material-symbols-outlined text-[14px]">check</span>
+              <Icon name="check" className="text-[14px]" />
               Completada
             </span>
           )}
@@ -205,7 +211,7 @@ export function RecommendationCard({ rec }: Props) {
             aria-label="Más opciones"
             className="w-11 h-11 grid place-items-center rounded-xl hover:bg-slate-100 text-slate-500"
           >
-            <span className="material-symbols-outlined text-[20px]">more_horiz</span>
+            <Icon name="more_horiz" className="text-[20px]" />
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-full mt-1 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20">
@@ -225,9 +231,7 @@ export function RecommendationCard({ rec }: Props) {
                 {updateStatus.isPending ? (
                   <Spinner size="sm" className="mr-1" />
                 ) : (
-                  <span className="material-symbols-outlined text-[18px] text-emerald-600">
-                    check_circle
-                  </span>
+                  <Icon name="check_circle" className="text-[18px] text-emerald-600" />
                 )}
                 {updateStatus.isPending ? 'Procesando...' : 'Marcar completada'}
               </button>
@@ -239,9 +243,7 @@ export function RecommendationCard({ rec }: Props) {
                 }}
                 className="w-full px-4 py-3 min-h-[48px] text-left text-sm font-semibold hover:bg-slate-50 flex items-center gap-2"
               >
-                <span className="material-symbols-outlined text-[18px] text-slate-500">
-                  edit_note
-                </span>
+                <Icon name="edit_note" className="text-[18px] text-slate-500" />
                 {noteOpen ? 'Ocultar notas' : 'Añadir notas'}
               </button>
               <button
@@ -260,7 +262,7 @@ export function RecommendationCard({ rec }: Props) {
                 {updateStatus.isPending ? (
                   <Spinner size="sm" className="mr-1" />
                 ) : (
-                  <span className="material-symbols-outlined text-[18px]">do_not_disturb_on</span>
+                  <Icon name="do_not_disturb_on" className="text-[18px]" />
                 )}
                 {updateStatus.isPending ? 'Procesando...' : 'Descartar'}
               </button>
@@ -279,7 +281,7 @@ export function RecommendationCard({ rec }: Props) {
                 {delMut.isPending ? (
                   <Spinner size="sm" className="mr-1" />
                 ) : (
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                  <Icon name="delete" className="text-[18px]" />
                 )}
                 {delMut.isPending ? 'Eliminando...' : 'Eliminar'}
               </button>
@@ -322,12 +324,12 @@ export function RecommendationCard({ rec }: Props) {
                   }
                 }}
               >
-                <span className="material-symbols-outlined text-[14px]">{icon}</span>
+                <Icon name={icon} className="text-[14px]" />
                 <span className="truncate">{label}</span>
               </a>
             ) : (
               <span key={i} className={cls}>
-                <span className="material-symbols-outlined text-[14px]">{icon}</span>
+                <Icon name={icon} className="text-[14px]" />
                 <span className="truncate">{label}</span>
               </span>
             );
@@ -338,7 +340,7 @@ export function RecommendationCard({ rec }: Props) {
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2 pt-2">
         <Button onClick={executeAction} className="flex-1 min-w-0 sm:min-w-[180px] min-h-[48px] sm:min-h-0">
-          <span className="material-symbols-outlined text-[18px]">bolt</span>
+          <Icon name="bolt" className="text-[18px]" />
           {rec.actionLabel}
         </Button>
         <Button
@@ -356,9 +358,7 @@ export function RecommendationCard({ rec }: Props) {
           {updateStatus.isPending ? (
             <Spinner size="sm" className="mr-1" />
           ) : (
-            <span className="material-symbols-outlined text-[18px]">
-              {isSaved ? 'star' : 'star_border'}
-            </span>
+            <Icon name={isSaved ? 'star' : 'star_border'} className="text-[18px]" />
           )}
           {updateStatus.isPending ? 'Procesando...' : isSaved ? 'Guardada' : 'Guardar'}
         </Button>

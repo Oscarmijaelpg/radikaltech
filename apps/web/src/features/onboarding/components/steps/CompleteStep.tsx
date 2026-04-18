@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Spinner } from '@radikal/ui';
+import {
+  Button,
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { AlertCircle } from 'lucide-react';
 import type { OnboardingState } from '../../types';
 import { WebsiteSource } from '@radikal/shared';
@@ -53,9 +57,7 @@ export function CompleteStep({ state, onFinish }: CompleteStepProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center text-center gap-4 sm:gap-6 py-4 sm:py-6">
       <div className="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 grid place-items-center shadow-xl shadow-emerald-500/40 animate-in zoom-in-50 duration-500">
-        <span className="material-symbols-outlined text-white text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-          check_circle
-        </span>
+        <Icon name="check_circle" className="text-white text-5xl" style={{ fontVariationSettings: "'FILL' 1" }} />
       </div>
       <div className="max-w-xl">
         <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">¡Todo listo!</h2>
@@ -106,7 +108,7 @@ export function CompleteStep({ state, onFinish }: CompleteStepProps) {
           <Spinner size="sm" className="border-white border-t-white/40" />
         ) : null}
         Entrar al dashboard
-        {!finishing && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
+        {!finishing && <Icon name="arrow_forward" className="text-[20px]" />}
       </Button>
 
       <div className="w-full flex items-end justify-center gap-2 md:gap-4 mt-6 pt-6 border-t border-slate-100">

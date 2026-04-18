@@ -5,6 +5,7 @@ import {
   Badge,
   Button,
   Card,
+  Icon,
   SectionTitle,
   Skeleton,
   Spinner,
@@ -159,7 +160,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
               {exporting ? (
                 <Spinner className="h-4 w-4 mr-1" />
               ) : (
-                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                <Icon name="picture_as_pdf" className="text-[18px]" />
               )}
               Descargar PDF
             </Button>
@@ -169,11 +170,11 @@ export function ReportReader({ reportId, onDeleted }: Props) {
           </TooltipContent>
         </UITooltip>
         <Button variant="outline" onClick={exportDocx}>
-          <span className="material-symbols-outlined text-[18px]">description</span>
+          <Icon name="description" className="text-[18px]" />
           Descargar DOCX
         </Button>
         <Button variant="ghost" onClick={() => void onDelete()} className="text-red-600 hover:bg-red-50">
-          <span className="material-symbols-outlined text-[18px]">delete</span>
+          <Icon name="delete" className="text-[18px]" />
           Eliminar
         </Button>
       </div>
@@ -182,7 +183,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
         <div ref={containerRef} className="max-w-none min-w-0 overflow-hidden">
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <Badge className={`${typeMeta.classes} border inline-flex items-center gap-1`}>
-              <span className="material-symbols-outlined text-[14px]">{typeMeta.icon}</span>
+              <Icon name={typeMeta.icon} className="text-[14px]" />
               {typeMeta.label}
             </Badge>
             <span className="text-xs text-slate-500">
@@ -212,9 +213,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
           {insights.length > 0 && (
             <div className="mb-6">
               <h2 className="font-display text-xl font-bold mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-violet-600 text-[22px]">
-                  lightbulb
-                </span>
+                <Icon name="lightbulb" className="text-violet-600 text-[22px]" />
                 Insights clave
               </h2>
               <ol className="space-y-2">
@@ -249,7 +248,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
           {report.reportType === 'competition' && competitorBlocks.length > 0 && (
             <div className="mb-6">
               <h2 className="font-display text-xl font-bold mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-rose-600 text-[22px]">radar</span>
+                <Icon name="radar" className="text-rose-600 text-[22px]" />
                 Competidores analizados
               </h2>
               <div className="space-y-3">
@@ -341,7 +340,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
           {citations.length > 0 && (
             <div className="mt-8 pt-6 border-t border-slate-200">
               <h2 className="font-display text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-slate-500 text-[20px]">link</span>
+                <Icon name="link" className="text-slate-500 text-[20px]" />
                 Fuentes
               </h2>
               <ul className="space-y-1.5">

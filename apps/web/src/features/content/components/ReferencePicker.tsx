@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Badge,
+  Button,
+  Checkbox,
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-  Button,
-  Spinner,
-  Checkbox,
+  DialogHeader,
+  DialogTitle,
   FileUpload,
-  Badge,
+  Icon,
+  Spinner,
 } from '@radikal/ui';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -125,7 +126,7 @@ export function ReferencePicker({
               title="Las referencias guían visualmente a la IA para generar imágenes coherentes"
               aria-label="Las referencias guían visualmente a la IA para generar imágenes coherentes"
             >
-              <span className="material-symbols-outlined text-[16px]">info</span>
+              <Icon name="info" className="text-[16px]" />
             </span>
           </DialogTitle>
           <DialogDescription>

@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, SectionTitle } from '@radikal/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  SectionTitle,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useProjectLogoWithBrightness, logoContainerStyle } from '@/shared/hooks/useProjectLogo';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
@@ -42,13 +47,13 @@ function ProjectCard({ project, onSelect, isActive }: { project: { id: string; n
       </p>
       {isActive && (
         <span className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[hsl(var(--color-primary)/0.1)] text-[hsl(var(--color-primary))] text-[10px] font-black uppercase tracking-widest border border-[hsl(var(--color-primary)/0.3)]">
-          <span className="material-symbols-outlined text-[12px]">check_circle</span>
+          <Icon name="check_circle" className="text-[12px]" />
           Activo
         </span>
       )}
       {project.is_default && !isActive && (
         <span className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-widest border border-emerald-200">
-          <span className="material-symbols-outlined text-[12px]">star</span>
+          <Icon name="star" className="text-[12px]" />
           Por defecto
         </span>
       )}
@@ -88,7 +93,7 @@ export function ProjectsPage() {
               className="bg-white !text-slate-900 border-white hover:bg-white/90 min-h-[44px]"
               onClick={() => setDialogOpen(true)}
             >
-              <span className="material-symbols-outlined text-[20px]">add</span>
+              <Icon name="add" className="text-[20px]" />
               Nuevo proyecto
             </Button>
           </div>

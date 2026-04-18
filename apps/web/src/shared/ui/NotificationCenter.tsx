@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Spinner } from '@radikal/ui';
+import {
+  Icon,
+  Spinner,
+} from '@radikal/ui';
 import { api } from '@/lib/api';
 import { cn } from '@/shared/utils/cn';
 
@@ -99,7 +102,7 @@ export function NotificationBell() {
         className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors"
         aria-label="Notificaciones"
       >
-        <span className="material-symbols-outlined text-[22px] text-slate-600">notifications</span>
+        <Icon name="notifications" className="text-[22px] text-slate-600" />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black grid place-items-center shadow-sm">
             {unread > 9 ? '9+' : unread}
@@ -134,7 +137,7 @@ export function NotificationBell() {
                 </div>
               ) : items.length === 0 ? (
                 <div className="py-10 text-center">
-                  <span className="material-symbols-outlined text-[32px] text-slate-300">notifications_off</span>
+                  <Icon name="notifications_off" className="text-[32px] text-slate-300" />
                   <p className="text-xs text-slate-400 mt-2">Sin notificaciones</p>
                 </div>
               ) : (
@@ -156,7 +159,7 @@ export function NotificationBell() {
                             'w-8 h-8 rounded-lg bg-gradient-to-br grid place-items-center text-white shrink-0 mt-0.5',
                             meta.color,
                           )}>
-                            <span className="material-symbols-outlined text-[16px]">{meta.icon}</span>
+                            <Icon name={meta.icon} className="text-[16px]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">

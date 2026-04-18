@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Icon } from '@radikal/ui';
 
 interface FeatureHintProps {
   id: string;
@@ -66,9 +67,7 @@ export function FeatureHint({ id, title, description, placement = 'bottom', chil
               ].join(' ')}
             />
             <div className="flex items-start gap-2 mb-2">
-              <span className="material-symbols-outlined text-[20px] text-pink-400">
-                tips_and_updates
-              </span>
+              <Icon name="tips_and_updates" className="text-[20px] text-pink-400" />
               <p className="font-bold text-sm">{title}</p>
             </div>
             <p className="text-xs text-slate-300 mb-3">{description}</p>

@@ -1,3 +1,4 @@
+import { Icon } from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 
 export interface QuickPrompt {
@@ -70,7 +71,7 @@ export function QuickPrompts({ onSelect, compact }: Props) {
               p.gradient,
               compact ? 'w-8 h-8' : 'w-10 h-10',
             )}>
-              <span className={cn('material-symbols-outlined', compact ? 'text-[16px]' : 'text-[20px]')}>{p.icon}</span>
+              <Icon name={p.icon} className={cn(compact ? 'text-[16px]' : 'text-[20px]')} />
             </div>
             <p className={cn(
               'font-bold text-slate-900',

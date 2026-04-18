@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import {
-  Card,
-  Button,
   Badge,
-  Skeleton,
+  Button,
+  Card,
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogDescription,
+  DialogTitle,
+  Icon,
+  Skeleton,
   Spinner,
 } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
@@ -65,9 +66,7 @@ function AssetThumb({ asset }: { asset: ContentAsset }) {
         : 'description';
   return (
     <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-200 grid place-items-center">
-      <span className="material-symbols-outlined text-[48px] text-slate-500">
-        {icon}
-      </span>
+      <Icon name={icon} className="text-[48px] text-slate-500" />
     </div>
   );
 }
@@ -228,9 +227,7 @@ export function AssetGallery() {
                     aria-label="Iterar imagen"
                     title="Iterar con IA"
                   >
-                    <span className="material-symbols-outlined text-[16px]" aria-hidden>
-                      tune
-                    </span>
+                    <Icon name="tune" className="text-[16px]" aria-hidden />
                   </Button>
                 )}
                 <Button
@@ -243,7 +240,7 @@ export function AssetGallery() {
                   {deleteAsset.isPending && deleteAsset.variables?.id === asset.id ? (
                     <Spinner size="sm" />
                   ) : (
-                    <span className="material-symbols-outlined text-[16px]" aria-hidden>delete</span>
+                    <Icon name="delete" className="text-[16px]" aria-hidden />
                   )}
                 </Button>
               </div>
@@ -327,9 +324,7 @@ export function AssetGallery() {
                   <ul className="flex flex-col gap-2">
                     {suggestions.map((s, i) => (
                       <li key={i} className="flex gap-2 text-sm">
-                        <span className="material-symbols-outlined text-amber-600 text-[18px]">
-                          check_circle
-                        </span>
+                        <Icon name="check_circle" className="text-amber-600 text-[18px]" />
                         <span>{s}</span>
                       </li>
                     ))}

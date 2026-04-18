@@ -1,4 +1,8 @@
-import { Badge, Card } from '@radikal/ui';
+import {
+  Badge,
+  Card,
+  Icon,
+} from '@radikal/ui';
 import type { BrandProfile } from '../../api/memory';
 import { SectionTitle } from './shared';
 import type { ContentAssetLite } from './utils';
@@ -27,7 +31,7 @@ export function VisualDirectionSection({
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">photo_camera</span>
+              <Icon name="photo_camera" className="text-[16px]" />
               Referencias visuales (Instagram)
             </h4>
             <Badge variant="muted">{instagramRefs.length}</Badge>

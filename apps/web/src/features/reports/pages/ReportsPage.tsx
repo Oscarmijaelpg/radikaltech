@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Card, SectionTitle, Skeleton } from '@radikal/ui';
+import {
+  Card,
+  Icon,
+  SectionTitle,
+  Skeleton,
+} from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { cn } from '@/shared/utils/cn';
 import { useReports, type Report, type ReportType } from '../api/reports';
@@ -148,7 +153,7 @@ export function ReportsPage() {
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="py-6 text-center">
-                  <span className="material-symbols-outlined text-[28px] text-slate-300">description</span>
+                  <Icon name="description" className="text-[28px] text-slate-300" />
                   <p className="text-xs text-slate-400 mt-2">Aún no hay reportes.</p>
                   <p className="text-[11px] text-slate-400">Genera uno con el botón de arriba.</p>
                 </div>

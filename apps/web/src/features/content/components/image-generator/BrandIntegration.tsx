@@ -1,4 +1,10 @@
-import { Switch, Tooltip, TooltipContent, TooltipTrigger } from '@radikal/ui';
+import {
+  Icon,
+  Switch,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@radikal/ui';
 import type { ContentAsset } from '../../api/content';
 
 interface Props {
@@ -24,9 +30,7 @@ export function BrandIntegration({
   return (
     <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-pink-50 to-cyan-50 border border-white/60 space-y-3">
       <div className="flex items-center gap-2 mb-1">
-        <span className="material-symbols-outlined text-[18px] text-[hsl(var(--color-primary))]">
-          workspace_premium
-        </span>
+        <Icon name="workspace_premium" className="text-[18px] text-[hsl(var(--color-primary))]" />
         <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700">
           Integración con tu marca
         </h4>
@@ -44,9 +48,7 @@ export function BrandIntegration({
             </div>
           ) : (
             <div className="w-10 h-10 rounded-lg bg-slate-100 grid place-items-center shrink-0">
-              <span className="material-symbols-outlined text-[18px] text-slate-400">
-                image
-              </span>
+              <Icon name="image" className="text-[18px] text-slate-400" />
             </div>
           )}
           <div className="min-w-0">
@@ -91,9 +93,7 @@ export function BrandIntegration({
             </div>
           ) : (
             <div className="w-10 h-10 rounded-lg bg-slate-100 grid place-items-center shrink-0">
-              <span className="material-symbols-outlined text-[18px] text-slate-400">
-                palette
-              </span>
+              <Icon name="palette" className="text-[18px] text-slate-400" />
             </div>
           )}
           <div className="min-w-0">
