@@ -1,1 +1,0 @@
-export { Step1CompanySchema as CompanySchema, Step2SocialsSchema as SocialsSchema, Step3BrandSchema as BrandSchema, Step4ObjectivesSchema as ObjectivesSchema, OnboardingSocialAccountSchema, } from '@radikal/shared';

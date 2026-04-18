@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@radikal/ui';
+import { Button, Dialog, DialogContent } from '@radikal/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
@@ -25,7 +25,6 @@ export function WelcomeModal() {
     return true;
   });
 
-  // Only show after onboarding is completed.
   useEffect(() => {
     if (!profile?.onboarding_completed) setOpen(false);
   }, [profile?.onboarding_completed]);
@@ -35,7 +34,7 @@ export function WelcomeModal() {
     [completedIds],
   );
 
-  if (!open || !profile?.onboarding_completed) return null;
+  if (!profile?.onboarding_completed) return null;
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'bienvenido';
 
@@ -45,6 +44,11 @@ export function WelcomeModal() {
     } catch {
       /* ignore */
     }
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) persistSeen();
+    setOpen(next);
   };
 
   const handleStart = () => {
@@ -68,8 +72,8 @@ export function WelcomeModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] grid place-items-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-3xl bg-gradient-to-br from-pink-50 via-white to-cyan-50 shadow-2xl border border-white/80 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-3xl bg-gradient-to-br from-pink-50 via-white to-cyan-50 p-0 sm:p-0 overflow-hidden border border-white/80">
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-pink-300/30 to-cyan-300/30 blur-3xl pointer-events-none" />
 
         <div className="relative p-6 md:p-10">
@@ -138,7 +142,7 @@ export function WelcomeModal() {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

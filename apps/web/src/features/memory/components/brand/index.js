@@ -1,1 +1,0 @@
-export { BrandTab } from './BrandTab';

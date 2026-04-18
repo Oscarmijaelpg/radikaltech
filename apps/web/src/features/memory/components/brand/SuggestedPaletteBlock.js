@@ -1,7 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Button, Spinner } from '@radikal/ui';
-import { useAcceptBrandSuggestion } from '../../api/memory';
-export function SuggestedPaletteBlock({ projectId, suggested, }) {
-    const accept = useAcceptBrandSuggestion();
-    return (_jsxs("div", { className: "mt-5 pt-4 border-t border-white/60", children: [_jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3", children: [_jsxs("p", { className: "text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 flex items-center gap-1.5", children: [_jsx("span", { className: "material-symbols-outlined text-[14px] text-[hsl(var(--color-primary))]", children: "auto_awesome" }), "Paleta sugerida por IA"] }), _jsxs(Button, { size: "sm", variant: "outline", disabled: accept.isPending, onClick: () => accept.mutate({ project_id: projectId, field: 'color_palette' }), children: [accept.isPending ? _jsx(Spinner, {}) : null, "Usar esta paleta"] })] }), _jsx("div", { className: "flex flex-wrap gap-2", children: suggested.slice(0, 6).map((c, i) => (_jsxs("div", { className: "flex flex-col items-center gap-1", children: [_jsx("div", { className: "w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-white shadow-md", style: { backgroundColor: c }, title: c }), _jsx("span", { className: "text-[9px] font-black uppercase tracking-widest text-slate-500", children: c })] }, i))) })] }));
-}

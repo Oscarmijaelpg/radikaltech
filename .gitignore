@@ -17,6 +17,10 @@ build/
 out/
 tsconfig.tsbuildinfo
 
+# --- JS compilados que conviven con .ts/.tsx (no comitear) -----------------
+apps/web/src/**/*.js
+apps/web/src/**/*.jsx
+
 # --- Tests ------------------------------------------------------------------
 coverage/
 playwright-report/
