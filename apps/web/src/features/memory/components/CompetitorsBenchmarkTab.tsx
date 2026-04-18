@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { Badge, Button, Card, Skeleton } from '@radikal/ui';
+import { Badge, Button, Card, SectionTitle, Skeleton } from '@radikal/ui';
 import {
   useCompetitorBenchmark,
   useCompetitorGaps,
@@ -127,9 +127,9 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
           <span className="material-symbols-outlined text-violet-600 text-[28px] sm:text-[36px] shrink-0">{pos.icon}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <SectionTitle>
                 Tu posición actual
-              </p>
+              </SectionTitle>
               <Badge className={`${pos.classes} border text-xs`}>{pos.label}</Badge>
             </div>
             <p className="text-sm text-slate-700 leading-relaxed break-words">

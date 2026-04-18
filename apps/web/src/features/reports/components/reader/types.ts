@@ -82,7 +82,7 @@ export const TYPE_LABELS: Record<ReportType, { label: string; classes: string; i
 };
 
 export const SENTIMENT_COLORS: Record<string, string> = {
-  positive: '#10b981',
-  neutral: '#94a3b8',
-  negative: '#ef4444',
+  positive: 'hsl(var(--color-sentiment-positive))',
+  neutral: 'hsl(var(--color-sentiment-neutral))',
+  negative: 'hsl(var(--color-sentiment-negative))',
 };

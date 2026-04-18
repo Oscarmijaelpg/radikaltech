@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Badge, Button, Card, Spinner } from '@radikal/ui';
+import { Badge, Button, Card, SectionTitle, Spinner } from '@radikal/ui';
 import {
   useCompetitors,
   useSocialAccounts,
@@ -80,16 +80,17 @@ export function CompetitorStatusGrid({ projectId }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left border-b border-slate-100 bg-white">
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <SectionTitle as="th" className="px-4 py-3 text-slate-400">
                 Cuenta
-              </th>
+              </SectionTitle>
               {NETWORKS.map((n) => (
-                <th
+                <SectionTitle
+                  as="th"
                   key={n.key}
-                  className="px-2 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center"
+                  className="px-2 py-3 text-slate-400 text-center"
                 >
                   {n.label}
-                </th>
+                </SectionTitle>
               ))}
               <th className="px-4 py-3"></th>
             </tr>

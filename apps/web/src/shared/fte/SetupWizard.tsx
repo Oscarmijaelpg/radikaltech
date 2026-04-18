@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card } from '@radikal/ui';
+import { Button, Card, SectionTitle } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
 import { cn } from '@/shared/utils/cn';
@@ -66,7 +66,7 @@ export function SetupWizard() {
       <div className="bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] px-6 py-4 text-white">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Configura tu marca</p>
+            <SectionTitle className="opacity-80 text-white">Configura tu marca</SectionTitle>
             <h3 className="font-display font-black text-lg">
               Paso {completedCount + 1} de {SETUP_STEPS.length}
             </h3>

@@ -11,9 +11,14 @@ interface Bucket {
   resetAt: number;
 }
 
+const ONE_MINUTE_MS = 60_000;
+const GC_INTERVAL_MS = ONE_MINUTE_MS;
+const WINDOW_5_MIN = 5 * ONE_MINUTE_MS;
+const WINDOW_10_MIN = 10 * ONE_MINUTE_MS;
+const WINDOW_15_MIN = 15 * ONE_MINUTE_MS;
+
 const buckets = new Map<string, Bucket>();
 
-// GC periódico para que el Map no crezca indefinidamente
 let gcTimer: ReturnType<typeof setInterval> | null = null;
 function ensureGc() {
   if (gcTimer) return;
@@ -22,7 +27,7 @@ function ensureGc() {
     for (const [k, b] of buckets) {
       if (b.resetAt <= now) buckets.delete(k);
     }
-  }, 60_000);
+  }, GC_INTERVAL_MS);
   // No bloquear el event loop al cerrar el proceso
   if (typeof (gcTimer as { unref?: () => void }).unref === 'function') {
     (gcTimer as { unref: () => void }).unref();
@@ -92,9 +97,9 @@ export function createRateLimiter(
 
 /** Presets para las rutas de ai-services. */
 export const aiRateLimits = {
-  generateImage: createRateLimiter({ windowMs: 5 * 60_000, max: 10, name: 'ai:generate-image' }),
-  analyzeBrand: createRateLimiter({ windowMs: 15 * 60_000, max: 3, name: 'ai:analyze-brand' }),
-  aggregateNews: createRateLimiter({ windowMs: 10 * 60_000, max: 20, name: 'ai:aggregate-news' }),
+  generateImage: createRateLimiter({ windowMs: WINDOW_5_MIN, max: 10, name: 'ai:generate-image' }),
+  analyzeBrand: createRateLimiter({ windowMs: WINDOW_15_MIN, max: 3, name: 'ai:analyze-brand' }),
+  aggregateNews: createRateLimiter({ windowMs: WINDOW_10_MIN, max: 20, name: 'ai:aggregate-news' }),
   default: (name: string) =>
-    createRateLimiter({ windowMs: 5 * 60_000, max: 30, name: `ai:${name}` }),
+    createRateLimiter({ windowMs: WINDOW_5_MIN, max: 30, name: `ai:${name}` }),
 };

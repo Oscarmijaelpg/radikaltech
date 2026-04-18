@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, Skeleton, Spinner } from '@radikal/ui';
+import { Button, Card, SectionTitle, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { useProject } from '@/providers/ProjectProvider';
 import { cn } from '@/shared/utils/cn';
@@ -99,9 +99,9 @@ export function RecommendationsPage() {
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+              <SectionTitle className="opacity-80 text-white mb-2">
                 Sugerencias IA
-              </p>
+              </SectionTitle>
               <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight">
                 Sugerencias para ti
               </h1>

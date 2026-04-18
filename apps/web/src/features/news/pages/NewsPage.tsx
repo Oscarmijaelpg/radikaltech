@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Card, Input, Button, Badge, Spinner, Skeleton } from '@radikal/ui';
+import { Card, Input, Button, Badge, SectionTitle, Spinner, Skeleton } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -108,9 +108,9 @@ export function NewsPage() {
           </div>
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
           <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+            <SectionTitle className="opacity-80 text-white mb-2">
               Monitoreo inteligente
-            </p>
+            </SectionTitle>
             <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight">
               Noticias
             </h1>

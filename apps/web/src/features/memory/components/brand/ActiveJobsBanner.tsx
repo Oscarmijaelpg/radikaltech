@@ -1,4 +1,4 @@
-import { Card } from '@radikal/ui';
+import { Card, SectionTitle } from '@radikal/ui';
 import { JOB_LABELS } from './utils';
 
 export function ActiveJobsBanner({
@@ -13,9 +13,9 @@ export function ActiveJobsBanner({
           <span className="material-symbols-outlined animate-spin text-[22px]">progress_activity</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-[hsl(var(--color-primary))]">
+          <SectionTitle className="text-[hsl(var(--color-primary))]">
             Sira está trabajando
-          </p>
+          </SectionTitle>
           <p className="font-display text-base sm:text-lg font-bold text-slate-900">
             {jobs.length === 1
               ? (JOB_LABELS[jobs[0]!.kind]?.label ?? 'Procesando...')

@@ -1,4 +1,4 @@
-import { Card } from '@radikal/ui';
+import { Card, SectionTitle as SectionLabel } from '@radikal/ui';
 import type { Project } from '@/providers/ProjectProvider';
 import { SectionTitle } from './shared';
 
@@ -12,9 +12,9 @@ export function BusinessSummarySection({ project }: { project: Project | undefin
       </p>
       {project.additional_context && (
         <div className="mt-4 pt-4 border-t border-slate-100">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+          <SectionLabel className="mb-2">
             Contexto adicional
-          </p>
+          </SectionLabel>
           <p className="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">
             {project.additional_context}
           </p>

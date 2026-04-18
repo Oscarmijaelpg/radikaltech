@@ -1,6 +1,19 @@
 import { prisma } from '@radikal/db';
 import { embeddingsService } from '../ai-services/embeddings.js';
 
+const CONTEXT_MAX_CHARS = 4500;
+const RECENT_COMPETITORS = 3;
+const RECENT_CHAT_SUMMARIES = 10;
+const RECENT_RECOMMENDATIONS = 5;
+const RECENT_REPORTS = 3;
+const UPCOMING_POSTS = 5;
+const UPCOMING_POSTS_WINDOW_DAYS = 14;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const SEMANTIC_MEMORIES_LIMIT = 3;
+const SEMANTIC_MEMORIES_THRESHOLD = 0.75;
+const MEMORY_BLEND_MIN = 3;
+const MEMORY_SLOTS_TOTAL = 5;
+
 const STOPWORDS = new Set([
   'para',
   'como',
@@ -110,7 +123,7 @@ export interface BuildContextInput {
 }
 
 export class ChatContextBuilder {
-  private readonly maxChars = 4500;
+  private readonly maxChars = CONTEXT_MAX_CHARS;
 
   async build(input: BuildContextInput): Promise<string> {
     if (!input.projectId) return '';
@@ -143,7 +156,7 @@ export class ChatContextBuilder {
         where: { projectId: input.projectId, status: 'confirmed' },
         select: { name: true, notes: true, analysisData: true, engagementStats: true },
         orderBy: { createdAt: 'desc' },
-        take: 3,
+        take: RECENT_COMPETITORS,
       }),
       prisma.memory.findMany({
         where: {
@@ -151,28 +164,31 @@ export class ChatContextBuilder {
           category: 'chat_summary',
         },
         orderBy: { updatedAt: 'desc' },
-        take: 10,
+        take: RECENT_CHAT_SUMMARIES,
       }),
       prisma.recommendation.findMany({
         where: { projectId: input.projectId, status: { in: ['new', 'saved', 'in_progress'] } },
         orderBy: { generatedAt: 'desc' },
-        take: 5,
+        take: RECENT_RECOMMENDATIONS,
         select: { title: true, kind: true, impact: true, status: true },
       }),
       prisma.report.findMany({
         where: { projectId: input.projectId },
         orderBy: { createdAt: 'desc' },
-        take: 3,
+        take: RECENT_REPORTS,
         select: { title: true, reportType: true, createdAt: true, summary: true },
       }),
       prisma.scheduledPost.findMany({
         where: {
           projectId: input.projectId,
           status: 'scheduled',
-          scheduledAt: { gte: new Date(), lte: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) },
+          scheduledAt: {
+            gte: new Date(),
+            lte: new Date(Date.now() + UPCOMING_POSTS_WINDOW_DAYS * DAY_MS),
+          },
         },
         orderBy: { scheduledAt: 'asc' },
-        take: 5,
+        take: UPCOMING_POSTS,
         select: { scheduledAt: true, platforms: true, caption: true },
       }),
     ]);
@@ -185,17 +201,17 @@ export class ChatContextBuilder {
       .findSimilarMemories({
         projectId: input.projectId,
         query: input.userMessage,
-        limit: 3,
-        threshold: 0.75,
+        limit: SEMANTIC_MEMORIES_LIMIT,
+        threshold: SEMANTIC_MEMORIES_THRESHOLD,
       })
       .catch(() => []);
     if (semantic.length > 0) {
       memories = semantic.map((m) => ({ category: m.category, value: m.value, key: m.key }));
     }
 
-    if (memories.length < 3) {
+    if (memories.length < MEMORY_BLEND_MIN) {
       const keywords = extractKeywords(input.userMessage);
-      const slotsLeft = 5 - memories.length;
+      const slotsLeft = MEMORY_SLOTS_TOTAL - memories.length;
       const seen = new Set(memories.map((m) => `${m.key}|${m.value}`));
       let keywordHits: Array<{ category: string; value: string; key: string }> = [];
       if (keywords.length > 0) {

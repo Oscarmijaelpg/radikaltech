@@ -8,6 +8,7 @@ import {
   DialogTitle,
   Input,
   RadioGroup,
+  SectionTitle,
   RadioGroupItem,
   Spinner,
   Textarea,
@@ -89,9 +90,7 @@ export function CompetitorModal({ open, onOpenChange, initial, onSubmit, saving 
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
           />
           <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Redes sociales
-            </p>
+            <SectionTitle>Redes sociales</SectionTitle>
             {SOCIAL_NETWORKS.map((n) => (
               <Input
                 key={n.key}
@@ -109,9 +108,7 @@ export function CompetitorModal({ open, onOpenChange, initial, onSubmit, saving 
           </div>
 
           <div className="space-y-3 pt-2 border-t border-slate-100">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Modo de análisis
-            </p>
+            <SectionTitle>Modo de análisis</SectionTitle>
             <RadioGroup
               value={form.analysis_mode}
               onValueChange={(v) => setForm((f) => ({ ...f, analysis_mode: v as AnalysisMode }))}

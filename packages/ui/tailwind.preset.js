@@ -15,8 +15,21 @@ export default {
         },
         bg: "hsl(var(--color-bg) / <alpha-value>)",
         border: "hsl(var(--color-border) / <alpha-value>)",
-        foreground: "hsl(var(--color-foreground) / <alpha-value>)",
+        foreground: "hsl(var(--color-fg) / <alpha-value>)",
         muted: "hsl(var(--color-muted) / <alpha-value>)",
+        card: {
+          DEFAULT: "hsl(var(--color-card) / <alpha-value>)",
+          hover: "hsl(var(--color-card-hover) / <alpha-value>)",
+        },
+        sentiment: {
+          positive: "hsl(var(--color-sentiment-positive) / <alpha-value>)",
+          neutral: "hsl(var(--color-sentiment-neutral) / <alpha-value>)",
+          negative: "hsl(var(--color-sentiment-negative) / <alpha-value>)",
+        },
+        chart: {
+          primary: "hsl(var(--color-chart-primary) / <alpha-value>)",
+          grid: "hsl(var(--color-chart-grid) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  SectionTitle,
 } from '@radikal/ui';
 import { cn } from '@/shared/utils/cn';
 import { AGENTS } from '../data';
@@ -34,9 +35,9 @@ export function TeamPage() {
     <div className="min-h-full bg-gradient-to-br from-pink-50 via-white to-cyan-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <header className="text-center mb-10">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+          <SectionTitle className="mb-3">
             Tu equipo de inteligencia artificial
-          </p>
+          </SectionTitle>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-black tracking-tight text-slate-900">
             Conoce a tu equipo de IA
           </h1>
@@ -121,9 +122,9 @@ export function TeamPage() {
                 </p>
 
                 <div className="mt-6">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+                  <SectionTitle className="mb-3">
                     Expertise
-                  </p>
+                  </SectionTitle>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {agent.expertise.map((e) => (
                       <li key={e} className="flex items-start gap-2 text-sm text-slate-700">

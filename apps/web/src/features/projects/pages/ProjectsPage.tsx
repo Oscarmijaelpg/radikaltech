@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button } from '@radikal/ui';
+import { Card, Button, SectionTitle } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useProjectLogoWithBrightness, logoContainerStyle } from '@/shared/hooks/useProjectLogo';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
@@ -73,9 +73,9 @@ export function ProjectsPage() {
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+              <SectionTitle className="opacity-80 text-white mb-2">
                 Tus marcas
-              </p>
+              </SectionTitle>
               <h1 className="text-2xl sm:text-3xl md:text-5xl font-display font-black tracking-tight">
                 Proyectos
               </h1>

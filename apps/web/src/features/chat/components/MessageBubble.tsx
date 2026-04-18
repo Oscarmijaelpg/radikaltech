@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+const SAVE_SUCCESS_DISMISS_MS = 600;
+
 import {
   Spinner,
   Dialog,
@@ -112,7 +115,7 @@ export function MessageBubble({
       },
     });
     setSaved(true);
-    setTimeout(() => setSaveOpen(false), 600);
+    setTimeout(() => setSaveOpen(false), SAVE_SUCCESS_DISMISS_MS);
   };
 
   return (

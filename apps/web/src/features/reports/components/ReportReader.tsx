@@ -5,6 +5,7 @@ import {
   Badge,
   Button,
   Card,
+  SectionTitle,
   Skeleton,
   Spinner,
   Tooltip as UITooltip,
@@ -277,9 +278,9 @@ export function ReportReader({ reportId, onDeleted }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {c.strengths && c.strengths.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1.5">
+                          <SectionTitle className="text-emerald-700 mb-1.5">
                             Fortalezas
-                          </p>
+                          </SectionTitle>
                           <ul className="space-y-1">
                             {c.strengths.map((s, i) => (
                               <li
@@ -295,9 +296,9 @@ export function ReportReader({ reportId, onDeleted }: Props) {
                       )}
                       {c.weaknesses && c.weaknesses.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-red-700 mb-1.5">
+                          <SectionTitle className="text-red-700 mb-1.5">
                             Debilidades
-                          </p>
+                          </SectionTitle>
                           <ul className="space-y-1">
                             {c.weaknesses.map((w, i) => (
                               <li

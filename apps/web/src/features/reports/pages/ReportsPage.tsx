@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, Skeleton } from '@radikal/ui';
+import { Card, SectionTitle, Skeleton } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { cn } from '@/shared/utils/cn';
 import { useReports, type Report, type ReportType } from '../api/reports';
@@ -106,9 +106,9 @@ export function ReportsPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+              <SectionTitle className="opacity-80 text-white mb-2">
                 Inteligencia consolidada
-              </p>
+              </SectionTitle>
               <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight">
                 Reportes estratégicos
               </h1>

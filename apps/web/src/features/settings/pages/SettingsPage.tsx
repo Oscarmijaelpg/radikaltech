@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radikal/ui';
+import { SectionTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@radikal/ui';
 import { AppearanceTab } from '../components/AppearanceTab';
 import { DataTab } from '../components/DataTab';
 import { NotificationsTab } from '../components/NotificationsTab';
@@ -22,7 +22,7 @@ export function SettingsPage() {
               <span className="material-symbols-outlined text-[24px] sm:text-[32px]">settings</span>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1 sm:mb-2">Cuenta</p>
+              <SectionTitle className="opacity-80 text-white mb-1 sm:mb-2">Cuenta</SectionTitle>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black tracking-tight">Ajustes</h1>
               <p className="text-white/70 mt-2">Personaliza tu experiencia en Radikal.</p>
             </div>

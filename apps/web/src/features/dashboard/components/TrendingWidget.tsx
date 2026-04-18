@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card, Button, Spinner, EmptyState } from '@radikal/ui';
+import { Card, Button, SectionTitle, Spinner, EmptyState } from '@radikal/ui';
 import { api } from '@/lib/api';
 import { useToast } from '@/shared/ui/Toaster';
 
@@ -164,9 +164,9 @@ export function TrendingWidget({ projectId }: Props) {
                     <span className="material-symbols-outlined text-[12px]">{meta.icon}</span>
                     {meta.label}
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <SectionTitle as="span" className="text-slate-400">
                     {t.category}
-                  </span>
+                  </SectionTitle>
                   <span className="ml-auto text-[11px] font-bold text-slate-500">
                     {t.relevance_score}/100
                   </span>

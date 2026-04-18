@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  SectionTitle,
   Tabs,
   TabsContent,
   TabsList,
@@ -49,7 +50,7 @@ function KpiCard({ icon, label, value }: { icon: string; label: string; value: s
           {icon}
         </span>
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+          <SectionTitle className="text-slate-400">{label}</SectionTitle>
           <p className="text-xl font-bold text-slate-900 truncate">{value}</p>
         </div>
       </div>
@@ -217,16 +218,16 @@ export function CompetitorAnalysisDialog({
             ) : (
               <div className="space-y-6">
                 <section>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  <SectionTitle as="h3" className="mb-2">
                     Consulta usada
-                  </h3>
+                  </SectionTitle>
                   <p className="text-sm text-slate-700">{result.query}</p>
                 </section>
 
                 <section>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+                  <SectionTitle as="h3" className="mb-3">
                     Competidores detectados por Sira
-                  </h3>
+                  </SectionTitle>
                   {result.competitors.length === 0 ? (
                     <p className="text-sm text-slate-500">No se encontraron competidores.</p>
                   ) : (
@@ -250,9 +251,9 @@ export function CompetitorAnalysisDialog({
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {c.strengths && c.strengths.length > 0 && (
                               <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">
+                                <SectionTitle className="text-emerald-600 mb-1">
                                   Fortalezas
-                                </p>
+                                </SectionTitle>
                                 <ul className="text-xs text-slate-700 space-y-1 list-disc pl-4">
                                   {c.strengths.map((s, j) => (
                                     <li key={j}>{s}</li>
@@ -262,9 +263,9 @@ export function CompetitorAnalysisDialog({
                             )}
                             {c.weaknesses && c.weaknesses.length > 0 && (
                               <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">
+                                <SectionTitle className="text-red-500 mb-1">
                                   Debilidades
-                                </p>
+                                </SectionTitle>
                                 <ul className="text-xs text-slate-700 space-y-1 list-disc pl-4">
                                   {c.weaknesses.map((s, j) => (
                                     <li key={j}>{s}</li>
@@ -280,9 +281,9 @@ export function CompetitorAnalysisDialog({
                 </section>
 
                 <section>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  <SectionTitle as="h3" className="mb-2">
                     Insights estratégicos
-                  </h3>
+                  </SectionTitle>
                   {result.insights.length === 0 ? (
                     <p className="text-sm text-slate-500">Sin insights.</p>
                   ) : (
@@ -374,9 +375,9 @@ export function CompetitorAnalysisDialog({
                 </section>
 
                 <section>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  <SectionTitle as="h3" className="mb-2">
                     Colores dominantes
-                  </h3>
+                  </SectionTitle>
                   <div className="flex flex-wrap gap-2">
                     {aesthetic.topColors.map((c, i) => (
                       <div key={i} className="flex flex-col items-center gap-1">
@@ -392,9 +393,9 @@ export function CompetitorAnalysisDialog({
                 </section>
 
                 <section>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  <SectionTitle as="h3" className="mb-2">
                     Style tags frecuentes
-                  </h3>
+                  </SectionTitle>
                   <div className="flex flex-wrap gap-2">
                     {aesthetic.topTags.map(({ tag, count }, i) => (
                       <Badge key={i} variant="secondary">

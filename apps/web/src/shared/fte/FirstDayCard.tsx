@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Spinner } from '@radikal/ui';
+import { Button, Card, SectionTitle, Spinner } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
@@ -95,9 +95,9 @@ export function FirstDayCard() {
 
         <div className="relative flex items-start justify-between gap-4 mb-5">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-pink-600 mb-1">
+            <SectionTitle className="text-pink-600 mb-1">
               Tu primer día en Radikal
-            </p>
+            </SectionTitle>
             <h3 className="font-display font-black text-xl md:text-2xl text-slate-900">
               Sigue estos pasos y despega tu marca
             </h3>

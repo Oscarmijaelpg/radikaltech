@@ -15,7 +15,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useQueries } from '@tanstack/react-query';
-import { Card, Spinner } from '@radikal/ui';
+import { Card, SectionTitle, Spinner } from '@radikal/ui';
 import { api } from '@/lib/api';
 import { type CompetitorStats, type SocialPostItem } from '../api/memory';
 import { useCompetitors } from '../api/memory';
@@ -155,7 +155,7 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={engagementData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--color-chart-grid))" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip />
@@ -175,7 +175,7 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={volumeData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--color-chart-grid))" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip />
@@ -213,7 +213,7 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--color-chart-grid))" />
             <XAxis type="number" dataKey="x" name="likes" tick={{ fontSize: 11 }} />
             <YAxis type="number" dataKey="y" name="comments" tick={{ fontSize: 11 }} />
             <Tooltip
@@ -224,9 +224,9 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
                 if (!p) return null;
                 return (
                   <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-xl max-w-xs">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <SectionTitle className="text-slate-400">
                       {p.competitor}
-                    </p>
+                    </SectionTitle>
                     {p.caption && (
                       <p className="text-xs text-slate-700 mt-1 line-clamp-3">{p.caption}</p>
                     )}

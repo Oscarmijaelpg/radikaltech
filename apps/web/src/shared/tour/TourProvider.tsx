@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { SectionTitle } from '@radikal/ui';
 
 export type TourPlacement = 'top' | 'bottom' | 'left' | 'right';
 
@@ -104,9 +105,9 @@ function Tooltip({ rect, step, index, total, onNext, onSkip }: TooltipProps) {
       style={{ top, left }}
     >
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[hsl(var(--color-primary))]">
+        <SectionTitle className="text-[hsl(var(--color-primary))]">
           Paso {index + 1} de {total}
-        </p>
+        </SectionTitle>
         <button
           type="button"
           onClick={onSkip}

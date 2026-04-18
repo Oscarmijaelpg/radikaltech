@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  SectionTitle,
 } from '@radikal/ui';
 import { useBrandHistory, type BrandHistoryEntry } from '../../api/memory/brand';
 
@@ -78,9 +79,9 @@ function DiffDialog({
                   key={f.key}
                   className="rounded-xl border border-slate-200 p-3 bg-white"
                 >
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                  <SectionTitle className="mb-2">
                     {f.label}
-                  </p>
+                  </SectionTitle>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="rounded-lg bg-rose-50 p-2 border border-rose-100">
                       <p className="text-[10px] font-bold text-rose-600 mb-1">Antes</p>
@@ -160,9 +161,9 @@ export function BrandHistory({ projectId }: Props) {
                     </span>
                     <div className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        <SectionTitle>
                           {meta.label}
-                        </p>
+                        </SectionTitle>
                         <p className="text-[11px] text-slate-400">
                           {formatDistanceToNow(new Date(entry.createdAt), {
                             addSuffix: true,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Dialog, DialogContent } from '@radikal/ui';
+import { Button, Dialog, DialogContent, SectionTitle } from '@radikal/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useFirstTimeProgress } from './useFirstTimeProgress';
@@ -89,9 +89,9 @@ export function WelcomeModal() {
               className="rounded-2xl shadow-lg w-full md:w-[320px] aspect-video object-cover bg-black"
             />
             <div className="flex-1 min-w-0 text-center md:text-left">
-              <p className="text-[10px] font-black uppercase tracking-widest text-pink-600 mb-2">
+              <SectionTitle className="text-pink-600 mb-2">
                 Bienvenida
-              </p>
+              </SectionTitle>
               <h2 className="font-display font-black text-3xl md:text-4xl text-slate-900 leading-tight">
                 ¡Bienvenido a Radikal, {firstName}!
               </h2>
@@ -103,9 +103,9 @@ export function WelcomeModal() {
 
           {nextThree.length > 0 && (
             <>
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-3">
+              <SectionTitle size="sm" className="mb-3">
                 Tus primeros pasos
-              </p>
+              </SectionTitle>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
                 {nextThree.map((t) => (
                   <div

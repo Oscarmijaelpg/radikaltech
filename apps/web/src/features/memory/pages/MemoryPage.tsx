@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@radikal/ui';
+import { Card, SectionTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { BrandTab } from '../components/BrandTab';
 import { ProductsTab } from '../components/ProductsTab';
@@ -74,9 +74,9 @@ export function MemoryPage() {
               <span className="material-symbols-outlined text-[24px] sm:text-[32px]">auto_awesome</span>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">
+              <SectionTitle className="opacity-80 text-white mb-2">
                 Base de conocimiento
-              </p>
+              </SectionTitle>
               <h1 className="text-2xl sm:text-3xl md:text-5xl font-display font-black tracking-tight">
                 Identidad
               </h1>

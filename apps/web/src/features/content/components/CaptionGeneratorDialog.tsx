@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  SectionTitle,
   Spinner,
   Card,
   Input,
@@ -121,9 +122,9 @@ export function CaptionGeneratorDialog({
               {variants.map((v, i) => (
                 <Card key={i} className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[hsl(var(--color-primary))]">
+                    <SectionTitle as="span" className="text-[hsl(var(--color-primary))]">
                       {LENGTH_LABEL[v.length] ?? v.length}
-                    </span>
+                    </SectionTitle>
                     {v.emoji_suggested?.length > 0 && (
                       <span className="text-lg">{v.emoji_suggested.join(' ')}</span>
                     )}

@@ -21,3 +21,4 @@ export * from "./components/empty-state";
 export * from "./components/tabs";
 export * from "./components/tooltip";
 export * from "./components/option-card";
+export * from "./components/section-title";

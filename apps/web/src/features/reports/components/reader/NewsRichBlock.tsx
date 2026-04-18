@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Badge, Card } from '@radikal/ui';
+import { Badge, Card, SectionTitle } from '@radikal/ui';
 import { authorityStars, relevanceClasses, sentimentClasses, sentimentLabel } from './helpers';
 import { LegacySourcesList } from './LegacySourcesList';
 import { NarrativeWithCitations } from './NarrativeWithCitations';
@@ -152,7 +152,7 @@ export function NewsRichBlock({
               <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={2} />
               <YAxis allowDecimals={false} tick={{ fontSize: 10 }} width={24} />
               <Tooltip />
-              <Bar dataKey="count" fill="#06b6d4" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="count" fill="hsl(var(--color-chart-primary))" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -177,29 +177,21 @@ export function NewsRichBlock({
       {analysis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="p-4 rounded-2xl border border-slate-200 bg-white">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-              Noticias
-            </p>
+            <SectionTitle className="mb-1">Noticias</SectionTitle>
             <p className="font-display text-2xl font-black text-slate-900">{items.length}</p>
           </div>
           <div className="p-4 rounded-2xl border border-slate-200 bg-white">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-              Sentiment
-            </p>
+            <SectionTitle className="mb-1">Sentiment</SectionTitle>
             <Badge className={`${sentimentClasses(analysis.overall_sentiment)} border text-xs`}>
               {sentimentLabel(analysis.overall_sentiment)}
             </Badge>
           </div>
           <div className="p-4 rounded-2xl border border-slate-200 bg-white">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-              Fuentes
-            </p>
+            <SectionTitle className="mb-1">Fuentes</SectionTitle>
             <p className="font-display text-2xl font-black text-slate-900">{uniqueSources}</p>
           </div>
           <div className="p-4 rounded-2xl border border-slate-200 bg-white min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-              Tema #1
-            </p>
+            <SectionTitle className="mb-1">Tema #1</SectionTitle>
             <p className="text-sm font-bold text-slate-900 break-words line-clamp-2">
               {topTheme?.name ?? '—'}
             </p>
@@ -224,7 +216,7 @@ export function NewsRichBlock({
                     label
                   >
                     {sentimentData.map((entry) => (
-                      <Cell key={entry.key} fill={SENTIMENT_COLORS[entry.key] ?? '#94a3b8'} />
+                      <Cell key={entry.key} fill={SENTIMENT_COLORS[entry.key] ?? SENTIMENT_COLORS.neutral} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -240,7 +232,7 @@ export function NewsRichBlock({
                   <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
                   <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill="hsl(var(--color-chart-primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
