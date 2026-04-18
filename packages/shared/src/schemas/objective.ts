@@ -4,22 +4,27 @@ import { ObjectiveStatus } from '../enums.js';
 
 export const ObjectiveSchema = z.object({
   id: IdSchema,
-  project_id: IdSchema,
-  title: z.string().min(1),
-  description: z.string().nullable().optional(),
-  status: z.nativeEnum(ObjectiveStatus).default(ObjectiveStatus.ACTIVE),
-  priority: z.number().int().min(0).default(0),
-  target_date: DateSchema.nullable().optional(),
-  created_at: DateSchema,
-  updated_at: DateSchema,
+  projectId: IdSchema,
+  userId: IdSchema,
+  name: z.string(),
+  description: z.string().nullable(),
+  targetValue: z.union([z.number(), z.string()]).nullable(),
+  currentValue: z.union([z.number(), z.string()]).nullable(),
+  unit: z.string().nullable(),
+  status: z.nativeEnum(ObjectiveStatus),
+  deadline: DateSchema.nullable(),
+  createdAt: DateSchema,
+  updatedAt: DateSchema,
 });
 
 export const CreateObjectiveSchema = z.object({
+  project_id: IdSchema,
   title: z.string().min(1),
   description: z.string().optional().nullable(),
-  status: z.nativeEnum(ObjectiveStatus).default(ObjectiveStatus.ACTIVE).optional(),
-  priority: z.number().int().min(0).default(0).optional(),
-  target_date: z.string().datetime({ offset: true }).optional().nullable(),
+  kpi: z.string().optional(),
+  target_value: z.number().optional(),
+  due_date: z.string().datetime({ offset: true }).optional().nullable(),
+  status: z.nativeEnum(ObjectiveStatus).optional(),
 });
 
 export type Objective = z.infer<typeof ObjectiveSchema>;

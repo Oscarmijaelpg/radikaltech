@@ -18,6 +18,15 @@ import type {
   ChatFolderSchema,
   CreateChatSchema,
   SendMessageSchema,
+  ReportSchema,
+  ReportTypeSchema,
+  NotificationSchema,
+  RecommendationSchema,
+  RecommendationStatusSchema,
+  RecommendationKindSchema,
+  RecommendationImpactSchema,
+  RecommendationActionKindSchema,
+  RecommendationSourceSchema,
   AnalyzeWebsiteRequestSchema,
   AnalyzeWebsiteResponseSchema,
   AnalyzeCompetitorRequestSchema,
@@ -55,6 +64,18 @@ export type Message = z.infer<typeof MessageSchema>;
 export type ChatFolder = z.infer<typeof ChatFolderSchema>;
 export type CreateChat = z.infer<typeof CreateChatSchema>;
 export type SendMessage = z.infer<typeof SendMessageSchema>;
+
+export type Report = z.infer<typeof ReportSchema>;
+export type ReportType = z.infer<typeof ReportTypeSchema>;
+
+export type Notification = z.infer<typeof NotificationSchema>;
+
+export type Recommendation = z.infer<typeof RecommendationSchema>;
+export type RecommendationStatus = z.infer<typeof RecommendationStatusSchema>;
+export type RecommendationKind = z.infer<typeof RecommendationKindSchema>;
+export type RecommendationImpact = z.infer<typeof RecommendationImpactSchema>;
+export type RecommendationActionKind = z.infer<typeof RecommendationActionKindSchema>;
+export type RecommendationSource = z.infer<typeof RecommendationSourceSchema>;
 
 export type AnalyzeWebsiteRequest = z.infer<typeof AnalyzeWebsiteRequestSchema>;
 export type AnalyzeWebsiteResponse = z.infer<typeof AnalyzeWebsiteResponseSchema>;

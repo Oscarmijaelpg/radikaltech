@@ -1,17 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Notification } from '@radikal/shared';
 import { api } from '@/lib/api';
 
-export interface Notification {
-  id: string;
-  userId: string;
-  projectId: string | null;
-  kind: string;
-  title: string;
-  body: string | null;
-  actionUrl: string | null;
-  isRead: boolean;
-  createdAt: string;
-}
+export type { Notification };
 
 export interface NotificationsResponse {
   items: Notification[];

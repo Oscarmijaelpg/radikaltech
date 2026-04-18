@@ -1,31 +1,7 @@
 // ---------- Brand ----------
 
-export interface BrandProfile {
-  id: string;
-  project_id: string;
-  user_id: string;
-  essence: string | null;
-  mission: string | null;
-  vision: string | null;
-  brand_values: string[];
-  keywords: string[];
-  target_audience: string | null;
-  competitive_advantage: string | null;
-  portfolio: string | null;
-  voice_tone: string | null;
-  visual_direction: string | null;
-  color_palette: unknown;
-  color_palette_suggested?: unknown;
-  visual_analysis_summary?: string | null;
-  moodboard_data?: {
-    generated_at?: string;
-    asset_ids?: string[];
-    dominant_palette?: string[];
-  } | null;
-  ai_generated: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import type { BrandProfile } from '@radikal/shared';
+export type { BrandProfile };
 
 export interface BrandAnalysisResultLite {
   jobId: string;
@@ -163,21 +139,8 @@ export type ScrapeNetwork = 'instagram' | 'tiktok';
 
 // ---------- Social accounts ----------
 
-export interface SocialAccount {
-  id: string;
-  projectId: string;
-  userId: string;
-  platform: string;
-  platformCustom?: string | null;
-  source: 'url' | 'manual';
-  url: string | null;
-  handle: string | null;
-  manualDescription: string | null;
-  followers?: number | null;
-  isActive?: boolean | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { SocialAccount } from '@radikal/shared';
+export type { SocialAccount };
 
 // ---------- Active jobs ----------
 

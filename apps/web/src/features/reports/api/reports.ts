@@ -1,21 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Report, ReportType } from '@radikal/shared';
 import { api } from '@/lib/api';
 
-export type ReportType = 'competition' | 'monthly_audit' | 'brand_strategy' | 'news' | 'general';
-
-export interface Report {
-  id: string;
-  projectId: string;
-  userId: string;
-  title: string;
-  reportType: ReportType;
-  content: string | null;
-  summary: string | null;
-  keyInsights: string[];
-  version: number;
-  sourceData: unknown;
-  createdAt: string;
-}
+export type { Report, ReportType };
 
 export function useReports(projectId: string | null | undefined, type?: ReportType) {
   return useQuery({

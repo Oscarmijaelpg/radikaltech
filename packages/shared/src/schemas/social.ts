@@ -4,14 +4,18 @@ import { SocialPlatform, SocialSource } from '../enums.js';
 
 export const SocialAccountSchema = z.object({
   id: IdSchema,
-  project_id: IdSchema,
+  projectId: IdSchema,
+  userId: IdSchema,
   platform: z.nativeEnum(SocialPlatform),
-  source: z.nativeEnum(SocialSource).default(SocialSource.NONE),
-  url: z.string().url().nullable().optional(),
-  manual_description: z.string().nullable().optional(),
-  handle: z.string().nullable().optional(),
-  created_at: DateSchema,
-  updated_at: DateSchema,
+  platformCustom: z.string().nullable().optional(),
+  source: z.nativeEnum(SocialSource).nullable(),
+  url: z.string().nullable(),
+  handle: z.string().nullable(),
+  manualDescription: z.string().nullable(),
+  followers: z.number().nullable().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: DateSchema,
+  updatedAt: DateSchema,
 });
 
 const socialBase = z.object({

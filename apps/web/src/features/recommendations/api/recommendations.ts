@@ -1,58 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type {
+  Recommendation,
+  RecommendationActionKind,
+  RecommendationImpact,
+  RecommendationKind,
+  RecommendationSource,
+  RecommendationStatus,
+} from '@radikal/shared';
 import { api } from '@/lib/api';
 
-export type RecommendationStatus =
-  | 'new'
-  | 'saved'
-  | 'in_progress'
-  | 'completed'
-  | 'dismissed';
-
-export type RecommendationKind =
-  | 'post'
-  | 'campaign'
-  | 'strategy'
-  | 'report'
-  | 'content_improvement'
-  | 'competitor_response'
-  | 'news_reaction';
-
-export type RecommendationImpact = 'high' | 'medium' | 'low';
-
-export type RecommendationActionKind =
-  | 'navigate_image_gen'
-  | 'navigate_chat'
-  | 'create_scheduled_post'
-  | 'open_competitor'
-  | 'generate_report'
-  | 'open_news'
-  | 'custom';
-
-export interface RecommendationSource {
-  type: 'news' | 'competitor' | 'brand' | 'asset' | 'memory' | string;
-  id?: string;
-  title?: string;
-  url?: string;
-}
-
-export interface Recommendation {
-  id: string;
-  projectId: string;
-  userId: string;
-  kind: RecommendationKind;
-  title: string;
-  why: string;
-  actionLabel: string;
-  actionKind: RecommendationActionKind | string;
-  actionPayload: Record<string, unknown> | null;
-  impact: RecommendationImpact;
-  sources: RecommendationSource[];
-  status: RecommendationStatus;
-  userNotes: string | null;
-  completedAt: string | null;
-  generatedAt: string;
-  updatedAt: string;
-}
+export type {
+  Recommendation,
+  RecommendationActionKind,
+  RecommendationImpact,
+  RecommendationKind,
+  RecommendationSource,
+  RecommendationStatus,
+};
 
 export interface ListFilters {
   status?: RecommendationStatus;

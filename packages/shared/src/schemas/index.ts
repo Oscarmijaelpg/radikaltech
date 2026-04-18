@@ -7,4 +7,7 @@ export * from './onboarding.js';
 export * from './objective.js';
 export * from './memory.js';
 export * from './chat.js';
+export * from './report.js';
+export * from './notification.js';
+export * from './recommendation.js';
 export * from './ai.js';

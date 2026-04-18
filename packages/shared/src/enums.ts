@@ -59,14 +59,6 @@ export const AssetType = {
 } as const;
 export type AssetType = (typeof AssetType)[keyof typeof AssetType];
 
-export const ReportType = {
-  WEEKLY: 'weekly',
-  MONTHLY: 'monthly',
-  QUARTERLY: 'quarterly',
-  CUSTOM: 'custom',
-} as const;
-export type ReportType = (typeof ReportType)[keyof typeof ReportType];
-
 export const MessageRole = {
   USER: 'user',
   ASSISTANT: 'assistant',
