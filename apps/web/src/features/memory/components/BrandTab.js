@@ -1,0 +1,1 @@
+export { BrandTab } from './brand';

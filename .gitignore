@@ -47,6 +47,7 @@ desktop.ini
 # Lo local de cada dev NO:
 .claude/settings.local.json
 .claude/*.local.json
+.claude/*.lock
 /memory/
 .cursor/
 .windsurf/
