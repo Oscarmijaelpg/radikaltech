@@ -10,7 +10,7 @@ import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { AGENTS, getAgent } from './agents.js';
 import { ChatContextBuilder } from './context-builder.js';
 import { ChatSummarizer } from './summarizer.js';
-import { CHAT_TOOLS, executeTool, toolLabel } from './tools.js';
+import { CHAT_TOOLS, executeTool, toolLabel } from './tools/index.js';
 import { agentRouter } from './agent-router.js';
 import {
   appendMessage,
