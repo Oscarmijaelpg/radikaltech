@@ -15,6 +15,7 @@ import type {
   CreateMemorySchema,
   ChatSchema,
   MessageSchema,
+  ChatFolderSchema,
   CreateChatSchema,
   SendMessageSchema,
   AnalyzeWebsiteRequestSchema,
@@ -51,6 +52,7 @@ export type CreateMemory = z.infer<typeof CreateMemorySchema>;
 
 export type Chat = z.infer<typeof ChatSchema>;
 export type Message = z.infer<typeof MessageSchema>;
+export type ChatFolder = z.infer<typeof ChatFolderSchema>;
 export type CreateChat = z.infer<typeof CreateChatSchema>;
 export type SendMessage = z.infer<typeof SendMessageSchema>;
 

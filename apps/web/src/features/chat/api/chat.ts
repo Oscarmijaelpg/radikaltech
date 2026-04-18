@@ -1,31 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Chat, ChatFolder, Message } from '@radikal/shared';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
-export interface Chat {
-  id: string;
-  userId: string;
-  projectId: string | null;
-  agentId: string | null;
-  agentIds: string[];
-  title: string | null;
-  isArchived: boolean;
-  folderId: string | null;
-  objectiveId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Message {
-  id: string;
-  chatId: string;
-  userId: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  tokensUsed: number | null;
-  metadata: unknown;
-  createdAt: string;
-}
+export type { Chat, ChatFolder, Message };
 
 const API_URL = (import.meta.env.VITE_API_URL as string) || '/api';
 
@@ -135,18 +113,6 @@ export function useDeleteChat() {
 }
 
 // ---------- Folders ----------
-
-export interface ChatFolder {
-  id: string;
-  userId: string;
-  projectId: string | null;
-  name: string;
-  description: string | null;
-  color: string | null;
-  icon: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export function useChatFolders(projectId?: string | null) {
   return useQuery({

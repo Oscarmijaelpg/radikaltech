@@ -28,7 +28,7 @@ Puertos por defecto: web `:5173` (o `:5174`), api `:3001` (o `:3002`).
 1. **No añadir comentarios triviales.** Si un identificador se explica solo, no pongas comentario. Reserva comentarios para el *por qué* (invariantes, workarounds, decisiones no-obvias).
 2. **Sin `any`.** Usa `unknown` + refinamiento con zod o type guards explícitos.
 3. **Errores esperados del API**: lanza subclases de `lib/errors.ts` (`BadRequest`, `Forbidden`, `NotFound`, `Conflict`). NO uses `throw new Error(...)` en paths esperados — eso convierte a 500 genérico.
-4. **Snake case en API JSON, camelCase en BD (Prisma).** Los services mapean en el borde (`mapProjectInput`, `serializeProject`).
+4. **camelCase en API JSON (estándar de facto).** Prisma emite camelCase nativo y la mayoría de módulos lo exponen directo. Tipos compartidos en `@radikal/shared` están en camelCase. **Excepción legacy** (snake_case con serializer): `projects`, `memory`, `content`, `competitors`, `users`, `scheduler`. Nuevos módulos usan camelCase — no añadas serializers snake_case salvo que toques uno de los legacy.
 5. **No comitees `.env`.** `.gitignore` los cubre. Usa `.env.example` para documentar variables nuevas.
 6. **No mockear DB en integration tests.** Aprendimos por dolor que los mocks divergen del código. Para unit tests usa `vi.mock('@radikal/db')` pero verifica que cubre todos los accesos del módulo.
 7. **Jobs > 3s → patrón fire-and-forget con `AiJob`** (ver sección abajo). Nunca bloquees la respuesta HTTP esperando scraping/LLM pesado.
@@ -88,9 +88,9 @@ En el frontend (`apps/web/src/features/chat/pages/ChatPage.tsx`) se mapean a han
 
 El mismo service (`websiteAnalyzer`) sirve ambos. Por eso lanza `BadRequest` internamente — es amigable a los dos modos.
 
-### Prisma field casing gotcha
+### Prisma field casing
 
-El schema usa camelCase:
+El schema Prisma usa camelCase (es lo nativo):
 ```prisma
 model Project {
   userId    String
@@ -99,10 +99,22 @@ model Project {
 }
 ```
 
-El JSON del API usa snake_case. Cuando agregues un nuevo campo:
+**Módulos nuevos (camelCase extremo-a-extremo):**
 1. Prisma schema en camelCase.
-2. Mapper en service.ts (`mapXxxInput`, `serializeXxx`).
-3. Zod schema en `routes.ts` (snake_case).
+2. Service retorna Prisma raw (sin serializer).
+3. Zod schema en `routes.ts` en camelCase.
+4. Tipo compartido en `packages/shared/src/schemas/` en camelCase.
+5. Frontend importa de `@radikal/shared`.
+
+**Módulos legacy que mantienen snake_case** (`projects`, `memory`, `content`, `competitors`, `users`, `scheduler`): respeta sus serializers existentes (`mapXxxInput`, `serializeXxx`) si tocas campos. No introduzcas nuevos serializers en módulos camelCase.
+
+### URLs y modelos LLM
+
+NO hardcodees URLs de proveedores (OpenAI, OpenRouter, Tavily, Firecrawl, Gemini, Apify) ni nombres de modelos (`gpt-4o-mini`, `dall-e-3`, etc.) en los services. Todo está centralizado en `apps/api/src/config/providers.ts`:
+- `PROVIDER_URLS.openai.chatCompletions`, `PROVIDER_URLS.tavily.search`, etc.
+- `LLM_MODELS.chat.openai`, `LLM_MODELS.image.dalle3`, etc.
+- Helpers `preferredChatEndpoint()` / `preferredChatModel()` para el patrón "usa OpenRouter si está, si no OpenAI".
+- `APIFY_ACTORS.instagram` / `.tiktok` para los IDs de actors.
 
 ## Integraciones externas y sus env vars
 
