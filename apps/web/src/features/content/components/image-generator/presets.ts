@@ -1,4 +1,14 @@
-import type { Preset } from './types';
+import type { ImageSize, Preset } from './types';
+
+const ASPECT_LABELS: Record<ImageSize, string> = {
+  '1024x1024': '1:1 · 1024×1024',
+  '1024x1792': '9:16 · Vertical',
+  '1792x1024': '16:9 · Horizontal',
+};
+
+export function presetSizeLabel(size: ImageSize): string {
+  return ASPECT_LABELS[size];
+}
 
 export const PRESETS: Preset[] = [
   {

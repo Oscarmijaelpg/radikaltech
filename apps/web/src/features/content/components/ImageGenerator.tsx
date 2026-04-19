@@ -23,7 +23,7 @@ import { useToast } from '@/shared/ui/Toaster';
 import { AbCompareDialog } from './image-generator/AbCompareDialog';
 import { BrandIntegration } from './image-generator/BrandIntegration';
 import { HistoryGrid } from './image-generator/HistoryGrid';
-import { PRESETS, palettetoArray } from './image-generator/presets';
+import { PRESETS, palettetoArray, presetSizeLabel } from './image-generator/presets';
 import { SingleResult } from './image-generator/SingleResult';
 import {
   type ContentAssetDTO,
@@ -261,7 +261,7 @@ export function ImageGenerator() {
           <div>
             <h3 className="font-display text-lg font-bold">Generar imagen con IA</h3>
             <p className="text-xs text-slate-500">
-              Nexo usa Gemini 2.5 Flash Image cuando hay referencias, con DALL-E 3 como fallback.
+              Nexo elige automáticamente el mejor modelo y aplica tu logo y paleta si lo pides.
             </p>
           </div>
         </div>
@@ -289,6 +289,7 @@ export function ImageGenerator() {
                   onClick={() => applyPreset(p)}
                   icon={<Icon name={p.icon} className="text-[20px]" />}
                   title={<span className="text-sm">{p.label}</span>}
+                  description={presetSizeLabel(p.size)}
                   className="p-4"
                 />
               );

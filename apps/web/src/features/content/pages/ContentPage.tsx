@@ -14,6 +14,7 @@ import { ImageGenerator } from '../components/ImageGenerator';
 import { ScheduledPostsTab } from '../components/ScheduledPostsTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
+import { usePageTour } from '@/shared/tour';
 
 type TabId = 'gallery' | 'upload' | 'generate' | 'scheduled';
 
@@ -27,6 +28,8 @@ export function ContentPage() {
     const t = searchParams.get('tab') as TabId | null;
     if (t && ['gallery', 'upload', 'generate', 'scheduled'].includes(t)) setTab(t);
   }, [searchParams]);
+
+  usePageTour('content');
 
   const TAB_SUB: Record<TabId, string> = {
     gallery: 'Galería',
@@ -85,11 +88,11 @@ export function ContentPage() {
         </FeatureHint>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
-          <TabsList>
-            <TabsTrigger value="gallery">Galería</TabsTrigger>
-            <TabsTrigger value="upload">Subir</TabsTrigger>
-            <TabsTrigger value="generate">Generar con IA</TabsTrigger>
-            <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+          <TabsList data-tour="content-tabs">
+            <TabsTrigger value="gallery" data-tour="content-gallery">Galería</TabsTrigger>
+            <TabsTrigger value="upload" data-tour="content-upload">Subir</TabsTrigger>
+            <TabsTrigger value="generate" data-tour="content-generate">Generar con IA</TabsTrigger>
+            <TabsTrigger value="scheduled" data-tour="content-scheduled">Agendados</TabsTrigger>
           </TabsList>
 
           <TabsContent value="gallery" className="animate-in fade-in slide-in-from-right-2 duration-300">

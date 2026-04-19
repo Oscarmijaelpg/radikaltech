@@ -78,6 +78,26 @@ export function CaptionGeneratorDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {!result && !mut.isPending && (
+            <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 text-xs text-slate-600 space-y-1">
+              <p className="font-semibold text-slate-800">Te entrego 3 versiones listas</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>
+                  <span className="font-semibold">Corta</span>: para stories, X, pies rápidos.
+                </li>
+                <li>
+                  <span className="font-semibold">Media</span>: el estándar para la mayoría de
+                  redes.
+                </li>
+                <li>
+                  <span className="font-semibold">Larga</span>: cuando quieres contar la historia
+                  completa.
+                </li>
+              </ul>
+              <p className="pt-1">Cada una con hashtags y sugerencias de emojis.</p>
+            </div>
+          )}
+
           <div>
             <p className="text-sm font-semibold mb-2">Plataforma</p>
             <Select value={platform} onValueChange={(v) => setPlatform(v as ScheduledPostPlatform)}>
@@ -108,7 +128,13 @@ export function CaptionGeneratorDialog({
 
           <Button onClick={() => void handleGenerate()} disabled={mut.isPending}>
             <Icon name="auto_awesome" className="text-[18px]" />
-            {mut.isPending ? 'Generando...' : mut.isError ? 'Reintentar' : result ? 'Regenerar' : 'Generar 3 variantes'}
+            {mut.isPending
+              ? 'Generando…'
+              : mut.isError
+                ? 'Reintentar'
+                : result
+                  ? 'Regenerar'
+                  : 'Generar captions'}
           </Button>
 
           {mut.isPending && (

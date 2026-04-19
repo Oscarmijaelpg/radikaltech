@@ -1,6 +1,7 @@
 import type { CharacterKey } from '@/shared/characters';
 import type { TourDefinition } from './TourProvider';
 import { COMPETITORS_TOUR } from './competitors-tour';
+import { CONTENT_TOUR } from './content-tour';
 import { DASHBOARD_TOUR } from './dashboard-tour';
 import { MEMORY_TOUR } from './memory-tour';
 import { REPORTS_TOUR } from './reports-tour';
@@ -27,6 +28,7 @@ export const FEATURE_CHARACTER: Record<TourId, CharacterKey> = {
 export const TOURS: Partial<Record<TourId, TourDefinition>> = {
   dashboard: DASHBOARD_TOUR,
   competitors: COMPETITORS_TOUR,
+  content: CONTENT_TOUR,
   memory: MEMORY_TOUR,
   reports: REPORTS_TOUR,
 };
