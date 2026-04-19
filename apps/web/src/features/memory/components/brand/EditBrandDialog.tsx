@@ -282,26 +282,31 @@ export function EditBrandDialog({
               label="Resumen del negocio"
               value={businessSummary}
               onChange={(e) => setBusinessSummary(e.target.value)}
+              placeholder="En 1-2 frases: qué haces y para quién. Ej: Plataforma SaaS que ayuda a marcas pequeñas a analizar su competencia con IA."
             />
             <Textarea
               label="Productos / servicios"
               value={mainProducts}
               onChange={(e) => setMainProducts(e.target.value)}
+              placeholder="Lista tu oferta principal. Ej: Suscripción mensual de análisis + consultoría puntual."
             />
             <Textarea
               label="Cliente ideal"
               value={idealCustomer}
               onChange={(e) => setIdealCustomer(e.target.value)}
+              placeholder="Perfil específico. Ej: Marcas B2B de 10-50 empleados con presencia activa en Instagram y TikTok."
             />
             <Textarea
               label="Propuesta única de valor"
               value={uniqueValue}
               onChange={(e) => setUniqueValue(e.target.value)}
+              placeholder="Qué ofreces que nadie más da. Ej: Somos los únicos que combinamos análisis competitivo automático con acciones recomendadas."
             />
             <Textarea
               label="Contexto adicional"
               value={additionalContext}
               onChange={(e) => setAdditionalContext(e.target.value)}
+              placeholder="Cualquier cosa importante que los agentes deban saber (estacionalidad, eventos, historia de marca…)."
             />
           </section>
 
@@ -314,43 +319,51 @@ export function EditBrandDialog({
               label="Esencia"
               value={essence}
               onChange={(e) => setEssence(e.target.value)}
+              placeholder="Qué eres en una frase. Ej: Somos la marca de [industria] que [valor diferencial más profundo]."
             />
             <div className="grid md:grid-cols-2 gap-4">
               <Textarea
                 label="Misión"
                 value={mission}
                 onChange={(e) => setMission(e.target.value)}
+                placeholder="Para qué existes hoy. Ej: Existimos para que cualquier marca pequeña tenga insights de nivel corporativo."
               />
               <Textarea
                 label="Visión"
                 value={vision}
                 onChange={(e) => setVision(e.target.value)}
+                placeholder="Dónde quieres llegar. Ej: Ser el sistema operativo de marca para emprendedores en LATAM."
               />
             </div>
             <Textarea
               label="Público objetivo"
               value={targetAudience}
               onChange={(e) => setTargetAudience(e.target.value)}
+              placeholder="A quién te diriges. Ej: Fundadoras de marcas DTC de 25-40 años que gestionan su propio marketing."
             />
             <Textarea
               label="Ventaja competitiva"
               value={competitiveAdvantage}
               onChange={(e) => setCompetitiveAdvantage(e.target.value)}
+              placeholder="Qué haces mejor o distinto. Ej: Integramos análisis + generación en un solo flujo; nadie más lo hace."
             />
             <Textarea
               label="Portafolio"
               value={portfolio}
               onChange={(e) => setPortfolio(e.target.value)}
+              placeholder="Tus líneas o categorías. Ej: Skincare natural (principal), accesorios eco (secundario)."
             />
             <Input
               label="Voz y tono"
               value={voiceTone}
               onChange={(e) => setVoiceTone(e.target.value)}
+              placeholder="Ej: Cercano, directo, con humor sutil; evitamos jerga corporativa."
             />
             <Textarea
               label="Dirección visual"
               value={visualDirection}
               onChange={(e) => setVisualDirection(e.target.value)}
+              placeholder="Cómo se ve tu marca. Ej: Minimalista, paleta pastel, tipografía serif moderna, fotografía con luz natural."
             />
             <ChipEditor
               label="Valores de marca"

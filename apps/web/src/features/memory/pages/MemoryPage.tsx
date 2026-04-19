@@ -18,6 +18,7 @@ import { SavedChatsTab } from '../components/SavedChatsTab';
 import { NeuronasTab } from '../components/NeuronasTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
+import { usePageTour } from '@/shared/tour';
 
 type TabId = 'brand' | 'products' | 'customers' | 'competitors' | 'saved_chats' | 'neuronas';
 const VALID_TABS: TabId[] = ['brand', 'products', 'customers', 'competitors', 'saved_chats', 'neuronas'];
@@ -36,6 +37,7 @@ export function MemoryPage() {
   const [searchParams] = useSearchParams();
   const initial = searchParams.get('tab') as TabId | null;
   const [tab, setTab] = useState<TabId>(initial && VALID_TABS.includes(initial) ? initial : 'brand');
+  usePageTour('memory');
 
   useEffect(() => {
     const t = searchParams.get('tab') as TabId | null;
@@ -104,13 +106,26 @@ export function MemoryPage() {
           </Card>
         ) : (
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)} className="w-full">
-            <TabsList className="flex overflow-x-auto scrollbar-hide max-w-full flex-nowrap">
-              <TabsTrigger value="brand" className="shrink-0">Mi identidad</TabsTrigger>
+            <TabsList
+              data-tour="memory-tabs"
+              className="flex overflow-x-auto scrollbar-hide max-w-full flex-nowrap"
+            >
+              <TabsTrigger value="brand" data-tour="memory-brand" className="shrink-0">
+                Mi identidad
+              </TabsTrigger>
               <TabsTrigger value="products" className="shrink-0">Productos</TabsTrigger>
               <TabsTrigger value="customers" className="shrink-0">Clientes</TabsTrigger>
-              <TabsTrigger value="competitors" className="shrink-0">Competencia</TabsTrigger>
+              <TabsTrigger
+                value="competitors"
+                data-tour="memory-competitors"
+                className="shrink-0"
+              >
+                Competencia
+              </TabsTrigger>
               <TabsTrigger value="saved_chats" className="shrink-0">Chats guardados</TabsTrigger>
-              <TabsTrigger value="neuronas" className="shrink-0">Biblioteca</TabsTrigger>
+              <TabsTrigger value="neuronas" data-tour="memory-library" className="shrink-0">
+                Biblioteca
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="brand" className="animate-in fade-in slide-in-from-right-2 duration-300">
               <BrandTab projectId={activeProject.id} />

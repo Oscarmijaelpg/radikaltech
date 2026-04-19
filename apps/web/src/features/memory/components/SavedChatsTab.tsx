@@ -21,8 +21,14 @@ export function SavedChatsTab({ projectId }: Props) {
       <Card className="p-6">
         <CharacterEmpty
           character="ankor"
-          title="No tienes chats guardados"
-          message="Guarda conversaciones importantes desde el chat para que las recuerde y las use como contexto."
+          title="No tienes chats guardados todavía"
+          message="Cuando una conversación sea valiosa, guárdala: los agentes la usarán como contexto en futuras charlas."
+          bullets={[
+            'Abre una conversación en el chat',
+            'Toca el botón de guardar arriba a la derecha',
+            'Aparecerá aquí, lista para reutilizar',
+          ]}
+          action={{ label: 'Ir al chat', to: '/chat' }}
         />
       </Card>
     );
