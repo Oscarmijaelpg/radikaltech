@@ -10,28 +10,57 @@ import {
   type ReactNode,
 } from 'react';
 import { SectionTitle } from '@radikal/ui';
+import { CHARACTERS, type CharacterKey } from '@/shared/characters';
 
 export type TourPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 export interface TourStep {
-  target: string; // selector CSS
+  target: string;
   title: string;
   description: string;
   placement?: TourPlacement;
+  character?: CharacterKey;
+}
+
+export interface TourDefinition {
+  id: string;
+  character?: CharacterKey;
+  steps: TourStep[];
 }
 
 interface TourContextValue {
   visible: boolean;
   currentStep: number;
   steps: TourStep[];
-  startTour: (steps: TourStep[]) => void;
+  activeId: string | null;
+  startTour: (def: TourDefinition) => void;
   nextStep: () => void;
   endTour: () => void;
 }
 
 const TourContext = createContext<TourContextValue | null>(null);
 
-export const TOUR_STORAGE_KEY = 'radikal-tour-completed';
+const TOUR_STORAGE_PREFIX = 'radikal-tour-';
+
+export function tourStorageKey(id: string): string {
+  return `${TOUR_STORAGE_PREFIX}${id}`;
+}
+
+export function isTourCompleted(id: string): boolean {
+  try {
+    return window.localStorage.getItem(tourStorageKey(id)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markTourCompleted(id: string): void {
+  try {
+    window.localStorage.setItem(tourStorageKey(id), '1');
+  } catch {
+    /* ignore */
+  }
+}
 
 export function useTour() {
   const ctx = useContext(TourContext);
@@ -54,46 +83,50 @@ function getRect(selector: string): Rect | null {
   return { top: r.top, left: r.left, width: r.width, height: r.height };
 }
 
+const TOOLTIP_W = 340;
+const TOOLTIP_MARGIN = 16;
+const TOOLTIP_MIN_H = 200;
+
 interface TooltipProps {
   rect: Rect;
   step: TourStep;
+  tourCharacter?: CharacterKey;
   index: number;
   total: number;
   onNext: () => void;
   onSkip: () => void;
 }
 
-function Tooltip({ rect, step, index, total, onNext, onSkip }: TooltipProps) {
+function Tooltip({ rect, step, tourCharacter, index, total, onNext, onSkip }: TooltipProps) {
   const placement: TourPlacement = step.placement ?? 'right';
-  const margin = 16;
+  const characterKey = step.character ?? tourCharacter ?? null;
+  const character = characterKey ? CHARACTERS[characterKey] : null;
+
   let top = 0;
   let left = 0;
-  const tooltipW = 320;
-  const tooltipH = 180;
   switch (placement) {
     case 'top':
-      top = rect.top - tooltipH - margin;
-      left = rect.left + rect.width / 2 - tooltipW / 2;
+      top = rect.top - TOOLTIP_MIN_H - TOOLTIP_MARGIN;
+      left = rect.left + rect.width / 2 - TOOLTIP_W / 2;
       break;
     case 'bottom':
-      top = rect.top + rect.height + margin;
-      left = rect.left + rect.width / 2 - tooltipW / 2;
+      top = rect.top + rect.height + TOOLTIP_MARGIN;
+      left = rect.left + rect.width / 2 - TOOLTIP_W / 2;
       break;
     case 'left':
-      top = rect.top + rect.height / 2 - tooltipH / 2;
-      left = rect.left - tooltipW - margin;
+      top = rect.top + rect.height / 2 - TOOLTIP_MIN_H / 2;
+      left = rect.left - TOOLTIP_W - TOOLTIP_MARGIN;
       break;
     case 'right':
     default:
-      top = rect.top + rect.height / 2 - tooltipH / 2;
-      left = rect.left + rect.width + margin;
+      top = rect.top + rect.height / 2 - TOOLTIP_MIN_H / 2;
+      left = rect.left + rect.width + TOOLTIP_MARGIN;
       break;
   }
-  // Clamp a la ventana
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 768;
-  left = Math.max(12, Math.min(left, vw - tooltipW - 12));
-  top = Math.max(12, Math.min(top, vh - tooltipH - 12));
+  left = Math.max(12, Math.min(left, vw - TOOLTIP_W - 12));
+  top = Math.max(12, Math.min(top, vh - TOOLTIP_MIN_H - 12));
 
   const isLast = index === total - 1;
 
@@ -101,10 +134,10 @@ function Tooltip({ rect, step, index, total, onNext, onSkip }: TooltipProps) {
     <div
       role="dialog"
       aria-label={step.title}
-      className="fixed z-[60] w-[320px] rounded-2xl bg-white shadow-2xl border border-slate-200 p-5 animate-in fade-in zoom-in-95 duration-200"
-      style={{ top, left }}
+      className="fixed z-[60] rounded-2xl bg-white shadow-2xl border border-slate-200 p-5 animate-in fade-in zoom-in-95 duration-200"
+      style={{ top, left, width: TOOLTIP_W }}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <SectionTitle className="text-[hsl(var(--color-primary))]">
           Paso {index + 1} de {total}
         </SectionTitle>
@@ -116,6 +149,29 @@ function Tooltip({ rect, step, index, total, onNext, onSkip }: TooltipProps) {
           Saltar
         </button>
       </div>
+
+      {character && (
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${character.accent} p-[2px] shrink-0`}
+          >
+            <div className="w-full h-full rounded-[14px] bg-white overflow-hidden">
+              <img
+                src={character.image}
+                alt={character.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-500">
+              {character.name}
+            </p>
+            <p className="text-[11px] text-slate-400 truncate">{character.role}</p>
+          </div>
+        </div>
+      )}
+
       <h4 className="font-display font-black text-lg text-slate-900 mb-1">{step.title}</h4>
       <p className="text-sm text-slate-600 leading-snug mb-4">{step.description}</p>
       <div className="flex justify-end">
@@ -135,6 +191,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [steps, setSteps] = useState<TourStep[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [tourCharacter, setTourCharacter] = useState<CharacterKey | undefined>(undefined);
   const [rect, setRect] = useState<Rect | null>(null);
   const rafRef = useRef<number | null>(null);
 
@@ -162,28 +220,27 @@ export function TourProvider({ children }: { children: ReactNode }) {
     };
   }, [visible, step, updateRect]);
 
-  const startTour = useCallback((nextSteps: TourStep[]) => {
-    if (!nextSteps.length) return;
-    setSteps(nextSteps);
+  const startTour = useCallback((def: TourDefinition) => {
+    if (!def.steps.length) return;
+    setSteps(def.steps);
     setCurrentStep(0);
+    setActiveId(def.id);
+    setTourCharacter(def.character);
     setVisible(true);
   }, []);
 
   const endTour = useCallback(() => {
+    if (activeId) markTourCompleted(activeId);
     setVisible(false);
     setSteps([]);
     setCurrentStep(0);
-    try {
-      window.localStorage.setItem(TOUR_STORAGE_KEY, '1');
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    setActiveId(null);
+    setTourCharacter(undefined);
+  }, [activeId]);
 
   const nextStep = useCallback(() => {
     setCurrentStep((i) => {
       if (i + 1 >= steps.length) {
-        // End en el siguiente tick para no colisionar con setState
         setTimeout(() => endTour(), 0);
         return i;
       }
@@ -191,7 +248,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
     });
   }, [steps.length, endTour]);
 
-  // ESC para salir
   useEffect(() => {
     if (!visible) return;
     const onKey = (e: KeyboardEvent) => {
@@ -202,8 +258,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [visible, endTour]);
 
   const value = useMemo<TourContextValue>(
-    () => ({ visible, currentStep, steps, startTour, nextStep, endTour }),
-    [visible, currentStep, steps, startTour, nextStep, endTour],
+    () => ({ visible, currentStep, steps, activeId, startTour, nextStep, endTour }),
+    [visible, currentStep, steps, activeId, startTour, nextStep, endTour],
   );
 
   return (
@@ -211,16 +267,13 @@ export function TourProvider({ children }: { children: ReactNode }) {
       {children}
       {visible && step && (
         <div className="fixed inset-0 z-50 pointer-events-none" aria-hidden={false}>
-          {/* Backdrop con hueco (4 paneles alrededor del rect) */}
           {rect ? (
             <>
-              {/* top */}
               <div
                 className="absolute bg-black/60 pointer-events-auto transition-all"
                 style={{ top: 0, left: 0, right: 0, height: Math.max(0, rect.top - 6) }}
                 onClick={endTour}
               />
-              {/* bottom */}
               <div
                 className="absolute bg-black/60 pointer-events-auto transition-all"
                 style={{
@@ -231,7 +284,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
                 }}
                 onClick={endTour}
               />
-              {/* left */}
               <div
                 className="absolute bg-black/60 pointer-events-auto transition-all"
                 style={{
@@ -242,7 +294,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
                 }}
                 onClick={endTour}
               />
-              {/* right */}
               <div
                 className="absolute bg-black/60 pointer-events-auto transition-all"
                 style={{
@@ -253,7 +304,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
                 }}
                 onClick={endTour}
               />
-              {/* Highlight ring */}
               <div
                 className="absolute rounded-xl ring-4 ring-[hsl(var(--color-primary))] pointer-events-none transition-all"
                 style={{
@@ -266,6 +316,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
               <Tooltip
                 rect={rect}
                 step={step}
+                tourCharacter={tourCharacter}
                 index={currentStep}
                 total={steps.length}
                 onNext={nextStep}

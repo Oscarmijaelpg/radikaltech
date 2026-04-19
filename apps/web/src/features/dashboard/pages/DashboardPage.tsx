@@ -1,11 +1,10 @@
-import { useEffect } from 'react';
 import { Card, Icon } from '@radikal/ui';
 import { CountUp } from '@/shared/ui/CountUp';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useProjectStats, useUserStats } from '../api/stats';
 import { useProjectLogoWithBrightness } from '@/shared/hooks/useProjectLogo';
-import { useTour, DASHBOARD_TOUR_STEPS, TOUR_STORAGE_KEY } from '@/shared/tour';
+import { usePageTour } from '@/shared/tour';
 import { useUpcomingScheduledPosts } from '@/features/content/api/scheduler';
 import { useRecommendations } from '@/features/recommendations/api/recommendations';
 import { TrendingWidget } from '../components/TrendingWidget';
@@ -17,7 +16,6 @@ import { UpcomingPostsCard } from '../components/UpcomingPostsCard';
 import { useSmartActions } from '../hooks/useSmartActions';
 import { KPI_META } from '../kpi-meta';
 
-const TOUR_DELAY_MS = 600;
 const UPCOMING_POSTS_LIMIT = 5;
 
 export function DashboardPage() {
@@ -26,22 +24,8 @@ export function DashboardPage() {
   const { url: logo, brightness: logoBrightness } = useProjectLogoWithBrightness(
     activeProject?.id,
   );
-  const { startTour } = useTour();
 
-  useEffect(() => {
-    if (!profile?.onboarding_completed) return;
-    let completed: string | null = null;
-    try {
-      completed = window.localStorage.getItem(TOUR_STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
-    if (completed) return;
-    const t = window.setTimeout(() => {
-      startTour(DASHBOARD_TOUR_STEPS);
-    }, TOUR_DELAY_MS);
-    return () => window.clearTimeout(t);
-  }, [profile?.onboarding_completed, startTour]);
+  usePageTour('dashboard');
 
   const projectStats = useProjectStats(activeProject?.id ?? null);
   const userStats = useUserStats(!activeProject);
