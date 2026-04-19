@@ -65,7 +65,7 @@ describe('reports generators', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { generateBrandStrategy } = await import('../../src/modules/reports/generators.js');
+    const { generateBrandStrategy } = await import('../../src/modules/reports/generators/index.js');
     const r = await generateBrandStrategy({ userId: 'u1', projectId: 'p1' });
     expect(r.id).toBe('r1');
     expect(reportCreate).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('reports generators', () => {
     const fetchMock = vi.fn(async () => new Response('err', { status: 500 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    const { generateBrandStrategy } = await import('../../src/modules/reports/generators.js');
+    const { generateBrandStrategy } = await import('../../src/modules/reports/generators/index.js');
     await generateBrandStrategy({ userId: 'u1', projectId: 'p1' });
     const data = (reportCreate.mock.calls[0]?.[0] as { data: Record<string, unknown> }).data;
     expect(String(data.content)).toContain('No fue posible generar');
@@ -103,7 +103,7 @@ describe('reports generators', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { generateMonthlyAudit } = await import('../../src/modules/reports/generators.js');
+    const { generateMonthlyAudit } = await import('../../src/modules/reports/generators/index.js');
     const r = await generateMonthlyAudit({ userId: 'u1', projectId: 'p1' });
     expect(r.id).toBe('r2');
     const data = (reportCreate.mock.calls[0]?.[0] as { data: Record<string, unknown> }).data;
@@ -114,7 +114,7 @@ describe('reports generators', () => {
   it('generateCompetitionReport throws when competitor not in project', async () => {
     competitorFindUnique.mockResolvedValue({ id: 'c1', projectId: 'different' });
     const { generateCompetitionReport } = await import(
-      '../../src/modules/reports/generators.js'
+      '../../src/modules/reports/generators/index.js'
     );
     await expect(
       generateCompetitionReport({ userId: 'u1', projectId: 'p1', competitorId: 'c1' }),
@@ -144,7 +144,7 @@ describe('reports generators', () => {
     ]);
     reportCreate.mockResolvedValue({ id: 'r3' });
     const { generateCompetitionReport } = await import(
-      '../../src/modules/reports/generators.js'
+      '../../src/modules/reports/generators/index.js'
     );
     const r = await generateCompetitionReport({
       userId: 'u1',

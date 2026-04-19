@@ -10,7 +10,7 @@ import {
   generateBrandStrategy,
   generateMonthlyAudit,
   generateCompetitionReport,
-} from '../reports/generators.js';
+} from '../reports/generators/index.js';
 
 export function computeNextRun(
   frequency: ScheduledReportFrequency,

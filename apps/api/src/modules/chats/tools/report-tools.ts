@@ -4,7 +4,7 @@ import {
   generateCompetitionReport,
   generateMonthlyAudit,
   generateUnifiedReport,
-} from '../../reports/generators.js';
+} from '../../reports/generators/index.js';
 import type { ToolDefinition } from './types.js';
 
 export const generateReportTool: ToolDefinition = {

@@ -10,7 +10,7 @@ import {
   generateMonthlyAudit,
   generateCompetitionReport,
   generateUnifiedReport,
-} from './generators.js';
+} from './generators/index.js';
 
 const REPORT_TYPES = ['competition', 'monthly_audit', 'brand_strategy', 'news', 'general'] as const;
 
