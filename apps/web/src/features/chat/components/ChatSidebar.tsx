@@ -1,22 +1,8 @@
 import { useMemo, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Icon,
-  Input,
-  Label,
-  Spinner,
-} from '@radikal/ui';
+import { Button, Icon, Spinner } from '@radikal/ui';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import { cn } from '@/shared/utils/cn';
 import { useProject } from '@/providers/ProjectProvider';
-import { getAgent } from '../agents';
 import type { Chat, ChatFolder } from '../api/chat';
 import {
   useArchiveChat,
@@ -27,6 +13,10 @@ import {
   useDeleteFolder,
   useMoveChat,
 } from '../api/chat';
+import { ChatListItem } from './chat-sidebar/ChatListItem';
+import { FolderDialog } from './chat-sidebar/FolderDialog';
+import { FolderSection } from './chat-sidebar/FolderSection';
+import { DEFAULT_FOLDER_COLOR } from './chat-sidebar/constants';
 
 interface Props {
   chats: Chat[];
@@ -39,8 +29,6 @@ interface Props {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
-
-const DEFAULT_COLOR = '#8b5cf6';
 
 export function ChatSidebar({
   chats,
@@ -70,7 +58,7 @@ export function ChatSidebar({
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [editFolder, setEditFolder] = useState<ChatFolder | null>(null);
   const [folderName, setFolderName] = useState('');
-  const [folderColor, setFolderColor] = useState(DEFAULT_COLOR);
+  const [folderColor, setFolderColor] = useState(DEFAULT_FOLDER_COLOR);
 
   const folders = foldersQ.data ?? [];
 
@@ -89,15 +77,16 @@ export function ChatSidebar({
   const openNewFolder = () => {
     setEditFolder(null);
     setFolderName('');
-    setFolderColor(DEFAULT_COLOR);
+    setFolderColor(DEFAULT_FOLDER_COLOR);
     setNewFolderOpen(true);
   };
 
   const openEditFolder = (f: ChatFolder) => {
     setEditFolder(f);
     setFolderName(f.name);
-    setFolderColor(f.color ?? DEFAULT_COLOR);
+    setFolderColor(f.color ?? DEFAULT_FOLDER_COLOR);
     setNewFolderOpen(true);
+    setFolderMenuId(null);
   };
 
   const handleSaveFolder = async () => {
@@ -116,7 +105,11 @@ export function ChatSidebar({
   };
 
   const handleDeleteFolder = async (f: ChatFolder) => {
-    const ok = await confirmDialog({ title: `¿Eliminar la carpeta "${f.name}"? Los chats se moverán a "Sin carpeta".`, variant: 'danger', confirmLabel: 'Eliminar' });
+    const ok = await confirmDialog({
+      title: `¿Eliminar la carpeta "${f.name}"? Los chats se moverán a "Sin carpeta".`,
+      variant: 'danger',
+      confirmLabel: 'Eliminar',
+    });
     if (!ok) return;
     await deleteFolder.mutateAsync(f.id);
     setFolderMenuId(null);
@@ -131,202 +124,55 @@ export function ChatSidebar({
     onMobileClose?.();
   };
 
-  const renderChat = (chat: Chat) => {
-    const agent = getAgent(chat.agentId);
-    const isActive = chat.id === activeId;
-    return (
-      <div key={chat.id} className="relative group">
-        <button
-          type="button"
-          onClick={() => handleSelectChat(chat.id)}
-          className={cn(
-            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-colors mb-1',
-            isActive ? 'bg-[hsl(var(--color-primary)/0.08)]' : 'hover:bg-slate-100',
-          )}
-        >
-          <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 shrink-0">
-            {agent && (
-              <img src={agent.image} alt={agent.name} className="w-full h-full object-cover" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-800 truncate">
-              {chat.title ?? 'Sin título'}
-            </p>
-            <p className="text-[11px] text-slate-400 truncate">
-              {agent?.name ?? 'Agente'} ·{' '}
-              {formatDistanceToNow(new Date(chat.updatedAt), { addSuffix: true, locale: es })}
-            </p>
-          </div>
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuId(menuId === chat.id ? null : chat.id);
-            setMoveMenuId(null);
-          }}
-          aria-label="Opciones de chat"
-          className="absolute right-2 top-3 p-1 rounded-md text-slate-400 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Icon name="more_horiz" className="text-[16px]" aria-hidden />
-        </button>
-        {menuId === chat.id && (
-          <div className="absolute right-2 top-10 z-20 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-44">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMoveMenuId(moveMenuId === chat.id ? null : chat.id);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-            >
-              <Icon name="drive_file_move" className="text-[16px]" />
-              Mover a...
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                archive.mutate({ id: chat.id, archived: !chat.isArchived });
-                setMenuId(null);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-            >
-              <Icon name={chat.isArchived ? 'unarchive' : 'archive'} className="text-[16px]" />
-              {chat.isArchived ? 'Desarchivar' : 'Archivar'}
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                const ok = await confirmDialog({ title: '¿Eliminar esta conversación?', variant: 'danger', confirmLabel: 'Eliminar' });
-                if (ok) del.mutate(chat.id);
-                setMenuId(null);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2"
-            >
-              <Icon name="delete" className="text-[16px]" />
-              Eliminar
-            </button>
-          </div>
-        )}
-        {moveMenuId === chat.id && (
-          <div className="absolute right-2 top-10 z-30 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-48 max-h-60 overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => {
-                moveChat.mutate({ id: chat.id, folder_id: null });
-                setMoveMenuId(null);
-                setMenuId(null);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-            >
-              <Icon name="folder_off" className="text-[16px]" />
-              Sin carpeta
-            </button>
-            {folders.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => {
-                  moveChat.mutate({ id: chat.id, folder_id: f.id });
-                  setMoveMenuId(null);
-                  setMenuId(null);
-                }}
-                className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-              >
-                <span
-                  className="w-3 h-3 rounded-full shrink-0"
-                  style={{ background: f.color ?? DEFAULT_COLOR }}
-                />
-                <span className="truncate">{f.name}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  const toggleChatMenu = (id: string) => {
+    setMenuId(menuId === id ? null : id);
+    setMoveMenuId(null);
   };
 
-  const renderSection = (
-    key: string,
-    label: string,
-    items: Chat[],
-    color: string | null,
-    folder: ChatFolder | null,
-  ) => {
-    const isCollapsed = !!collapsed[key];
-    return (
-      <div key={key} className="mb-3">
-        <div className="flex items-center gap-1 px-2 py-1 group/section">
-          <button
-            type="button"
-            onClick={() => toggleCollapse(key)}
-            className="flex-1 flex items-center gap-2 text-left"
-          >
-            <Icon name={isCollapsed ? 'chevron_right' : 'expand_more'} className="text-[16px] text-slate-400" />
-            {color && (
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ background: color }}
-              />
-            )}
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 truncate">
-              {label}
-            </span>
-            <span className="text-[10px] font-bold text-slate-400">({items.length})</span>
-          </button>
-          {folder && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFolderMenuId(folderMenuId === folder.id ? null : folder.id);
-                }}
-                aria-label="Opciones de carpeta"
-                className="p-1 rounded-md text-slate-400 hover:bg-slate-200 opacity-0 group-hover/section:opacity-100"
-              >
-                <Icon name="more_horiz" className="text-[14px]" aria-hidden />
-              </button>
-              {folderMenuId === folder.id && (
-                <div className="absolute right-0 top-7 z-20 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-36">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openEditFolder(folder);
-                      setFolderMenuId(null);
-                    }}
-                    className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-                  >
-                    <Icon name="edit" className="text-[16px]" />
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteFolder(folder)}
-                    className="w-full px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2"
-                  >
-                    <Icon name="delete" className="text-[16px]" />
-                    Eliminar
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        {!isCollapsed &&
-          (items.length === 0 ? (
-            <p className="text-[11px] text-slate-300 px-3 py-1">Vacío</p>
-          ) : (
-            items.map(renderChat)
-          ))}
-      </div>
-    );
+  const toggleMoveMenu = (id: string) => {
+    setMoveMenuId(moveMenuId === id ? null : id);
   };
+
+  const handleArchive = (id: string, archived: boolean) => {
+    archive.mutate({ id, archived });
+    setMenuId(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    const ok = await confirmDialog({
+      title: '¿Eliminar esta conversación?',
+      variant: 'danger',
+      confirmLabel: 'Eliminar',
+    });
+    if (ok) del.mutate(id);
+    setMenuId(null);
+  };
+
+  const handleMove = (id: string, folderId: string | null) => {
+    moveChat.mutate({ id, folder_id: folderId });
+    setMoveMenuId(null);
+    setMenuId(null);
+  };
+
+  const renderChat = (chat: Chat) => (
+    <ChatListItem
+      key={chat.id}
+      chat={chat}
+      isActive={chat.id === activeId}
+      folders={folders}
+      menuOpen={menuId === chat.id}
+      moveMenuOpen={moveMenuId === chat.id}
+      onSelect={handleSelectChat}
+      onToggleMenu={toggleChatMenu}
+      onToggleMoveMenu={toggleMoveMenu}
+      onArchive={handleArchive}
+      onDelete={handleDelete}
+      onMove={handleMove}
+    />
+  );
 
   return (
     <>
-      {/* Mobile overlay backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
@@ -340,122 +186,121 @@ export function ChatSidebar({
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-      {/* Mobile close button */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-200">
-        <Button onClick={() => { onNew(); onMobileClose?.(); }} className="flex-1 justify-center">
-          <Icon name="add" className="text-[18px]" />
-          <span className="ml-1">Nueva conversación</span>
-        </Button>
-        <button
-          type="button"
-          onClick={onMobileClose}
-          className="ml-2 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 md:hidden"
-          aria-label="Cerrar menú"
-        >
-          <Icon name="close" className="text-[20px]" />
-        </button>
-      </div>
+        <div className="flex items-center justify-between p-4 border-b border-slate-200">
+          <Button
+            onClick={() => {
+              onNew();
+              onMobileClose?.();
+            }}
+            className="flex-1 justify-center"
+          >
+            <Icon name="add" className="text-[18px]" />
+            <span className="ml-1">Nueva conversación</span>
+          </Button>
+          <button
+            type="button"
+            onClick={onMobileClose}
+            className="ml-2 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 md:hidden"
+            aria-label="Cerrar menú"
+          >
+            <Icon name="close" className="text-[20px]" />
+          </button>
+        </div>
 
-      <div className="px-3 pt-3 pb-2 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onToggleArchivedMode(false)}
-          className={cn(
-            'flex-1 text-xs font-bold px-3 py-1.5 rounded-full transition-colors',
-            !archivedMode ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100',
-          )}
-        >
-          Activas
-        </button>
-        <button
-          type="button"
-          onClick={() => onToggleArchivedMode(true)}
-          className={cn(
-            'flex-1 text-xs font-bold px-3 py-1.5 rounded-full transition-colors',
-            archivedMode ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100',
-          )}
-        >
-          Archivadas
-        </button>
-      </div>
-
-      <div className="px-3 pb-2">
-        <button
-          type="button"
-          onClick={openNewFolder}
-          className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1"
-        >
-          <Icon name="create_new_folder" className="text-[16px]" />
-          Nueva carpeta
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-2 pb-4">
-        {loading ? (
-          <div className="flex justify-center py-6">
-            <Spinner size="sm" />
-          </div>
-        ) : chats.length === 0 && folders.length === 0 ? (
-          <p className="text-center text-xs text-slate-400 py-8 px-4">
-            {archivedMode ? 'Sin chats archivados.' : 'Crea tu primera conversación.'}
-          </p>
-        ) : (
-          <>
-            {renderSection('__none__', 'Sin carpeta', grouped.get(null) ?? [], null, null)}
-            {folders.map((f) =>
-              renderSection(f.id, f.name, grouped.get(f.id) ?? [], f.color ?? DEFAULT_COLOR, f),
+        <div className="px-3 pt-3 pb-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onToggleArchivedMode(false)}
+            className={cn(
+              'flex-1 text-xs font-bold px-3 py-1.5 rounded-full transition-colors',
+              !archivedMode ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100',
             )}
-          </>
-        )}
-      </div>
+          >
+            Activas
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleArchivedMode(true)}
+            className={cn(
+              'flex-1 text-xs font-bold px-3 py-1.5 rounded-full transition-colors',
+              archivedMode ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100',
+            )}
+          >
+            Archivadas
+          </button>
+        </div>
 
-      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editFolder ? 'Editar carpeta' : 'Nueva carpeta'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Nombre</Label>
-              <Input
-                value={folderName}
-                onChange={(e) => setFolderName(e.target.value)}
-                placeholder="Ej: Campaña 2026"
-                autoFocus
+        <div className="px-3 pb-2">
+          <button
+            type="button"
+            onClick={openNewFolder}
+            className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1"
+          >
+            <Icon name="create_new_folder" className="text-[16px]" />
+            Nueva carpeta
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2 pb-4">
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Spinner size="sm" />
+            </div>
+          ) : chats.length === 0 && folders.length === 0 ? (
+            <p className="text-center text-xs text-slate-400 py-8 px-4">
+              {archivedMode ? 'Sin chats archivados.' : 'Crea tu primera conversación.'}
+            </p>
+          ) : (
+            <>
+              <FolderSection
+                sectionKey="__none__"
+                label="Sin carpeta"
+                items={grouped.get(null) ?? []}
+                color={null}
+                folder={null}
+                isCollapsed={!!collapsed['__none__']}
+                folderMenuOpen={false}
+                onToggleCollapse={toggleCollapse}
+                onToggleFolderMenu={() => {}}
+                onEditFolder={() => {}}
+                onDeleteFolder={() => {}}
+                renderChat={renderChat}
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Color</Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={folderColor}
-                  onChange={(e) => setFolderColor(e.target.value)}
-                  className="w-12 h-10 rounded-lg border border-slate-200 cursor-pointer"
+              {folders.map((f) => (
+                <FolderSection
+                  key={f.id}
+                  sectionKey={f.id}
+                  label={f.name}
+                  items={grouped.get(f.id) ?? []}
+                  color={f.color ?? DEFAULT_FOLDER_COLOR}
+                  folder={f}
+                  isCollapsed={!!collapsed[f.id]}
+                  folderMenuOpen={folderMenuId === f.id}
+                  onToggleCollapse={toggleCollapse}
+                  onToggleFolderMenu={(id) =>
+                    setFolderMenuId(folderMenuId === id ? null : id)
+                  }
+                  onEditFolder={openEditFolder}
+                  onDeleteFolder={handleDeleteFolder}
+                  renderChat={renderChat}
                 />
-                <span className="text-xs text-slate-500">{folderColor}</span>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setNewFolderOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSaveFolder}
-              disabled={!folderName.trim() || createFolder.isPending || updateFolder.isPending}
-            >
-              {editFolder ? 'Guardar' : 'Crear'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </aside>
+              ))}
+            </>
+          )}
+        </div>
+
+        <FolderDialog
+          open={newFolderOpen}
+          editing={editFolder}
+          name={folderName}
+          color={folderColor}
+          saving={createFolder.isPending || updateFolder.isPending}
+          onOpenChange={setNewFolderOpen}
+          onChangeName={setFolderName}
+          onChangeColor={setFolderColor}
+          onSave={handleSaveFolder}
+        />
+      </aside>
     </>
   );
 }
