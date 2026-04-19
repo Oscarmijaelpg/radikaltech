@@ -41,6 +41,7 @@ export function useCompetitorsTab(projectId: string) {
   const [editing, setEditing] = useState<Competitor | null>(null);
   const [userSocialOpen, setUserSocialOpen] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [pendingAnalyze, setPendingAnalyze] = useState<Competitor | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisName, setAnalysisName] = useState('');
   const [analysisCompetitorId, setAnalysisCompetitorId] = useState<string | null>(null);
@@ -95,7 +96,14 @@ export function useCompetitorsTab(projectId: string) {
     await remove.mutateAsync({ id: c.id, project_id: projectId });
   };
 
-  const onAnalyze = async (c: Competitor) => {
+  const onAnalyze = (c: Competitor) => {
+    setPendingAnalyze(c);
+  };
+
+  const onConfirmAnalyze = async () => {
+    const c = pendingAnalyze;
+    if (!c) return;
+    setPendingAnalyze(null);
     setAnalyzingId(c.id);
     setAnalysisName(c.name);
     setAnalysisCompetitorId(c.id);
@@ -115,6 +123,8 @@ export function useCompetitorsTab(projectId: string) {
       setAnalyzingId(null);
     }
   };
+
+  const onCancelAnalyze = () => setPendingAnalyze(null);
 
   const onViewAnalysis = (c: Competitor) => {
     if (!c.analysis_data) return;
@@ -168,11 +178,14 @@ export function useCompetitorsTab(projectId: string) {
     detecting: detect.isPending,
     bulkApproving: bulkApprove.isPending,
     bulkRejecting: bulkReject.isPending,
+    pendingAnalyze,
     openCreate,
     openEdit,
     onSubmit,
     onDelete,
     onAnalyze,
+    onConfirmAnalyze,
+    onCancelAnalyze,
     onViewAnalysis,
     onDetect,
     onApprove,

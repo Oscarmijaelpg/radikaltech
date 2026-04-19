@@ -1,11 +1,13 @@
 import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
+import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
 import { CompetitorAnalysisDialog } from './CompetitorAnalysisDialog';
 import { CompetitorStatusGrid } from './CompetitorStatusGrid';
 import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
 import { CompetitorsBenchmarkTab } from './CompetitorsBenchmarkTab';
+import { AnalyzeCompetitorConfirm } from './competitors-tab/AnalyzeCompetitorConfirm';
 import { BusyOverlay } from './competitors-tab/BusyOverlay';
 import { CompetitorCard } from './competitors-tab/CompetitorCard';
 import { SubTabToggle } from './competitors-tab/SubTabToggle';
@@ -18,6 +20,7 @@ interface Props {
 
 export function CompetitorsTab({ projectId }: Props) {
   const t = useCompetitorsTab(projectId);
+  usePageTour('competitors');
 
   if (t.isLoading) return <Skeleton className="h-48" />;
 
@@ -37,17 +40,24 @@ export function CompetitorsTab({ projectId }: Props) {
   return (
     <div className="space-y-5 relative">
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 sm:gap-2">
-        <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
+        <div data-tour="competitors-subtabs">
+          <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
+        </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={() => t.setUserSocialOpen(true)}>
             <Icon name="hub" className="text-[18px]" />
             Mis redes sociales
           </Button>
-          <Button variant="outline" onClick={t.onDetect} disabled={t.detecting}>
+          <Button
+            variant="outline"
+            onClick={t.onDetect}
+            disabled={t.detecting}
+            data-tour="competitors-detect"
+          >
             {t.detecting ? <Spinner /> : <Icon name="auto_awesome" className="text-[18px]" />}
             Detectar competidores con IA
           </Button>
-          <Button onClick={t.openCreate}>
+          <Button onClick={t.openCreate} data-tour="competitors-add">
             <Icon name="add" className="text-[18px]" />
             Añadir competidor
           </Button>
@@ -67,7 +77,18 @@ export function CompetitorsTab({ projectId }: Props) {
       )}
 
       {t.detecting && (
-        <BusyOverlay>Sira está investigando tu sector…</BusyOverlay>
+        <BusyOverlay
+          character="sira"
+          title="Sira investiga tu sector"
+          subtitle="Busco las marcas que compiten contigo y te las traigo ordenadas."
+          estimatedSeconds={45}
+          stages={[
+            'Rastreando tu industria en la web',
+            'Identificando marcas similares',
+            'Leyendo sus sitios y redes',
+            'Ordenando por relevancia',
+          ]}
+        />
       )}
 
       {t.competitors.length > 0 && <CompetitorStatusGrid projectId={projectId} />}
@@ -77,8 +98,13 @@ export function CompetitorsTab({ projectId }: Props) {
           <CharacterEmpty
             character="sira"
             title="Dame nombres, yo hago el trabajo"
-            message="Añade a tus competidores y yo investigo, detecto oportunidades y te traigo insights estratégicos."
-            action={{ label: 'Añadir competidor', onClick: t.openCreate }}
+            message="Añade a tus competidores (o deja que yo los descubra) y obtienes análisis estratégico en segundos."
+            bullets={[
+              'Añade un nombre y su sitio web (o solo el nombre)',
+              'Analizo su web, redes y estrategia en ~30 segundos',
+              'Ves fortalezas, debilidades, posts y comparativas',
+            ]}
+            action={{ label: 'Añadir mi primer competidor', onClick: t.openCreate }}
           />
         </Card>
       ) : (
@@ -108,11 +134,18 @@ export function CompetitorsTab({ projectId }: Props) {
       )}
 
       {t.analyzingId && (
-        <BusyOverlay>
-          Sira está investigando a <strong>{t.analysisName}</strong>…
-          <br />
-          Esto puede tardar ~30s.
-        </BusyOverlay>
+        <BusyOverlay
+          character="sira"
+          title={`Analizando a ${t.analysisName}`}
+          subtitle="Leemos su sitio, detectamos sus redes y sacamos los insights clave."
+          estimatedSeconds={30}
+          stages={[
+            'Leyendo su sitio web',
+            'Buscando sus redes sociales',
+            'Extrayendo fortalezas y debilidades',
+            'Analizando sus últimas publicaciones',
+          ]}
+        />
       )}
 
       <CompetitorModal
@@ -130,6 +163,15 @@ export function CompetitorsTab({ projectId }: Props) {
         competitorId={t.analysisCompetitorId}
         competitorName={t.analysisName}
         result={t.analysisResult}
+      />
+
+      <AnalyzeCompetitorConfirm
+        open={!!t.pendingAnalyze}
+        onOpenChange={(v) => {
+          if (!v) t.onCancelAnalyze();
+        }}
+        competitorName={t.pendingAnalyze?.name ?? ''}
+        onConfirm={t.onConfirmAnalyze}
       />
 
       <UserSocialAccountModal

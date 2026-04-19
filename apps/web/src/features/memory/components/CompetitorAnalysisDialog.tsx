@@ -20,6 +20,7 @@ import {
 import { AestheticTab } from './competitor-analysis-dialog/AestheticTab';
 import { AnalysisTab } from './competitor-analysis-dialog/AnalysisTab';
 import { ChartsTab } from './competitor-analysis-dialog/ChartsTab';
+import { DisabledTabTrigger } from './competitor-analysis-dialog/DisabledTabTrigger';
 import { PostsTab } from './competitor-analysis-dialog/PostsTab';
 import { useAesthetic } from './competitor-analysis-dialog/useAesthetic';
 
@@ -71,19 +72,31 @@ export function CompetitorAnalysisDialog({
             <TabsTrigger value="analysis" className="shrink-0">
               Análisis
             </TabsTrigger>
-            <TabsTrigger value="charts" disabled={!competitorId} className="shrink-0">
+            <DisabledTabTrigger
+              value="charts"
+              disabled={!competitorId}
+              tooltip="Disponible después de guardar este competidor en tu memoria."
+            >
               Gráficos
-            </TabsTrigger>
-            <TabsTrigger value="posts" disabled={!competitorId} className="shrink-0">
+            </DisabledTabTrigger>
+            <DisabledTabTrigger
+              value="posts"
+              disabled={!competitorId}
+              tooltip="Disponible cuando detectemos sus redes sociales (Instagram, TikTok…)."
+            >
               Últimos posts
-            </TabsTrigger>
-            <TabsTrigger
+            </DisabledTabTrigger>
+            <DisabledTabTrigger
               value="aesthetic"
               disabled={!competitorId || !aesthetic}
-              className="shrink-0"
+              tooltip={
+                !competitorId
+                  ? 'Disponible después de guardar este competidor.'
+                  : 'Se activa cuando analicemos sus posts visualmente.'
+              }
             >
               Estética visual
-            </TabsTrigger>
+            </DisabledTabTrigger>
           </TabsList>
 
           <TabsContent value="analysis">

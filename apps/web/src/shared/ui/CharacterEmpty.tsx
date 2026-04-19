@@ -8,6 +8,7 @@ interface CharacterEmptyProps {
   character: CharacterKey | 'auto';
   title: string;
   message: string;
+  bullets?: string[];
   action?: { label: string; onClick?: () => void; to?: string };
 }
 
@@ -16,7 +17,13 @@ function resolveCharacter(c: CharacterKey | 'auto'): CharacterKey {
   return c;
 }
 
-export function CharacterEmpty({ character, title, message, action }: CharacterEmptyProps) {
+export function CharacterEmpty({
+  character,
+  title,
+  message,
+  bullets,
+  action,
+}: CharacterEmptyProps) {
   const meta = CHARACTERS[resolveCharacter(character)];
 
   return (
@@ -46,6 +53,20 @@ export function CharacterEmpty({ character, title, message, action }: CharacterE
             {title}
           </h3>
           <p className="text-sm md:text-base text-slate-600 leading-relaxed">{message}</p>
+          {bullets && bullets.length > 0 && (
+            <ol className="mt-4 space-y-2">
+              {bullets.map((b, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                  <span
+                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br ${meta.accent} text-white text-[11px] font-black shrink-0`}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="flex-1 pt-0.5">{b}</span>
+                </li>
+              ))}
+            </ol>
+          )}
           {action && (
             <div className="mt-5">
               {action.to ? (
