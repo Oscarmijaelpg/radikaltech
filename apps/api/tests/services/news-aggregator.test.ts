@@ -45,7 +45,7 @@ describe('NewsAggregator', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator.js');
+    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator/index.js');
     const na = new NewsAggregator();
     const res = await na.aggregate({ topic: 'topic', userId: 'u1' });
     expect(res.result.items.length).toBe(2);
@@ -63,7 +63,7 @@ describe('NewsAggregator', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator.js');
+    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator/index.js');
     const na = new NewsAggregator();
     const res = await na.aggregate({ topic: 'topic', userId: 'u1', projectId: 'p1' });
     expect(reportCreate).toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('NewsAggregator', () => {
     const fetchMock = vi.fn(async () => new Response('err', { status: 500 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator.js');
+    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator/index.js');
     const na = new NewsAggregator();
     const res = await na.aggregate({ topic: 'topic', userId: 'u1' });
     expect(res.result.items).toEqual([]);
@@ -103,7 +103,7 @@ describe('NewsAggregator (no Tavily key)', () => {
       },
       Prisma: {},
     }));
-    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator.js');
+    const { NewsAggregator } = await import('../../src/modules/ai-services/news-aggregator/index.js');
     const na = new NewsAggregator();
     const res = await na.aggregate({ topic: 'topic', userId: 'u1' });
     expect(res.result.items).toEqual([]);

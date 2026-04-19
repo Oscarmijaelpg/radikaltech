@@ -1,6 +1,6 @@
 import { WebsiteAnalyzer } from './website-analyzer.js';
 import { CompetitorAnalyzer } from './competitor-analyzer.js';
-import { NewsAggregator } from './news-aggregator.js';
+import { NewsAggregator } from './news-aggregator/index.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
 import { ContentEvaluator } from './content-evaluator.js';
 import { ImageGenerator } from './image-generator/index.js';
@@ -39,7 +39,7 @@ export type { ImageVisualAnalysis } from './image-analyzer.js';
 export type { BrandAnalysisResult } from './brand-orchestrator.js';
 export type { WebsiteAnalysisResult, AnalyzeWebsiteInput } from './website-analyzer.js';
 export type { CompetitorAnalysisResult, AnalyzeCompetitorInput } from './competitor-analyzer.js';
-export type { NewsResult, NewsItem, AggregateNewsInput } from './news-aggregator.js';
+export type { NewsResult, NewsItem, AggregateNewsInput } from './news-aggregator/index.js';
 export type { BrandSynthesisResult, SynthesizeBrandInput } from './brand-synthesizer.js';
 export type { ContentEvaluationResult, EvaluateContentInput } from './content-evaluator.js';
 export type { GenerateImageInput, GenerateImageOutput, GeneratedVariation, EditImageInput, EditImageOutput, ImageSize, ImageStyle, ImageModel } from './image-generator/index.js';
