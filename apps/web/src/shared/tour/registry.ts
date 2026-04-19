@@ -3,6 +3,7 @@ import type { TourDefinition } from './TourProvider';
 import { COMPETITORS_TOUR } from './competitors-tour';
 import { DASHBOARD_TOUR } from './dashboard-tour';
 import { MEMORY_TOUR } from './memory-tour';
+import { REPORTS_TOUR } from './reports-tour';
 
 export type TourId =
   | 'dashboard'
@@ -27,6 +28,7 @@ export const TOURS: Partial<Record<TourId, TourDefinition>> = {
   dashboard: DASHBOARD_TOUR,
   competitors: COMPETITORS_TOUR,
   memory: MEMORY_TOUR,
+  reports: REPORTS_TOUR,
 };
 
 export function getTour(id: TourId): TourDefinition | null {

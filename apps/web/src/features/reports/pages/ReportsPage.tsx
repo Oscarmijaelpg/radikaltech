@@ -17,6 +17,7 @@ import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
+import { usePageTour } from '@/shared/tour';
 
 type Filter = 'all' | ReportType;
 
@@ -45,6 +46,7 @@ export function ReportsPage() {
   const { activeProject } = useProject();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  usePageTour('reports');
 
   const reportsQ = useReports(activeProject?.id);
 
@@ -215,7 +217,7 @@ export function ReportsPage() {
               </Card>
             )}
 
-            <div className="mt-6">
+            <div className="mt-6" data-tour="reports-scheduled">
               <ScheduledReportsSection projectId={activeProject.id} />
             </div>
           </section>

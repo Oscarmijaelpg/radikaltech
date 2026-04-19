@@ -8,7 +8,7 @@ import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
 import { CompetitorsBenchmarkTab } from './CompetitorsBenchmarkTab';
 import { AnalyzeCompetitorConfirm } from './competitors-tab/AnalyzeCompetitorConfirm';
-import { BusyOverlay } from './competitors-tab/BusyOverlay';
+import { BusyOverlay } from '@/shared/ui/BusyOverlay';
 import { CompetitorCard } from './competitors-tab/CompetitorCard';
 import { SubTabToggle } from './competitors-tab/SubTabToggle';
 import { SuggestedCompetitorsSection } from './competitors-tab/SuggestedCompetitorsSection';
