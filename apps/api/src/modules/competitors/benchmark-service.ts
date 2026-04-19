@@ -1,6 +1,17 @@
 import { prisma } from '@radikal/db';
-import { Forbidden, NotFound } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
+import {
+  BENCHMARK_STOPWORDS,
+  DAY_NAMES,
+  aggregatePosts,
+  buildSummary,
+  combinedRatio,
+  computeOverall,
+  extractKeywords,
+  snapshotFromAggregate,
+  verdict,
+} from './benchmark-helpers.js';
+import { assertProjectOwner } from './guards.js';
 
 export interface BenchmarkFormatMix {
   [format: string]: number;
@@ -58,189 +69,13 @@ export interface GapAnalysis {
   theme_gaps: string[];
 }
 
-const DAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) throw new Forbidden('Not project owner');
-  return project;
-}
-
-interface PostAggregate {
-  count: number;
-  likes: number;
-  comments: number;
-  views: number;
-  shares: number;
-  engagement: number;
-  byPlatform: Record<
-    string,
-    { count: number; likes: number; comments: number; views: number; engagement: number }
-  >;
-  formatMix: BenchmarkFormatMix;
-  oldest: Date | null;
-  byDay: Record<number, number>;
-}
-
-function emptyAggregate(): PostAggregate {
-  return {
-    count: 0,
-    likes: 0,
-    comments: 0,
-    views: 0,
-    shares: 0,
-    engagement: 0,
-    byPlatform: {},
-    formatMix: {},
-    oldest: null,
-    byDay: {},
-  };
-}
-
-function aggregatePosts(
-  posts: Array<{
-    likes: number;
-    comments: number;
-    views: number;
-    shares: number;
-    postType: string | null;
-    platform: unknown;
-    postedAt: Date | null;
-  }>,
-): PostAggregate {
-  const agg = emptyAggregate();
-  for (const p of posts) {
-    const eng = p.likes + p.comments * 3 + p.shares * 5;
-    agg.count += 1;
-    agg.likes += p.likes;
-    agg.comments += p.comments;
-    agg.views += p.views;
-    agg.shares += p.shares;
-    agg.engagement += eng;
-
-    const plat = String(p.platform);
-    if (!agg.byPlatform[plat]) {
-      agg.byPlatform[plat] = { count: 0, likes: 0, comments: 0, views: 0, engagement: 0 };
-    }
-    agg.byPlatform[plat].count += 1;
-    agg.byPlatform[plat].likes += p.likes;
-    agg.byPlatform[plat].comments += p.comments;
-    agg.byPlatform[plat].views += p.views;
-    agg.byPlatform[plat].engagement += eng;
-
-    const fmt = p.postType ?? 'unknown';
-    agg.formatMix[fmt] = (agg.formatMix[fmt] ?? 0) + 1;
-
-    if (p.postedAt) {
-      const d = new Date(p.postedAt);
-      if (!agg.oldest || d < agg.oldest) agg.oldest = d;
-      const day = d.getDay();
-      agg.byDay[day] = (agg.byDay[day] ?? 0) + 1;
-    }
-  }
-  return agg;
-}
-
-function bestPlatform(agg: PostAggregate): string | null {
-  let best: string | null = null;
-  let bestEng = -1;
-  for (const [k, v] of Object.entries(agg.byPlatform)) {
-    const avg = v.count ? v.engagement / v.count : 0;
-    if (avg > bestEng) {
-      bestEng = avg;
-      best = k;
-    }
-  }
-  return best;
-}
-
-function snapshotFromAggregate(name: string, agg: PostAggregate): BrandSnapshot {
-  const now = new Date();
-  const weeksSpan = agg.oldest
-    ? Math.max(1, (now.getTime() - agg.oldest.getTime()) / (7 * 86_400_000))
-    : 1;
-  const n = agg.count;
-  const avgEng = n ? agg.engagement / n : 0;
-  return {
-    name,
-    social_posts_count: n,
-    avg_likes: n ? agg.likes / n : 0,
-    avg_comments: n ? agg.comments / n : 0,
-    avg_views: n ? agg.views / n : 0,
-    posts_per_week: n / weeksSpan,
-    format_mix: agg.formatMix,
-    best_performing_platform: bestPlatform(agg),
-    engagement_score: avgEng,
-    platforms: Object.keys(agg.byPlatform),
-  };
-}
-
-function verdict(ratio: number): 'ahead' | 'parity' | 'behind' {
-  if (ratio >= 1.15) return 'ahead';
-  if (ratio <= 0.85) return 'behind';
-  return 'parity';
-}
-
-function computeOverall(my: BrandSnapshot, comps: CompetitorSnapshot[]): 'leader' | 'strong' | 'developing' | 'behind' {
-  if (comps.length === 0) {
-    if (my.social_posts_count === 0) return 'developing';
-    return 'strong';
-  }
-  const ahead = comps.filter((c) => c.my_vs_them.verdict === 'ahead').length;
-  const behind = comps.filter((c) => c.my_vs_them.verdict === 'behind').length;
-  const ratio = ahead / comps.length;
-  if (ratio >= 0.75) return 'leader';
-  if (ratio >= 0.5) return 'strong';
-  if (behind / comps.length >= 0.6) return 'behind';
-  return 'developing';
-}
-
-function buildSummary(
-  my: BrandSnapshot,
-  comps: CompetitorSnapshot[],
-  position: BenchmarkResult['overall_position'],
-): string {
-  if (comps.length === 0) {
-    return `Aún no hay competidores analizados suficientes para un benchmark completo. Tu marca ha publicado ${my.social_posts_count} posts con un engagement promedio de ${Math.round(my.engagement_score)}.`;
-  }
-  const bestComp = [...comps].sort((a, b) => b.engagement_score - a.engagement_score)[0];
-  const ahead = comps.filter((c) => c.my_vs_them.verdict === 'ahead').map((c) => c.name);
-  const parts: string[] = [];
-  if (position === 'leader') {
-    parts.push(`Tu marca lidera el benchmark con ventaja sobre ${ahead.length}/${comps.length} competidores.`);
-  } else if (position === 'strong') {
-    parts.push(`Tu marca tiene una posición sólida: superas a ${ahead.length}/${comps.length} competidores en engagement.`);
-  } else if (position === 'developing') {
-    parts.push(`Tu marca está en fase de desarrollo respecto a los competidores analizados.`);
-  } else {
-    parts.push(`Tu marca está por detrás de la mayoría de competidores en métricas clave.`);
-  }
-  if (bestComp) {
-    parts.push(`${bestComp.name} lidera en engagement promedio (${Math.round(bestComp.engagement_score)} vs ${Math.round(my.engagement_score)} tuyo).`);
-  }
-  parts.push(`Frecuencia tuya: ${my.posts_per_week.toFixed(1)} posts/semana.`);
-  return parts.join(' ');
-}
-
-function jaccard(a: string[], b: string[]): number {
-  const sa = new Set(a.map((s) => s.toLowerCase()));
-  const sb = new Set(b.map((s) => s.toLowerCase()));
-  if (sa.size === 0 && sb.size === 0) return 1;
-  let inter = 0;
-  for (const w of sa) if (sb.has(w)) inter += 1;
-  const union = sa.size + sb.size - inter;
-  return union === 0 ? 0 : inter / union;
-}
-
-function extractKeywords(caption: string): string[] {
-  return caption
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s#]/gu, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length > 4)
-    .slice(0, 40);
-}
+const FOLLOWERS_PER_SCORE_POINT = 1000;
+const MAX_ENGAGEMENT_SCORE_FALLBACK = 100;
+const MIN_COMP_ACTIVE_FOR_GAP = 2;
+const MIN_COMP_KEYWORD_FREQ = 3;
+const MAX_THEME_GAPS = 10;
+const MAX_CONTENT_GAPS = 8;
+const TOP_COMP_KEYWORDS = 40;
 
 export class CompetitorBenchmarkService {
   /**
@@ -254,7 +89,7 @@ export class CompetitorBenchmarkService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // My brand posts: scraped for this user/project where competitorId is null
+    // Mi marca: posts scrapeados del user/project sin competitorId.
     const myPosts = await prisma.socialPost.findMany({
       where: { projectId, userId, competitorId: null },
     });
@@ -263,7 +98,7 @@ export class CompetitorBenchmarkService {
     if (myPosts.length > 0) {
       mySnapshot = snapshotFromAggregate('Mi marca', aggregatePosts(myPosts));
     } else {
-      // fallback: use social accounts as proxy
+      // Fallback: social accounts como proxy cuando aún no hay scraping.
       const accounts = await prisma.socialAccount.findMany({
         where: { projectId, userId, isActive: true },
       });
@@ -278,7 +113,10 @@ export class CompetitorBenchmarkService {
         posts_per_week: 0,
         format_mix: {},
         best_performing_platform: platforms[0] ?? null,
-        engagement_score: totalFollowers > 0 ? Math.min(totalFollowers / 1000, 100) : 0,
+        engagement_score:
+          totalFollowers > 0
+            ? Math.min(totalFollowers / FOLLOWERS_PER_SCORE_POINT, MAX_ENGAGEMENT_SCORE_FALLBACK)
+            : 0,
         platforms,
       };
     }
@@ -287,14 +125,7 @@ export class CompetitorBenchmarkService {
     for (const c of competitors) {
       const posts = await prisma.socialPost.findMany({ where: { competitorId: c.id } });
       const base = snapshotFromAggregate(c.name, aggregatePosts(posts));
-      const myEng = Math.max(mySnapshot.engagement_score, 0.0001);
-      const theirEng = Math.max(base.engagement_score, 0.0001);
-      const myFreq = Math.max(mySnapshot.posts_per_week, 0.0001);
-      const theirFreq = Math.max(base.posts_per_week, 0.0001);
-      const engagement_ratio = myEng / theirEng;
-      const frequency_ratio = myFreq / theirFreq;
-      // combined verdict weighted engagement > frequency
-      const combined = engagement_ratio * 0.7 + frequency_ratio * 0.3;
+      const { engagement_ratio, frequency_ratio, combined } = combinedRatio(mySnapshot, base);
       compSnapshots.push({
         ...base,
         id: c.id,
@@ -357,7 +188,6 @@ export class CompetitorBenchmarkService {
         const competitors_using = Array.from(set)
           .map((id) => idToName.get(id) ?? '')
           .filter(Boolean);
-        // opportunity: high comp share, low my share, many competitors using
         const diff = Math.max(0, comp_share - my_share);
         const coverage = competitors_using.length / Math.max(1, competitors.length);
         const opportunity_score = Math.min(10, Math.round((diff * 6 + coverage * 4) * 10) / 1);
@@ -382,7 +212,7 @@ export class CompetitorBenchmarkService {
     for (let d = 0; d < 7; d += 1) {
       const compsActive = compPostsByDay[d]?.size ?? 0;
       const meActive = (myAgg.byDay[d] ?? 0) > 0;
-      if (compsActive >= 2 && !meActive) {
+      if (compsActive >= MIN_COMP_ACTIVE_FOR_GAP && !meActive) {
         temporal_gaps.push({
           weekday: DAY_NAMES[d]!,
           competitors_active: compsActive,
@@ -406,28 +236,29 @@ export class CompetitorBenchmarkService {
         compKeywords.set(w, (compKeywords.get(w) ?? 0) + 1);
       }
     }
-    const stopwords = new Set([
-      'sobre', 'desde', 'hasta', 'entre', 'cuando', 'porque', 'también', 'nuestro', 'nuestra',
-      'nuestros', 'nuestras', 'mucho', 'mucha', 'muchos', 'muchas', 'estos', 'estas', 'esta',
-      'este', 'para', 'como', 'pero', 'todo', 'toda', 'todos', 'todas', 'https', 'http',
-    ]);
     const theme_gaps: string[] = [];
     const sortedComp = [...compKeywords.entries()]
-      .filter(([w]) => !stopwords.has(w) && !w.startsWith('http'))
+      .filter(([w]) => !BENCHMARK_STOPWORDS.has(w) && !w.startsWith('http'))
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 40);
+      .slice(0, TOP_COMP_KEYWORDS);
     for (const [w, count] of sortedComp) {
       const mine = myKeywords.get(w) ?? 0;
-      if (count >= 3 && mine === 0) {
+      if (count >= MIN_COMP_KEYWORD_FREQ && mine === 0) {
         theme_gaps.push(w);
       }
-      if (theme_gaps.length >= 10) break;
+      if (theme_gaps.length >= MAX_THEME_GAPS) break;
     }
 
-    logger.debug({ projectId, content_gaps: content_gaps.length, theme_gaps: theme_gaps.length }, 'gap analysis');
-    void jaccard; // reserved for future similarity work
+    logger.debug(
+      { projectId, content_gaps: content_gaps.length, theme_gaps: theme_gaps.length },
+      'gap analysis',
+    );
 
-    return { content_gaps: content_gaps.slice(0, 8), temporal_gaps, theme_gaps };
+    return {
+      content_gaps: content_gaps.slice(0, MAX_CONTENT_GAPS),
+      temporal_gaps,
+      theme_gaps,
+    };
   }
 }
 
