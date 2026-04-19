@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from '@radikal/ui';
 import { CountUp } from '@/shared/ui/CountUp';
 import { logoContainerStyle, type LogoBrightness } from '@/shared/hooks/useProjectLogo';
 import type { ProjectStats } from '../api/stats';
@@ -42,12 +43,19 @@ export function DashboardHero({
         </div>
         <div className="hidden md:flex items-center gap-4">
           {KPI_META.slice(0, 4).map((m) => (
-            <div key={m.key} className="text-center">
-              <p className="text-2xl font-black">
-                {loading ? '—' : <CountUp end={stats?.[m.key] ?? 0} />}
-              </p>
-              <p className="text-[10px] font-semibold opacity-70">{m.label}</p>
-            </div>
+            <Tooltip key={m.key}>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-center cursor-default">
+                  <p className="text-2xl font-black">
+                    {loading ? '—' : <CountUp end={stats?.[m.key] ?? 0} />}
+                  </p>
+                  <p className="text-[10px] font-semibold opacity-70">{m.label}</p>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[260px]">
+                {m.tooltip}
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
       </div>

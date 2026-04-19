@@ -48,9 +48,14 @@ export function SuggestionsCard({ recommendations, loading }: Props) {
       ) : topRecs.length === 0 ? (
         <CharacterEmpty
           character="indexa"
-          title="Cuando haya actividad, verás ideas aquí"
-          message="Usa la plataforma un rato y generaré sugerencias personalizadas."
-          action={{ label: 'Generar', onClick: () => navigate('/recommendations') }}
+          title="Todavía no tengo sugerencias"
+          message="Leo tus datos para recomendarte acciones concretas. Dame un par de días de uso o dispara la primera ronda manualmente."
+          bullets={[
+            'Completa tu identidad de marca',
+            'Añade al menos 1 competidor',
+            'Yo detecto oportunidades y te las priorizo por impacto',
+          ]}
+          action={{ label: 'Generar ahora', onClick: () => navigate('/recommendations') }}
         />
       ) : (
         <ul className="space-y-2">
