@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Card,
+  EmptyState,
   Icon,
   SectionTitle,
   Skeleton,
@@ -152,11 +153,12 @@ export function ReportsPage() {
                   <Skeleton className="h-14 w-full" />
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="py-6 text-center">
-                  <Icon name="description" className="text-[28px] text-slate-300" />
-                  <p className="text-xs text-slate-400 mt-2">Aún no hay reportes.</p>
-                  <p className="text-[11px] text-slate-400">Genera uno con el botón de arriba.</p>
-                </div>
+                <EmptyState
+                  className="py-6"
+                  icon={<Icon name="description" className="text-[24px]" />}
+                  title="Aún no hay reportes"
+                  description="Genera uno con el botón de arriba."
+                />
               ) : (
                 <ul className="space-y-1">
                   {filtered.map((r) => (

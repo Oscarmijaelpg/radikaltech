@@ -13,6 +13,7 @@ import {
   Badge,
   Button,
   Card,
+  EmptyState,
   Icon,
   SectionTitle,
   Skeleton,
@@ -117,8 +118,12 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
   if (isLoading) return <Skeleton className="h-96" />;
   if (!benchmark) {
     return (
-      <Card className="p-6 text-center text-sm text-slate-500">
-        No hay datos suficientes para generar benchmark.
+      <Card>
+        <EmptyState
+          icon={<Icon name="analytics" className="text-[32px]" />}
+          title="Sin datos para benchmark"
+          description="Analiza algunos competidores para generar el benchmark comparativo."
+        />
       </Card>
     );
   }

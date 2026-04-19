@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Button,
   Card,
+  EmptyState,
   Icon,
   Input,
   SectionTitle,
@@ -173,12 +174,12 @@ export function NewsPage() {
             )}
 
             {!loading && currentTopic && !hasResults && (
-              <Card className="p-10 text-center">
-                <h3 className="font-display text-xl font-bold mb-2">Sin resultados</h3>
-                <p className="text-sm text-slate-500">
-                  No encontramos noticias recientes para{' '}
-                  <span className="font-semibold">{currentTopic}</span>. Prueba con otros términos.
-                </p>
+              <Card>
+                <EmptyState
+                  icon={<Icon name="search_off" className="text-[32px]" />}
+                  title="Sin resultados"
+                  description={`No encontramos noticias recientes para "${currentTopic}". Prueba con otros términos.`}
+                />
               </Card>
             )}
 
