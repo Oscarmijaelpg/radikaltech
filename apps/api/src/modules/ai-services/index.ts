@@ -1,4 +1,4 @@
-import { WebsiteAnalyzer } from './website-analyzer.js';
+import { WebsiteAnalyzer } from './website-analyzer/index.js';
 import { CompetitorAnalyzer } from './competitor-analyzer.js';
 import { NewsAggregator } from './news-aggregator/index.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
@@ -37,7 +37,7 @@ export type { DetectMarketsInput, DetectMarketsResult } from './market-detector.
 export type { AutoCompetitorDetectInput, AutoCompetitorResult, DetectedCompetitor } from './auto-competitor-detector.js';
 export type { ImageVisualAnalysis } from './image-analyzer.js';
 export type { BrandAnalysisResult } from './brand-orchestrator.js';
-export type { WebsiteAnalysisResult, AnalyzeWebsiteInput } from './website-analyzer.js';
+export type { WebsiteAnalysisResult, AnalyzeWebsiteInput } from './website-analyzer/index.js';
 export type { CompetitorAnalysisResult, AnalyzeCompetitorInput } from './competitor-analyzer.js';
 export type { NewsResult, NewsItem, AggregateNewsInput } from './news-aggregator/index.js';
 export type { BrandSynthesisResult, SynthesizeBrandInput } from './brand-synthesizer.js';

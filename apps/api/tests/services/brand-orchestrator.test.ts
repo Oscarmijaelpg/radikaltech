@@ -62,7 +62,7 @@ vi.mock('../../src/lib/supabase.js', () => ({
 }));
 
 // Stub sub-services
-vi.mock('../../src/modules/ai-services/website-analyzer.js', () => ({
+vi.mock('../../src/modules/ai-services/website-analyzer/index.js', () => ({
   WebsiteAnalyzer: class {
     async analyze() {
       return { jobId: 'wa', result: { logo_url: undefined, logo_asset_id: undefined } };

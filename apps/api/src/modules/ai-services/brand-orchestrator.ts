@@ -5,7 +5,7 @@ import { PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { NotFound, Forbidden } from '../../lib/errors.js';
-import { WebsiteAnalyzer } from './website-analyzer.js';
+import { WebsiteAnalyzer } from './website-analyzer/index.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
 import { ImageAnalyzer, type ImageVisualAnalysis } from './image-analyzer.js';
 import { InstagramScraper, parseInstagramHandle } from './instagram-scraper.js';

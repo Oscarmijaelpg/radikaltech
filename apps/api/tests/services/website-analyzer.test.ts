@@ -28,7 +28,7 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
-import { detectLogoCandidates } from '../../src/modules/ai-services/website-analyzer.js';
+import { detectLogoCandidates } from '../../src/modules/ai-services/website-analyzer/index.js';
 
 describe('detectLogoCandidates', () => {
   it('prioritizes <img alt=logo> over favicons', () => {
