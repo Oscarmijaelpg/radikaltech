@@ -97,7 +97,7 @@ describe('ImageGenerator brand palette enrichment', () => {
     const captured: { lastGeminiBody?: string } = {};
     vi.stubGlobal('fetch', makeFetchMock(captured));
 
-    const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator.js');
+    const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator/index.js');
     const gen = new ImageGenerator();
     await gen.generate({
       prompt: 'a product shot',
@@ -118,7 +118,7 @@ describe('ImageGenerator brand palette enrichment', () => {
     const captured: { lastGeminiBody?: string } = {};
     vi.stubGlobal('fetch', makeFetchMock(captured));
 
-    const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator.js');
+    const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator/index.js');
     const gen = new ImageGenerator();
     await gen.generate({
       prompt: 'a product shot',

@@ -3,7 +3,7 @@ import { CompetitorAnalyzer } from './competitor-analyzer.js';
 import { NewsAggregator } from './news-aggregator.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
 import { ContentEvaluator } from './content-evaluator.js';
-import { ImageGenerator } from './image-generator.js';
+import { ImageGenerator } from './image-generator/index.js';
 import { InstagramScraper } from './instagram-scraper.js';
 import { TikTokScraper } from './tiktok-scraper.js';
 import { ImageAnalyzer } from './image-analyzer.js';
@@ -42,7 +42,7 @@ export type { CompetitorAnalysisResult, AnalyzeCompetitorInput } from './competi
 export type { NewsResult, NewsItem, AggregateNewsInput } from './news-aggregator.js';
 export type { BrandSynthesisResult, SynthesizeBrandInput } from './brand-synthesizer.js';
 export type { ContentEvaluationResult, EvaluateContentInput } from './content-evaluator.js';
-export type { GenerateImageInput, GenerateImageOutput, GeneratedVariation, EditImageInput, EditImageOutput, ImageSize, ImageStyle, ImageModel } from './image-generator.js';
+export type { GenerateImageInput, GenerateImageOutput, GeneratedVariation, EditImageInput, EditImageOutput, ImageSize, ImageStyle, ImageModel } from './image-generator/index.js';
 export type { ScrapeInstagramInput, ScrapeInstagramResult, ScrapedInstagramPost } from './instagram-scraper.js';
 export type { ScrapeTikTokInput, ScrapeTikTokResult, ScrapedTikTokPost } from './tiktok-scraper.js';
 export { parseInstagramHandle } from './instagram-scraper.js';
