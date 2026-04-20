@@ -2,7 +2,6 @@ import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
-import { CompetitorAnalysisDialog } from './CompetitorAnalysisDialog';
 import { CompetitorStatusGrid } from './CompetitorStatusGrid';
 import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
@@ -154,15 +153,6 @@ export function CompetitorsTab({ projectId }: Props) {
         initial={t.editing}
         onSubmit={t.onSubmit}
         saving={t.creating || t.updating}
-      />
-
-      <CompetitorAnalysisDialog
-        open={t.analysisOpen}
-        onOpenChange={t.setAnalysisOpen}
-        projectId={projectId}
-        competitorId={t.analysisCompetitorId}
-        competitorName={t.analysisName}
-        result={t.analysisResult}
       />
 
       <AnalyzeCompetitorConfirm

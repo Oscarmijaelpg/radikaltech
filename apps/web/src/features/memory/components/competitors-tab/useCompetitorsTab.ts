@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import {
   useAnalyzeCompetitor,
@@ -12,13 +13,13 @@ import {
   useBulkApproveCompetitors,
   useBulkRejectCompetitors,
   type Competitor,
-  type CompetitorAnalysisResult,
 } from '../../api/memory';
 import type { CompetitorFormData } from '../CompetitorModal';
 
 export type SubTab = 'list' | 'benchmark';
 
 export function useCompetitorsTab(projectId: string) {
+  const navigate = useNavigate();
   const confirmDialog = useConfirm();
   const { data: allCompetitors, isLoading } = useCompetitors(projectId, 'all');
   const create = useCreateCompetitor();
@@ -42,10 +43,7 @@ export function useCompetitorsTab(projectId: string) {
   const [userSocialOpen, setUserSocialOpen] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [pendingAnalyze, setPendingAnalyze] = useState<Competitor | null>(null);
-  const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisName, setAnalysisName] = useState('');
-  const [analysisCompetitorId, setAnalysisCompetitorId] = useState<string | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<CompetitorAnalysisResult | null>(null);
   const [lastMode, setLastMode] = useState<CompetitorFormData['analysis_mode']>('combined');
 
   const openCreate = () => {
@@ -106,19 +104,13 @@ export function useCompetitorsTab(projectId: string) {
     setPendingAnalyze(null);
     setAnalyzingId(c.id);
     setAnalysisName(c.name);
-    setAnalysisCompetitorId(c.id);
     try {
-      const res = await analyze.mutateAsync({
+      await analyze.mutateAsync({
         id: c.id,
         project_id: projectId,
         mode: lastMode,
       });
-      const webResult =
-        res.result && typeof res.result === 'object'
-          ? (res.result as CompetitorAnalysisResult)
-          : null;
-      setAnalysisResult(webResult);
-      setAnalysisOpen(true);
+      navigate(`/competitors/${c.id}/report`);
     } finally {
       setAnalyzingId(null);
     }
@@ -127,13 +119,7 @@ export function useCompetitorsTab(projectId: string) {
   const onCancelAnalyze = () => setPendingAnalyze(null);
 
   const onViewAnalysis = (c: Competitor) => {
-    if (!c.analysis_data) return;
-    setAnalysisName(c.name);
-    setAnalysisCompetitorId(c.id);
-    const raw = c.analysis_data as unknown as Record<string, unknown>;
-    const hasWeb = raw && (raw.competitors || raw.insights || raw.query);
-    setAnalysisResult(hasWeb ? (c.analysis_data as CompetitorAnalysisResult) : null);
-    setAnalysisOpen(true);
+    navigate(`/competitors/${c.id}/report`);
   };
 
   const onDetect = async () => {
@@ -168,11 +154,7 @@ export function useCompetitorsTab(projectId: string) {
     userSocialOpen,
     setUserSocialOpen,
     analyzingId,
-    analysisOpen,
-    setAnalysisOpen,
     analysisName,
-    analysisCompetitorId,
-    analysisResult,
     creating: create.isPending,
     updating: update.isPending,
     detecting: detect.isPending,

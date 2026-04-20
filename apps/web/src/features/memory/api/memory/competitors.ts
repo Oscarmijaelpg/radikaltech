@@ -226,6 +226,65 @@ export function useAnalyzeCompetitor() {
   });
 }
 
+export function useCompetitor(competitorId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['competitor', competitorId],
+    queryFn: async () => {
+      const r = await api.get<{ data: Competitor }>(`/competitors/${competitorId}`);
+      return r.data;
+    },
+    enabled: !!competitorId,
+    // Poll cada 3s mientras tengamos AiJobs pendientes (narrativa async)
+    refetchInterval: (query) => {
+      const c = query.state.data;
+      if (!c) return false;
+      if (c.narrative_stale || (!c.narrative && c.last_analyzed_at)) return 3000;
+      return false;
+    },
+  });
+}
+
+export function useSyncSocial() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      networks,
+    }: {
+      id: string;
+      project_id: string;
+      networks?: ScrapeNetwork[];
+    }) => {
+      const r = await api.post<{ data: { scheduled: boolean } }>(
+        `/competitors/${id}/sync-social`,
+        networks ? { networks } : undefined,
+      );
+      return r.data;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['competitor', vars.id] });
+      qc.invalidateQueries({ queryKey: ['competitor-posts', vars.id] });
+      qc.invalidateQueries({ queryKey: ['competitor-stats', vars.id] });
+      qc.invalidateQueries({ queryKey: ['competitors', vars.project_id] });
+    },
+  });
+}
+
+export function useRegenerateNarrative() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const r = await api.post<{ data: { scheduled: boolean } }>(
+        `/competitors/${id}/regenerate-narrative`,
+      );
+      return r.data;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['competitor', vars.id] });
+    },
+  });
+}
+
 export function useCompetitorStats(competitorId: string | null | undefined) {
   return useQuery({
     queryKey: ['competitor-stats', competitorId],

@@ -19,6 +19,11 @@ const CompetitorsPage = lazy(() =>
     default: m.CompetitorsPage,
   })),
 );
+const CompetitorReportPage = lazy(() =>
+  import('./features/memory/pages/CompetitorReportPage').then((m) => ({
+    default: m.CompetitorReportPage,
+  })),
+);
 const ChatPage = lazy(() =>
   import('./features/chat/pages/ChatPage').then((m) => ({ default: m.ChatPage })),
 );
@@ -94,6 +99,7 @@ export function App() {
         <Route path="/" element={<LazyRoute><DashboardPage /></LazyRoute>} />
         <Route path="/memory" element={<LazyRoute><MemoryPage /></LazyRoute>} />
         <Route path="/competitors" element={<LazyRoute><CompetitorsPage /></LazyRoute>} />
+        <Route path="/competitors/:id/report" element={<LazyRoute><CompetitorReportPage /></LazyRoute>} />
         <Route path="/chat" element={<LazyRoute><ChatPage /></LazyRoute>} />
         <Route path="/chat/:chatId" element={<LazyRoute><ChatPage /></LazyRoute>} />
         <Route path="/content" element={<LazyRoute><ContentPage /></LazyRoute>} />

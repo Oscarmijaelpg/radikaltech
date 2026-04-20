@@ -62,6 +62,13 @@ export interface VisualAnalysisPayload {
   analyzed_at?: string;
 }
 
+export interface CompetitorNarrativePayload {
+  version: 'v1';
+  summary: string;
+  aesthetic: string;
+  opportunity: string;
+}
+
 export interface Competitor {
   id: string;
   project_id: string;
@@ -74,6 +81,9 @@ export interface Competitor {
   analysis_data: CompetitorAnalysisResult | null;
   sync_status?: Record<string, { synced_at: string; post_count: number; handle?: string }> | null;
   engagement_stats?: EngagementStatsPayload | null;
+  narrative?: CompetitorNarrativePayload | null;
+  narrative_generated_at?: string | null;
+  narrative_stale?: boolean;
   status?: 'confirmed' | 'suggested' | 'rejected';
   source?: string;
   detected_at?: string | null;

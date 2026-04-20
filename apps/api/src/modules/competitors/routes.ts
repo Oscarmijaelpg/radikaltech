@@ -230,6 +230,12 @@ const syncSocialSchema = z
   .object({ networks: z.array(z.enum(['instagram', 'tiktok'])).optional() })
   .optional();
 
+competitorsRouter.get('/:id', async (c) => {
+  const user = c.get('user');
+  const comp = await competitorsService.getById(c.req.param('id'), user.id);
+  return c.json(ok(serialize(comp)));
+});
+
 competitorsRouter.post('/:id/sync-social', async (c) => {
   const user = c.get('user');
   let body: { networks?: Array<'instagram' | 'tiktok'> } | undefined;
