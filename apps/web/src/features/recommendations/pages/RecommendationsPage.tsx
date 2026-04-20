@@ -65,7 +65,7 @@ export function RecommendationsPage() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-violet-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative">
+    <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-violet-50/40 relative">
       {generateMut.isPending && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm grid place-items-center p-6">
           <Card className="p-8 max-w-md w-full text-center">

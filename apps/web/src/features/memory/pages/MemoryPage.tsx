@@ -47,18 +47,13 @@ export function MemoryPage() {
   const ctx = TAB_CONTEXT[tab];
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-cyan-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-full bg-gradient-to-br from-pink-50/40 via-white to-cyan-50/40">
       {/* Mini breadcrumb */}
-      <div className="px-4 sm:px-6 md:px-8 pt-3 pb-1 max-w-7xl mx-auto flex items-center justify-between gap-3 text-[11px] text-slate-500">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Icon name="auto_awesome" className="text-[14px] text-[hsl(var(--color-primary))]" />
-          <span className="font-semibold truncate">{ctx.section}</span>
-          <span className="opacity-40">›</span>
-          <span className="truncate">{ctx.sub}</span>
-        </div>
-        <kbd className="hidden md:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">
-          ⌘K Buscar
-        </kbd>
+      <div className="px-4 sm:px-6 md:px-8 pt-3 pb-1 max-w-7xl mx-auto flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
+        <Icon name="auto_awesome" className="text-[14px] text-[hsl(var(--color-primary))]" />
+        <span className="font-semibold truncate">{ctx.section}</span>
+        <span className="opacity-40">›</span>
+        <span className="truncate">{ctx.sub}</span>
       </div>
       <div className="p-4 sm:p-6 md:p-8 pt-2 max-w-7xl mx-auto">
         <FeatureHint

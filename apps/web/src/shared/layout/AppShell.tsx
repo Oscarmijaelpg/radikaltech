@@ -154,7 +154,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                     'flex items-center justify-center w-11 h-11 rounded-xl text-sm font-semibold transition-all mx-auto',
                     active
                       ? 'bg-[hsl(var(--color-primary))] text-white shadow-lg shadow-[hsl(var(--color-primary)/0.35)]'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                      : 'text-slate-600 hover:bg-slate-100',
                   )}
                 >
                   <Icon name={item.icon} className="text-[20px]" />
@@ -285,7 +285,7 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                       'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px]',
                       active
                         ? 'bg-[hsl(var(--color-primary))] text-white shadow-lg shadow-[hsl(var(--color-primary)/0.35)]'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                        : 'text-slate-600 hover:bg-slate-100',
                     )}
                   >
                     <Icon name={item.icon} className="text-[20px] shrink-0" />
@@ -337,14 +337,14 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
         </button>
 
         {userMenuOpen && (
-          <div className="absolute left-3 right-3 bottom-[calc(100%-8px)] mb-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-20 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute left-3 right-3 bottom-[calc(100%-8px)] mb-1 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20 animate-in fade-in slide-in-from-bottom-2 duration-200">
             <button
               onClick={() => {
                 setUserMenuOpen(false);
                 navigate('/projects');
                 onNavigate?.();
               }}
-              className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-h-[48px]"
+              className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 min-h-[48px]"
             >
               <Icon name="folder_special" className="text-[18px]" />
               Mis proyectos
@@ -355,14 +355,14 @@ function SidebarContent({ onNavigate, compact = false, iconOnly = false }: Sideb
                 navigate('/settings');
                 onNavigate?.();
               }}
-              className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-h-[48px]"
+              className="w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 min-h-[48px]"
             >
               <Icon name="settings" className="text-[18px]" />
               Ajustes
             </button>
             <button
               onClick={handleSignOut}
-              className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2 min-h-[48px] border-t border-slate-100 dark:border-slate-800"
+              className="w-full px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 min-h-[48px] border-t border-slate-100"
             >
               <Icon name="logout" className="text-[18px]" />
               Cerrar sesion
@@ -408,7 +408,7 @@ export function AppShell() {
   }, [drawerOpen]);
 
   return (
-    <div className="min-h-screen lg:h-screen lg:flex bg-gradient-to-br from-pink-50/30 via-white to-cyan-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 lg:overflow-hidden text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen lg:h-screen lg:flex bg-gradient-to-br from-pink-50/30 via-white to-cyan-50/30 lg:overflow-hidden text-slate-900">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:font-semibold"
@@ -422,7 +422,7 @@ export function AppShell() {
       <header
         className={cn(
           'lg:hidden sticky top-0 z-30',
-          'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl',
+          'bg-white/90 backdrop-blur-xl',
           'border-b border-[hsl(var(--color-border))]',
           'flex items-center gap-3 px-4 h-14',
           // Safe-area for notched phones (status bar)
@@ -452,7 +452,7 @@ export function AppShell() {
       {/* ------------------------------------------------------------------ */}
       {/* Desktop full sidebar (>= lg:1024)                                  */}
       {/* ------------------------------------------------------------------ */}
-      <aside className="hidden lg:flex w-72 shrink-0 border-r border-[hsl(var(--color-border))] bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl flex-col h-screen sticky top-0">
+      <aside className="hidden lg:flex w-72 shrink-0 border-r border-[hsl(var(--color-border))] bg-white/60 backdrop-blur-xl flex-col h-screen sticky top-0">
         <SidebarContent />
       </aside>
 
@@ -480,7 +480,7 @@ export function AppShell() {
         {/* Drawer panel */}
         <aside
           className={cn(
-            'absolute left-0 top-0 bottom-0 w-[85vw] max-w-[320px] bg-white dark:bg-slate-900 flex flex-col shadow-2xl',
+            'absolute left-0 top-0 bottom-0 w-[85vw] max-w-[320px] bg-white flex flex-col shadow-2xl',
             'transition-transform duration-300 ease-out',
             drawerOpen ? 'translate-x-0' : '-translate-x-full',
             // Safe-area insets for notched phones

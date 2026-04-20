@@ -1,7 +1,48 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import type { AuthError, Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { api, setAuthToken } from '@/lib/api';
+
+function translateAuthError(err: AuthError | Error | unknown): Error {
+  const raw = err instanceof Error ? err.message : 'Error de autenticación';
+  const msg = raw.toLowerCase();
+
+  if (msg.includes('user already registered') || msg.includes('already been registered')) {
+    return new Error('Este correo ya está registrado. Inicia sesión.');
+  }
+  if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+    return new Error('Correo o contraseña incorrectos.');
+  }
+  if (msg.includes('email not confirmed')) {
+    return new Error('Tu correo aún no está confirmado. Revisa tu bandeja de entrada.');
+  }
+  if (msg.includes('user not found')) {
+    return new Error('No encontramos una cuenta con ese correo.');
+  }
+  if (msg.includes('password should be at least')) {
+    return new Error('La contraseña es demasiado corta (mínimo 6 caracteres).');
+  }
+  if (msg.includes('weak password') || msg.includes('password is too weak')) {
+    return new Error('La contraseña es demasiado débil. Usa al menos 6 caracteres.');
+  }
+  if (msg.includes('email rate limit') || msg.includes('too many requests')) {
+    return new Error('Demasiados intentos. Espera un momento antes de volver a intentarlo.');
+  }
+  if (msg.includes('for security purposes')) {
+    return new Error('Por seguridad, espera unos segundos antes de reintentar.');
+  }
+  if (msg.includes('signup disabled') || msg.includes('signups not allowed')) {
+    return new Error('El registro está deshabilitado temporalmente.');
+  }
+  if (msg.includes('invalid email') || msg.includes('email address is invalid')) {
+    return new Error('El correo no tiene un formato válido.');
+  }
+  if (msg.includes('network') || msg.includes('failed to fetch')) {
+    return new Error('Error de conexión. Revisa tu red e intenta de nuevo.');
+  }
+
+  return new Error(raw);
+}
 
 interface Profile {
   id: string;
@@ -115,16 +156,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    if (error) throw translateAuthError(error);
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    // Evita que una sesión previa contamine el registro nuevo.
+    await supabase.auth.signOut();
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
     });
-    if (error) throw error;
+    if (error) throw translateAuthError(error);
+
+    // Supabase no lanza error si el email ya existe: devuelve user con identities vacío.
+    // Detectamos ese caso para no crear la ilusión de registro exitoso.
+    if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+      throw new Error('Este correo ya está registrado. Inicia sesión.');
+    }
+
+    // Si confirmaciones están activas, signUp no devuelve sesión. Señalamos al UI.
+    if (!data.session) {
+      throw new Error(
+        'Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',
+      );
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -132,7 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
-    if (error) throw error;
+    if (error) throw translateAuthError(error);
   };
 
   const signOut = async () => {

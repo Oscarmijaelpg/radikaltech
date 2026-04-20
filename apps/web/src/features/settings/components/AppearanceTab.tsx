@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, RadioGroup, RadioGroupItem, Switch } from '@radikal/ui';
-import { useToast } from '@/shared/ui/Toaster';
-import { COLOR_KEY, COLOR_PRESETS, DARKMODE_KEY, DENSITY_KEY } from './constants';
+import { Card, RadioGroup, RadioGroupItem } from '@radikal/ui';
+import { COLOR_KEY, COLOR_PRESETS, DENSITY_KEY } from './constants';
 
 function applyColor(hsl: string) {
   document.documentElement.style.setProperty('--color-primary', hsl);
@@ -12,7 +11,6 @@ function applyDensity(density: 'compact' | 'comfortable') {
 }
 
 export function AppearanceTab() {
-  const { toast } = useToast();
   const [color, setColor] = useState(() => {
     try {
       return localStorage.getItem(COLOR_KEY) ?? 'pink';
@@ -22,16 +20,12 @@ export function AppearanceTab() {
   });
   const [density, setDensity] = useState<'compact' | 'comfortable'>(() => {
     try {
-      return (localStorage.getItem(DENSITY_KEY) as 'compact' | 'comfortable' | null) ?? 'comfortable';
+      return (
+        (localStorage.getItem(DENSITY_KEY) as 'compact' | 'comfortable' | null) ??
+        'comfortable'
+      );
     } catch {
       return 'comfortable';
-    }
-  });
-  const [darkMode, setDarkMode] = useState(() => {
-    try {
-      return localStorage.getItem(DARKMODE_KEY) === '1';
-    } catch {
-      return false;
     }
   });
 
@@ -54,50 +48,26 @@ export function AppearanceTab() {
     }
   }, [density]);
 
-  const toggleDark = (v: boolean) => {
-    setDarkMode(v);
-    document.documentElement.classList.toggle('dark', v);
-    try {
-      localStorage.setItem(DARKMODE_KEY, v ? '1' : '0');
-    } catch {
-      /* noop */
-    }
-    toast({
-      title: v ? 'Modo oscuro activado' : 'Modo claro activado',
-      description: 'Algunas secciones pueden verse incompletas — integración total en progreso.',
-    });
-  };
-
   return (
     <div className="space-y-6">
-      <Card className="p-4 sm:p-6 md:p-8 space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Modo oscuro</h3>
-          <p className="text-sm text-slate-500">Cambia el tema de la interfaz</p>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold text-slate-800">Activar modo oscuro</p>
-            <p className="text-xs text-slate-500">
-              Funcionalidad en progreso — integración completa próximamente
-            </p>
-          </div>
-          <Switch checked={darkMode} onCheckedChange={toggleDark} />
-        </div>
-      </Card>
-
       <Card className="p-4 sm:p-6 md:p-8 space-y-4">
         <div>
           <h3 className="font-bold text-slate-900">Color principal</h3>
           <p className="text-sm text-slate-500">Elige el color de acento para toda la app</p>
         </div>
-        <RadioGroup value={color} onValueChange={setColor} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <RadioGroup
+          value={color}
+          onValueChange={setColor}
+          className="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+        >
           {COLOR_PRESETS.map((preset) => (
             <label
               key={preset.id}
               htmlFor={`color-${preset.id}`}
               className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
-                color === preset.id ? 'border-[hsl(var(--color-primary))] bg-slate-50' : 'border-slate-200'
+                color === preset.id
+                  ? 'border-[hsl(var(--color-primary))] bg-slate-50'
+                  : 'border-slate-200'
               }`}
             >
               <RadioGroupItem id={`color-${preset.id}`} value={preset.id} />
@@ -129,7 +99,9 @@ export function AppearanceTab() {
               key={opt.id}
               htmlFor={`density-${opt.id}`}
               className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                density === opt.id ? 'border-[hsl(var(--color-primary))] bg-slate-50' : 'border-slate-200'
+                density === opt.id
+                  ? 'border-[hsl(var(--color-primary))] bg-slate-50'
+                  : 'border-slate-200'
               }`}
             >
               <RadioGroupItem id={`density-${opt.id}`} value={opt.id} />

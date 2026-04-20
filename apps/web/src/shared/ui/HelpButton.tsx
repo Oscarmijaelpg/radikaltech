@@ -28,14 +28,14 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
         title="Ayuda"
         className={
           className ??
-          'w-10 h-10 grid place-items-center rounded-xl bg-white/90 dark:bg-slate-800/80 border border-[hsl(var(--color-border))] hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-sm transition-colors'
+          'w-10 h-10 grid place-items-center rounded-xl bg-white/90 border border-[hsl(var(--color-border))] hover:bg-white text-slate-600 shadow-sm transition-colors'
         }
       >
         <Icon name="help_outline" className="text-[20px]" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="dark:bg-slate-900 dark:text-slate-100">
+        <DialogContent>
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] grid place-items-center text-white shadow-md">
@@ -57,7 +57,7 @@ export function HelpButton({ title, description, tips, videoUrl, className }: He
                 {tips.map((tip, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200"
+                    className="flex items-start gap-2 text-sm text-slate-700"
                   >
                     <Icon name="auto_awesome" className="text-[16px] text-[hsl(var(--color-primary))] mt-0.5" />
                     <span>{tip}</span>

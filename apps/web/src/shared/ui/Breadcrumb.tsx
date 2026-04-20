@@ -18,7 +18,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
       aria-label="Breadcrumb"
       className={
         className ??
-        'flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400'
+        'flex items-center gap-1 text-xs font-semibold text-slate-500'
       }
     >
       <ol className="flex items-center gap-1 flex-wrap">
@@ -28,7 +28,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
             <span
               className={
                 isLast
-                  ? 'text-slate-900 dark:text-slate-100'
+                  ? 'text-slate-900'
                   : 'hover:text-[hsl(var(--color-primary))] transition-colors'
               }
             >

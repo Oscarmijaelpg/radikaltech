@@ -15,7 +15,6 @@ import { TourProvider } from './shared/tour';
 import { ErrorBoundary } from './shared/ui/ErrorBoundary';
 import { ConfirmProvider } from './shared/ui/ConfirmDialog';
 import { installGlobalErrorHandlers } from './lib/error-reporting';
-import { ThemeProvider } from './shared/theme/ThemeProvider';
 import { TooltipProvider } from '@radikal/ui';
 import '@radikal/ui/styles/globals.css';
 import './index.css';
@@ -30,29 +29,27 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <ProjectProvider>
-                <SiraContextualProvider>
-                  <ToastProvider>
-                    <ConfirmProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <ProjectProvider>
+              <SiraContextualProvider>
+                <ToastProvider>
+                  <ConfirmProvider>
                     <TooltipProvider delayDuration={250}>
                       <TourProvider>
-                          <App />
-                          <SiraContextualPanel />
+                        <App />
+                        <SiraContextualPanel />
                       </TourProvider>
                     </TooltipProvider>
-                    </ConfirmProvider>
-                  </ToastProvider>
-                </SiraContextualProvider>
-              </ProjectProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
+                  </ConfirmProvider>
+                </ToastProvider>
+              </SiraContextualProvider>
+            </ProjectProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );

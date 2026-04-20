@@ -64,5 +64,6 @@ packages/db/src/generated/
 *.swp
 *.bak
 .cache/
+openapi_spec.json
 
 .vercel

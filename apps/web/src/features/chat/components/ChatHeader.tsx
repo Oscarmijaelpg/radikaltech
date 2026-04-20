@@ -40,7 +40,7 @@ export function ChatHeader({
   );
 
   return (
-    <header className="border-b border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
+    <header className="border-b border-slate-200 bg-white/70 backdrop-blur-xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
       <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-slate-200 shrink-0">
         {agent && <img src={agent.image} alt={agent.name} className="w-full h-full object-cover" />}
       </div>

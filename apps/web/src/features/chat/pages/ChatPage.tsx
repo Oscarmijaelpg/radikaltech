@@ -174,7 +174,7 @@ export function ChatPage() {
         onMobileClose={() => setSidebarOpen(false)}
       />
 
-      <section className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-pink-50/30 via-white to-cyan-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <section className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-pink-50/30 via-white to-cyan-50/30">
         {!chatId ? (
           <WelcomeScreen
             disabled={createChat.isPending || !!pendingMessage}
@@ -188,7 +188,7 @@ export function ChatPage() {
           </div>
         ) : (
           <>
-            <div className="px-3 sm:px-6 pt-3 flex items-center justify-between gap-2 sm:gap-3 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl">
+            <div className="px-3 sm:px-6 pt-3 flex items-center justify-between gap-2 sm:gap-3 bg-white/70 backdrop-blur-xl">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}

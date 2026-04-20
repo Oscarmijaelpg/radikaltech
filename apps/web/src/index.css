@@ -26,17 +26,6 @@ body {
   --color-chart-grid: 214 32% 91%;
 }
 
-.dark {
-  --color-bg: 222 47% 8%;
-  --color-fg: 210 40% 98%;
-  --color-muted: 215 20% 65%;
-  --color-border: 217 32% 20%;
-  --color-card: 222 47% 12%;
-  --color-card-hover: 217 32% 17%;
-
-  --color-chart-grid: 217 32% 20%;
-}
-
 *:focus-visible {
   outline: 2px solid hsl(var(--color-primary));
   outline-offset: 2px;

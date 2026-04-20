@@ -311,9 +311,12 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
             <div className="flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 p-5 text-sm text-amber-900">
               <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
               <div>
-                <p className="font-semibold">Esta información mejora la IA</p>
+                <p className="font-semibold">Sin esto la IA trabaja un poco a ciegas</p>
                 <p className="mt-1 opacity-80">
-                  Puedes continuar, pero te recomendamos completar al menos una breve descripción para que la IA trabaje mejor. Podrás añadirlo en cualquier momento desde Memory.
+                  Puedes continuar igual. Cuando quieras añadirlo, entra a{' '}
+                  <span className="font-semibold">Memoria › Mi identidad</span> y toca{' '}
+                  <span className="font-semibold">Editar identidad</span>: ahí completas resumen,
+                  productos, cliente ideal y propuesta de valor.
                 </p>
               </div>
             </div>

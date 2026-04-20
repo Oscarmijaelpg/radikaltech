@@ -87,7 +87,7 @@ export function NewsPage() {
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-cyan-50/40 via-white to-blue-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-full bg-gradient-to-br from-cyan-50/40 via-white to-blue-50/40">
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
         <AnalysisSubnav />
         <header className="mb-6 md:mb-8 relative overflow-hidden rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-cyan-500 to-blue-600 p-6 md:p-10 text-white shadow-2xl">

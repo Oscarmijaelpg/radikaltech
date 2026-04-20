@@ -76,7 +76,7 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-violet-50/40 via-white to-pink-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-full bg-gradient-to-br from-violet-50/40 via-white to-pink-50/40">
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
         <AnalysisSubnav />
         {selectedReport && (

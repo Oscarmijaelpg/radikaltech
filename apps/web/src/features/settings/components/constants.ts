@@ -17,7 +17,6 @@ export const DEFAULT_NOTIF: NotifPrefs = {
 export const NOTIF_KEY = 'radikal:notification_preferences';
 export const COLOR_KEY = 'radikal:color_primary';
 export const DENSITY_KEY = 'radikal:density';
-export const DARKMODE_KEY = 'radikal:dark_mode';
 
 export const COLOR_PRESETS = [
   { id: 'pink', label: 'Rosa', hsl: '335 82% 58%', hex: '#ec4899' },

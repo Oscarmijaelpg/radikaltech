@@ -121,7 +121,7 @@ export function CompleteStep({ state, onFinish }: CompleteStepProps) {
             <img
               src={c.src}
               alt={c.name}
-              className="w-16 md:w-20 drop-shadow-xl object-contain"
+              className="h-20 md:h-24 w-auto drop-shadow-xl object-contain"
             />
             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-600">
               {c.name}

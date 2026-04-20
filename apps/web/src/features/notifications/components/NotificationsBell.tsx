@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -8,28 +8,24 @@ import {
   useMarkAllNotificationsRead,
   type Notification,
 } from '../api/notifications';
-import { Icon } from '@radikal/ui';
+import {
+  Icon,
+  Popover,
+  PopoverContent,
+  PopoverPortal,
+  PopoverTrigger,
+} from '@radikal/ui';
+import { Z } from '@/shared/ui/z-layers';
 
 export function NotificationsBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
   const q = useNotifications(false, 10);
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
   const [pendingReadId, setPendingReadId] = useState<string | null>(null);
   const unread = q.data?.unread_count ?? 0;
   const items: Notification[] = q.data?.items ?? [];
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
 
   const handleClick = (n: Notification) => {
     if (!n.isRead) {
@@ -45,24 +41,28 @@ export function NotificationsBell() {
   };
 
   return (
-    <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Notificaciones"
-        aria-expanded={open}
-        className="relative w-11 h-11 grid place-items-center rounded-xl hover:bg-slate-100 transition-colors"
-      >
-        <Icon name="notifications" className="text-slate-600 text-[22px]" />
-        {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black grid place-items-center shadow">
-            {unread > 9 ? '9+' : unread}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-[340px] max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="Notificaciones"
+          className="relative w-11 h-11 grid place-items-center rounded-xl hover:bg-slate-100 transition-colors"
+        >
+          <Icon name="notifications" className="text-slate-600 text-[22px]" />
+          {unread > 0 && (
+            <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black grid place-items-center shadow">
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverPortal>
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          style={{ zIndex: Z.popover }}
+          className="w-[340px] max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <h4 className="text-sm font-black font-display">Notificaciones</h4>
             {unread > 0 && (
@@ -117,8 +117,8 @@ export function NotificationsBell() {
               </ul>
             )}
           </div>
-        </div>
-      )}
-    </div>
+        </PopoverContent>
+      </PopoverPortal>
+    </Popover>
   );
 }

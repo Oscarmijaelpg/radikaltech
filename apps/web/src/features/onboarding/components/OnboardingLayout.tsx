@@ -71,21 +71,21 @@ export function OnboardingLayout({
           </div>
         )}
 
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-10">
+        <div className="flex-1 flex items-start justify-center p-4 sm:p-6 md:p-10">
           <div
             className={cn(
               'w-full',
               fullWidth ? 'max-w-5xl' : 'max-w-6xl',
-              'grid gap-8',
+              'grid gap-8 items-start',
               character ? 'grid-cols-1 md:grid-cols-[2fr_3fr]' : 'grid-cols-1',
             )}
           >
             {character && (
-              <div className="hidden md:flex flex-col items-center justify-center gap-6 animate-in fade-in slide-in-from-left-4 duration-700">
+              <div className="hidden md:flex flex-col items-center gap-6 animate-in fade-in slide-in-from-left-4 duration-700 md:sticky md:top-10 md:self-start">
                 <img
                   src={character.src}
                   alt={character.name}
-                  className="w-48 md:w-56 drop-shadow-2xl object-contain"
+                  className="h-64 md:h-80 w-auto drop-shadow-2xl object-contain"
                 />
                 <div className="relative w-full max-w-xs">
                   <div className="bg-white rounded-3xl shadow-lg p-5 text-sm text-slate-700 leading-relaxed">

@@ -87,7 +87,7 @@ export function Combobox({
           sideOffset={6}
           className="z-50 w-[var(--radix-popover-trigger-width)] rounded-2xl bg-white shadow-2xl border border-[hsl(var(--color-border))] overflow-hidden"
         >
-          <div className="flex items-center gap-2 border-b border-[hsl(var(--color-border))] px-4 py-3">
+          <div className="flex items-center gap-2 border-b border-[hsl(var(--color-border))] px-4 py-3 focus-within:border-[hsl(var(--color-primary)/0.4)] transition-colors">
             <Search className="h-4 w-4 opacity-50" />
             <input
               value={query}
@@ -99,7 +99,7 @@ export function Combobox({
                 }
               }}
               placeholder={searchPlaceholder}
-              className="flex-1 bg-transparent outline-none text-sm"
+              className="flex-1 bg-transparent outline-none text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-0"
               autoFocus
             />
           </div>
