@@ -99,26 +99,15 @@ export function useCompetitorsTab(projectId: string) {
     setPendingAnalyze(c);
   };
 
-  const onConfirmAnalyze = async () => {
+  const onConfirmAnalyze = () => {
     const c = pendingAnalyze;
     if (!c) return;
-    console.info('[comp] onConfirmAnalyze START', { id: c.id, mode: lastMode });
+    console.info('[comp] onConfirmAnalyze dispatching', { id: c.id, mode: lastMode });
     setPendingAnalyze(null);
-    setAnalyzingId(c.id);
-    setAnalysisName(c.name);
-    try {
-      await analyze.mutateAsync({
-        id: c.id,
-        project_id: projectId,
-        mode: lastMode,
-      });
-      console.info('[comp] analyze complete, navigating to report', { id: c.id });
-      navigate(`/competitors/${c.id}/report`);
-    } catch (err) {
-      console.error('[comp] analyze threw', { id: c.id, err });
-    } finally {
-      setAnalyzingId(null);
-    }
+    // Fire-and-forget: disparamos el analyze pero NO esperamos. El reporte
+    // detecta "aún no analizado" y muestra estado "Analizando...".
+    analyze.mutate({ id: c.id, project_id: projectId, mode: lastMode });
+    navigate(`/competitors/${c.id}/report`);
   };
 
   const onCancelAnalyze = () => {

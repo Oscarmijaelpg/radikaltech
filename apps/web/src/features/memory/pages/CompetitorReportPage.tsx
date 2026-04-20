@@ -10,6 +10,7 @@ import {
   useSyncSocial,
 } from '../api/memory';
 import { AestheticSection } from '../components/competitor-report/AestheticSection';
+import { AnalyzingBanner } from '../components/competitor-report/AnalyzingBanner';
 import { DigitalPresence } from '../components/competitor-report/DigitalPresence';
 import { ExecutiveSummary } from '../components/competitor-report/ExecutiveSummary';
 import { HeaderSection } from '../components/competitor-report/HeaderSection';
@@ -123,6 +124,10 @@ export function CompetitorReportPage() {
           onBack={handleBack}
           onDownload={() => void handleDownload()}
         />
+
+        {!competitor.last_analyzed_at && (
+          <AnalyzingBanner competitorName={competitor.name} />
+        )}
 
         {!competitor.narrative && competitor.last_analyzed_at && (
           <MissingNarrativeBanner

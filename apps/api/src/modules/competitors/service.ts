@@ -321,6 +321,20 @@ export const competitorsService = {
     return { scheduled: true };
   },
 
+  async analyzeAsync(id: string, userId: string, options: AnalyzeOptions = {}) {
+    await assertCompetitorOwner(id, userId);
+    logger.info({ competitorId: id, options }, '[competitors.analyzeAsync] scheduled');
+    void (async () => {
+      try {
+        await competitorsService.analyze(id, userId, options);
+        logger.info({ competitorId: id }, '[competitors.analyzeAsync] DONE');
+      } catch (err) {
+        logger.warn({ err, id }, '[competitors.analyzeAsync] FAILED');
+      }
+    })();
+    return { scheduled: true };
+  },
+
   async regenerateNarrative(id: string, userId: string) {
     const owned = await assertCompetitorOwner(id, userId);
     const last = owned.narrativeGeneratedAt;

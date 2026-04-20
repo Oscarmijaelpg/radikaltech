@@ -210,20 +210,14 @@ competitorsRouter.post('/:id/analyze', async (c) => {
   } catch {
     body = undefined;
   }
-  const { competitor, result, sync_status, social_stats, engagement_stats } = await competitorsService.analyze(
+  // Fire-and-forget: Tavily + LLM + scrapes Apify pueden pasar de 60s.
+  // Cliente recibe 202 al instante; polling vía useCompetitor trae los datos.
+  const res = await competitorsService.analyzeAsync(
     c.req.param('id'),
     user.id,
     { mode: body?.mode, networks: body?.networks },
   );
-  return c.json(
-    ok({
-      competitor: serialize(competitor),
-      result,
-      sync_status,
-      social_stats,
-      engagement_stats,
-    }),
-  );
+  return c.json(ok(res), 202);
 });
 
 const syncSocialSchema = z

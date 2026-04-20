@@ -208,25 +208,17 @@ export function useAnalyzeCompetitor() {
       mode?: AnalysisMode;
       networks?: ScrapeNetwork[];
     }) => {
-      console.info('[comp] POST /:id/analyze', { id, mode, networks });
-      const r = await api.post<{
-        data: {
-          competitor: Competitor;
-          result: CompetitorAnalysisResult | null;
-          sync_status: Record<string, { synced_at: string; post_count: number; handle?: string }>;
-          social_stats: unknown;
-        };
-      }>(`/competitors/${id}/analyze`, mode || networks ? { mode, networks } : undefined);
-      console.info('[comp] analyze response', {
-        id,
-        syncStatus: r.data.sync_status,
-        socialStats: r.data.social_stats,
-        hasResult: !!r.data.result,
-      });
+      console.info('[comp] POST /:id/analyze (async)', { id, mode, networks });
+      // Endpoint ahora responde 202 fire-and-forget; no esperamos el análisis.
+      const r = await api.post<{ data: { scheduled: boolean } }>(
+        `/competitors/${id}/analyze`,
+        mode || networks ? { mode, networks } : undefined,
+      );
+      console.info('[comp] analyze scheduled', r.data);
       return r.data;
     },
     onError: (err, vars) => {
-      console.error('[comp] analyze FAILED', { err, vars });
+      console.error('[comp] analyze FAILED to dispatch', { err, vars });
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['competitors', vars.project_id] });
@@ -260,10 +252,23 @@ export function useCompetitor(competitorId: string | null | undefined) {
     refetchInterval: (query) => {
       const c = query.state.data;
       if (!c) return false;
+      // Polling si:
+      // - nunca se analizó (está en curso ahora mismo)
+      // - stale: narrativa más vieja que lastAnalyzedAt
+      // - sin narrativa pero sí análisis (job corriendo)
       const shouldPoll =
-        c.narrative_stale === true || (!c.narrative && !!c.last_analyzed_at);
+        !c.last_analyzed_at ||
+        c.narrative_stale === true ||
+        (!c.narrative && !!c.last_analyzed_at);
       if (shouldPoll) {
-        console.debug('[comp] polling (narrative pending)', { id: c.id });
+        console.debug('[comp] polling', {
+          id: c.id,
+          reason: !c.last_analyzed_at
+            ? 'analyzing'
+            : c.narrative_stale
+              ? 'narrative-stale'
+              : 'narrative-missing',
+        });
         return 3000;
       }
       return false;
