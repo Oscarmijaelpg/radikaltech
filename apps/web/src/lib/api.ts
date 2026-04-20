@@ -44,7 +44,14 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60_000);
 
-  console.log('[api] →', opts.method ?? 'GET', path, { hasToken: !!token });
+  // Silencia logs para endpoints de polling ruidosos (notificaciones, jobs activos).
+  const silent =
+    path.startsWith('/notifications') ||
+    path.startsWith('/jobs/active') ||
+    path.startsWith('/users/me');
+  if (!silent) {
+    console.log('[api] →', opts.method ?? 'GET', path, { hasToken: !!token });
+  }
 
   try {
     const res = await fetch(`${API_URL}${path}`, {
@@ -54,7 +61,9 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
       body: opts.json !== undefined ? JSON.stringify(opts.json) : opts.body,
     });
 
-    console.log('[api] ←', opts.method ?? 'GET', path, res.status);
+    if (!silent) {
+      console.log('[api] ←', opts.method ?? 'GET', path, res.status);
+    }
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: res.statusText }));

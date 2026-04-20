@@ -11,9 +11,11 @@ export const exportToPDF = async (
   const originalElement = document.getElementById(elementId);
   if (!originalElement) return;
 
-  // Proxy de estilos para interceptar colores oklch() que rompen html2canvas
-  const originalGetComputedStyle = window.getComputedStyle;
-  const styleProxy = (el: Element, pseudo?: string | null) => {
+  // Proxy de estilos para interceptar colores oklch() que rompen html2canvas.
+  // Bind a window — sin eso, al reasignar window.getComputedStyle se pierde el
+  // contexto this y jsPDF rompe con "Illegal invocation".
+  const originalGetComputedStyle = window.getComputedStyle.bind(window);
+  const styleProxy = function (el: Element, pseudo?: string | null) {
     const style = originalGetComputedStyle(el, pseudo);
     return new Proxy(style, {
       get(target, prop: string) {

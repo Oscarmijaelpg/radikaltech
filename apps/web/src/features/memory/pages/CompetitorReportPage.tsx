@@ -19,6 +19,7 @@ import { OpportunitySection } from '../components/competitor-report/OpportunityS
 import { PerformanceSection } from '../components/competitor-report/PerformanceSection';
 import { StrengthsWeaknesses } from '../components/competitor-report/StrengthsWeaknesses';
 import { TopPostsSection } from '../components/competitor-report/TopPostsSection';
+import { VsMyBrandSection } from '../components/competitor-report/VsMyBrandSection';
 
 const REPORT_DOM_ID = 'competitor-report-root';
 const POSTS_LIMIT = 40;
@@ -152,6 +153,11 @@ export function CompetitorReportPage() {
           projectId={competitor.project_id}
           competitorId={competitor.id}
           stats={statsQ.data}
+        />
+
+        <VsMyBrandSection
+          competitorId={competitor.id}
+          projectId={competitor.project_id}
         />
 
         <TopPostsSection posts={postsQ.data} />
