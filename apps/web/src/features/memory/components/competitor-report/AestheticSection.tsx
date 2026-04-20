@@ -20,10 +20,18 @@ function renderParagraphs(text: string) {
     ));
 }
 
-export function AestheticSection({ competitor, posts }: Props) {
+interface PropsExtended extends Props {
+  regenerating?: boolean;
+}
+
+export function AestheticSection({
+  competitor,
+  posts,
+  regenerating,
+}: PropsExtended) {
   const agg = useAesthetic(posts);
   const narrative = competitor.narrative?.aesthetic;
-  const isLoading = !competitor.narrative && !!competitor.last_analyzed_at;
+  const isLoading = !!regenerating;
 
   return (
     <ReportSection

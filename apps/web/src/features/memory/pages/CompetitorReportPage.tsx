@@ -13,6 +13,7 @@ import { AestheticSection } from '../components/competitor-report/AestheticSecti
 import { DigitalPresence } from '../components/competitor-report/DigitalPresence';
 import { ExecutiveSummary } from '../components/competitor-report/ExecutiveSummary';
 import { HeaderSection } from '../components/competitor-report/HeaderSection';
+import { MissingNarrativeBanner } from '../components/competitor-report/MissingNarrativeBanner';
 import { OpportunitySection } from '../components/competitor-report/OpportunitySection';
 import { PerformanceSection } from '../components/competitor-report/PerformanceSection';
 import { StrengthsWeaknesses } from '../components/competitor-report/StrengthsWeaknesses';
@@ -103,6 +104,13 @@ export function CompetitorReportPage() {
           onDownload={() => void handleDownload()}
         />
 
+        {!competitor.narrative && competitor.last_analyzed_at && (
+          <MissingNarrativeBanner
+            onGenerate={handleRegenerate}
+            generating={regenerate.isPending}
+          />
+        )}
+
         <ExecutiveSummary
           competitor={competitor}
           onRegenerate={handleRegenerate}
@@ -123,11 +131,15 @@ export function CompetitorReportPage() {
 
         <TopPostsSection posts={postsQ.data} />
 
-        <AestheticSection competitor={competitor} posts={postsQ.data} />
+        <AestheticSection
+          competitor={competitor}
+          posts={postsQ.data}
+          regenerating={regenerate.isPending}
+        />
 
         <StrengthsWeaknesses competitor={competitor} />
 
-        <OpportunitySection competitor={competitor} />
+        <OpportunitySection competitor={competitor} regenerating={regenerate.isPending} />
       </div>
     </div>
   );

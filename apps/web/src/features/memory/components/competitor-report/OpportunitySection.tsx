@@ -5,6 +5,7 @@ import { ReportSection } from './ReportSection';
 
 interface Props {
   competitor: Competitor;
+  regenerating?: boolean;
 }
 
 function parseBullets(text: string): string[] {
@@ -14,9 +15,9 @@ function parseBullets(text: string): string[] {
     .filter((l) => l.length > 0);
 }
 
-export function OpportunitySection({ competitor }: Props) {
+export function OpportunitySection({ competitor, regenerating }: Props) {
   const narrative = competitor.narrative?.opportunity;
-  const isLoading = !competitor.narrative && !!competitor.last_analyzed_at;
+  const isLoading = !!regenerating;
 
   return (
     <ReportSection
@@ -39,9 +40,11 @@ export function OpportunitySection({ competitor }: Props) {
           ))}
         </ul>
       ) : (
-        <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="flex items-center gap-3 text-sm text-slate-500 italic">
           <Icon name="hourglass_empty" className="text-[18px]" />
-          Analiza a este competidor para ver oportunidades específicas.
+          {competitor.last_analyzed_at
+            ? 'Pulsa "Generar interpretación" arriba para ver oportunidades específicas.'
+            : 'Analiza a este competidor para ver oportunidades específicas.'}
         </div>
       )}
     </ReportSection>

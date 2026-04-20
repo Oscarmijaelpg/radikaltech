@@ -23,7 +23,9 @@ function renderParagraphs(text: string) {
 export function ExecutiveSummary({ competitor, onRegenerate, regenerating }: Props) {
   const narrative = competitor.narrative;
   const isStale = competitor.narrative_stale ?? false;
-  const isLoading = !narrative && !!competitor.last_analyzed_at;
+  // Solo mostramos skeleton mientras realmente estamos (re)generando.
+  // Si no hay narrativa y nadie la está generando, el banner superior ofrece el CTA.
+  const isLoading = regenerating;
 
   const staleChip = isStale ? (
     <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 mb-4">
@@ -60,8 +62,10 @@ export function ExecutiveSummary({ competitor, onRegenerate, regenerating }: Pro
       ) : narrative ? (
         <div className="space-y-4">{renderParagraphs(narrative.summary)}</div>
       ) : (
-        <p className="text-sm text-slate-500">
-          Analiza a este competidor para generar la interpretación.
+        <p className="text-sm text-slate-500 italic">
+          {competitor.last_analyzed_at
+            ? 'Pulsa "Generar interpretación" arriba para que Sira redacte este resumen.'
+            : 'Analiza a este competidor para generar la interpretación.'}
         </p>
       )}
     </ReportSection>
