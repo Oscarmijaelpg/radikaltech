@@ -12,15 +12,21 @@ export const exportToPDF = async (
   if (!originalElement) return;
 
   // Proxy de estilos para interceptar colores oklch() que rompen html2canvas.
-  // Bind a window — sin eso, al reasignar window.getComputedStyle se pierde el
-  // contexto this y jsPDF rompe con "Illegal invocation".
+  // Notas:
+  // - getComputedStyle debe llamarse con this=window (bind explícito).
+  // - Cuando el Proxy devuelve un método de CSSStyleDeclaration
+  //   (getPropertyValue, item, etc.), hay que bindearlo al target original
+  //   o rompe con "Illegal invocation" al invocarse.
   const originalGetComputedStyle = window.getComputedStyle.bind(window);
   const styleProxy = function (el: Element, pseudo?: string | null) {
     const style = originalGetComputedStyle(el, pseudo);
     return new Proxy(style, {
-      get(target, prop: string) {
-        const value = target[prop as keyof CSSStyleDeclaration];
-        if (typeof value === 'string' && value.includes('oklch')) {
+      get(target, prop: string | symbol) {
+        const value = Reflect.get(target, prop);
+        if (typeof value === 'function') {
+          return (value as (...args: unknown[]) => unknown).bind(target);
+        }
+        if (typeof prop === 'string' && typeof value === 'string' && value.includes('oklch')) {
           if (prop.toLowerCase().includes('color')) {
             if (prop === 'backgroundColor') return '#ffffff';
             return '#1e293b';
