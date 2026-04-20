@@ -30,8 +30,9 @@ export function AestheticSection({
   regenerating,
 }: PropsExtended) {
   const agg = useAesthetic(posts);
-  const narrative = competitor.narrative?.aesthetic;
+  const narrative = competitor.narrative?.aesthetic?.trim() ?? '';
   const isLoading = !!regenerating;
+  const hasNarrative = narrative.length > 0;
 
   return (
     <ReportSection
@@ -41,7 +42,7 @@ export function AestheticSection({
     >
       {isLoading ? (
         <NarrativeSkeleton paragraphs={2} />
-      ) : narrative ? (
+      ) : hasNarrative ? (
         <div className="space-y-4 mb-6">{renderParagraphs(narrative)}</div>
       ) : null}
 
@@ -77,9 +78,10 @@ export function AestheticSection({
             </div>
           </div>
         </div>
-      ) : !narrative && !isLoading ? (
-        <p className="text-sm text-slate-500">
-          Sin análisis visual aún. Se generará al sincronizar posts con imágenes.
+      ) : !hasNarrative && !isLoading ? (
+        <p className="text-sm text-slate-500 italic">
+          Sin datos visuales aún. Sincroniza sus posts para que la IA pueda analizar su
+          identidad visual.
         </p>
       ) : null}
     </ReportSection>

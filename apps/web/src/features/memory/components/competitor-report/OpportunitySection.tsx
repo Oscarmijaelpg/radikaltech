@@ -16,8 +16,10 @@ function parseBullets(text: string): string[] {
 }
 
 export function OpportunitySection({ competitor, regenerating }: Props) {
-  const narrative = competitor.narrative?.opportunity;
+  const narrative = competitor.narrative?.opportunity?.trim() ?? '';
   const isLoading = !!regenerating;
+  const hasContent = narrative.length > 0;
+  const bullets = hasContent ? parseBullets(narrative) : [];
 
   return (
     <ReportSection
@@ -28,9 +30,9 @@ export function OpportunitySection({ competitor, regenerating }: Props) {
     >
       {isLoading ? (
         <NarrativeSkeleton paragraphs={2} />
-      ) : narrative ? (
+      ) : bullets.length > 0 ? (
         <ul className="space-y-3">
-          {parseBullets(narrative).map((b, i) => (
+          {bullets.map((b, i) => (
             <li key={i} className="flex items-start gap-3 text-base text-slate-800">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-xs font-black shrink-0 mt-0.5 shadow">
                 {i + 1}

@@ -22,10 +22,10 @@ function renderParagraphs(text: string) {
 
 export function ExecutiveSummary({ competitor, onRegenerate, regenerating }: Props) {
   const narrative = competitor.narrative;
+  const summary = narrative?.summary?.trim() ?? '';
   const isStale = competitor.narrative_stale ?? false;
-  // Solo mostramos skeleton mientras realmente estamos (re)generando.
-  // Si no hay narrativa y nadie la está generando, el banner superior ofrece el CTA.
   const isLoading = regenerating;
+  const hasContent = summary.length > 0;
 
   const staleChip = isStale ? (
     <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 mb-4">
@@ -59,8 +59,13 @@ export function ExecutiveSummary({ competitor, onRegenerate, regenerating }: Pro
       {staleChip}
       {isLoading ? (
         <NarrativeSkeleton paragraphs={3} />
+      ) : hasContent ? (
+        <div className="space-y-4">{renderParagraphs(summary)}</div>
       ) : narrative ? (
-        <div className="space-y-4">{renderParagraphs(narrative.summary)}</div>
+        <p className="text-sm text-slate-500 italic">
+          Sira no pudo redactar un resumen — probablemente porque aún no hay suficientes
+          datos sobre este competidor. Asegúrate de tener su sitio y redes sincronizados.
+        </p>
       ) : (
         <p className="text-sm text-slate-500 italic">
           {competitor.last_analyzed_at

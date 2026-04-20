@@ -2,7 +2,6 @@ import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
-import { CompetitorStatusGrid } from './CompetitorStatusGrid';
 import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
 import { CompetitorsBenchmarkTab } from './CompetitorsBenchmarkTab';
@@ -89,8 +88,6 @@ export function CompetitorsTab({ projectId }: Props) {
           ]}
         />
       )}
-
-      {t.competitors.length > 0 && <CompetitorStatusGrid projectId={projectId} />}
 
       {t.competitors.length === 0 ? (
         <Card className="p-6">
