@@ -143,6 +143,11 @@ const JOB_FAILURE_META: Record<string, { title: string; body: string; actionUrl:
     body: 'No pudimos completar el análisis de este competidor. Intenta de nuevo.',
     actionUrl: '/memory?tab=competitors',
   },
+  competitor_narrative: {
+    title: 'No pudimos interpretar al competidor',
+    body: 'Los datos siguen disponibles. Puedes regenerar la interpretación en un momento.',
+    actionUrl: '/memory?tab=competitors',
+  },
   news_aggregate: {
     title: 'Falló la búsqueda de noticias',
     body: 'No pudimos recopilar noticias para tu sector ahora mismo.',

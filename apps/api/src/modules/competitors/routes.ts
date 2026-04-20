@@ -54,11 +54,17 @@ function serialize(c: {
   analysisData: unknown;
   syncStatus: unknown;
   engagementStats?: unknown;
+  narrative?: unknown;
+  narrativeGeneratedAt?: Date | null;
   status?: string;
   source?: string;
   detectedAt?: Date | null;
   createdAt: Date;
 }) {
+  const narrativeFresh =
+    !!c.narrativeGeneratedAt &&
+    !!c.lastAnalyzedAt &&
+    c.narrativeGeneratedAt >= c.lastAnalyzedAt;
   return {
     id: c.id,
     project_id: c.projectId,
@@ -71,6 +77,9 @@ function serialize(c: {
     analysis_data: c.analysisData,
     sync_status: c.syncStatus,
     engagement_stats: c.engagementStats ?? null,
+    narrative: c.narrative ?? null,
+    narrative_generated_at: c.narrativeGeneratedAt ?? null,
+    narrative_stale: !!c.narrative && !narrativeFresh,
     status: c.status ?? 'confirmed',
     source: c.source ?? 'manual',
     detected_at: c.detectedAt ?? null,
@@ -215,6 +224,30 @@ competitorsRouter.post('/:id/analyze', async (c) => {
       engagement_stats,
     }),
   );
+});
+
+const syncSocialSchema = z
+  .object({ networks: z.array(z.enum(['instagram', 'tiktok'])).optional() })
+  .optional();
+
+competitorsRouter.post('/:id/sync-social', async (c) => {
+  const user = c.get('user');
+  let body: { networks?: Array<'instagram' | 'tiktok'> } | undefined;
+  try {
+    const raw = await c.req.json().catch(() => undefined);
+    const parsed = syncSocialSchema.safeParse(raw);
+    body = parsed.success ? parsed.data : undefined;
+  } catch {
+    body = undefined;
+  }
+  const res = await competitorsService.syncSocial(c.req.param('id'), user.id, body?.networks);
+  return c.json(ok(res), 202);
+});
+
+competitorsRouter.post('/:id/regenerate-narrative', async (c) => {
+  const user = c.get('user');
+  const res = await competitorsService.regenerateNarrative(c.req.param('id'), user.id);
+  return c.json(ok(res), 202);
 });
 
 competitorsRouter.get('/:id/posts', zValidator('query', postsQuerySchema), async (c) => {

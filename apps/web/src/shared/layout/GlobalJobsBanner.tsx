@@ -11,6 +11,7 @@ const JOB_LABELS: Record<string, { label: string; icon: string }> = {
   tiktok_scrape: { label: 'Descargando TikTok', icon: 'music_note' },
   auto_competitor_detect: { label: 'Detectando competidores', icon: 'radar' },
   competitor_analyze: { label: 'Analizando competidor', icon: 'query_stats' },
+  competitor_narrative: { label: 'Interpretando competidor', icon: 'psychology' },
   news_aggregate: { label: 'Buscando noticias', icon: 'newspaper' },
   recommendations_generate: { label: 'Generando recomendaciones', icon: 'lightbulb' },
   image_generate: { label: 'Generando imagen', icon: 'brush' },

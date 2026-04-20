@@ -361,6 +361,8 @@ model Competitor {
   analysisData    Json?     @map("analysis_data")
   syncStatus      Json?     @map("sync_status")
   engagementStats Json?     @map("engagement_stats")
+  narrative       Json?     @map("narrative")
+  narrativeGeneratedAt DateTime? @map("narrative_generated_at")
   status          String    @default("confirmed")
   source          String    @default("manual")
   detectedAt      DateTime? @map("detected_at")

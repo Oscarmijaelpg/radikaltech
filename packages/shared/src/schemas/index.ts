@@ -11,3 +11,4 @@ export * from './report.js';
 export * from './notification.js';
 export * from './recommendation.js';
 export * from './ai.js';
+export * from './competitor-narrative.js';

@@ -1,7 +1,9 @@
 import { prisma, Prisma } from '@radikal/db';
 import type { SocialPlatform } from '@radikal/db';
 import { competitorAnalyzer, instagramScraper, tiktokScraper } from '../ai-services/index.js';
+import { competitorNarrativeGenerator } from '../ai-services/competitor-narrative.js';
 import { logger } from '../../lib/logger.js';
+import { Conflict } from '../../lib/errors.js';
 import { assertCompetitorOwner, assertProjectOwner } from './guards.js';
 import {
   discoverSocialLinksFromWebsite,
@@ -45,6 +47,21 @@ const ENGAGEMENT_COMMENT_WEIGHT = 3;
 const ENGAGEMENT_SHARE_WEIGHT = 5;
 const TOP_POSTS_LIMIT = 5;
 const DAY_MS = 86_400_000;
+const NARRATIVE_COOLDOWN_MS = 5 * 60 * 1000;
+
+function dispatchNarrativeGeneration(
+  competitorId: string,
+  userId: string,
+  projectId: string,
+) {
+  void (async () => {
+    try {
+      await competitorNarrativeGenerator.generate({ competitorId, userId, projectId });
+    } catch (err) {
+      logger.warn({ err, competitorId }, 'narrative generation failed');
+    }
+  })();
+}
 
 export const competitorsService = {
   async list(
@@ -254,6 +271,8 @@ export const competitorsService = {
       },
     });
 
+    dispatchNarrativeGeneration(updated.id, userId, updated.projectId);
+
     return {
       competitor: updated,
       result: webResult,
@@ -261,6 +280,31 @@ export const competitorsService = {
       social_stats: socialStats,
       engagement_stats: engagementStats,
     };
+  },
+
+  async syncSocial(id: string, userId: string, networks?: ScrapeNetwork[]) {
+    await assertCompetitorOwner(id, userId);
+    void (async () => {
+      try {
+        await competitorsService.analyze(id, userId, { mode: 'social', networks });
+      } catch (err) {
+        logger.warn({ err, id }, 'sync-social failed');
+      }
+    })();
+    return { scheduled: true };
+  },
+
+  async regenerateNarrative(id: string, userId: string) {
+    const owned = await assertCompetitorOwner(id, userId);
+    const last = owned.narrativeGeneratedAt;
+    if (last && Date.now() - last.getTime() < NARRATIVE_COOLDOWN_MS) {
+      const wait = Math.ceil(
+        (NARRATIVE_COOLDOWN_MS - (Date.now() - last.getTime())) / 1000,
+      );
+      throw new Conflict(`Espera ${wait}s antes de regenerar la interpretación.`);
+    }
+    dispatchNarrativeGeneration(id, userId, owned.projectId);
+    return { scheduled: true };
   },
 
   async computeAndStoreEngagementStats(
