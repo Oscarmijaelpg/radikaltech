@@ -3,6 +3,7 @@ import { cn } from '@/shared/utils/cn';
 import { Icon } from '@radikal/ui';
 
 const TABS = [
+  { to: '/competitors', label: 'Competencia', icon: 'groups' },
   { to: '/news', label: 'Noticias', icon: 'newspaper' },
   { to: '/reports', label: 'Reportes', icon: 'assignment' },
   { to: '/recommendations', label: 'Sugerencias', icon: 'tips_and_updates', badge: 'IA' },

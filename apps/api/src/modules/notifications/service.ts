@@ -36,7 +36,7 @@ export const notificationService = {
       kind: 'analysis_complete',
       title: `Análisis de ${competitorName} completado`,
       body: 'Los datos de engagement y posts ya están disponibles.',
-      actionUrl: '/memory?tab=competitors',
+      actionUrl: '/competitors',
     });
   },
 
@@ -136,17 +136,17 @@ const JOB_FAILURE_META: Record<string, { title: string; body: string; actionUrl:
   auto_competitor_detect: {
     title: 'No pudimos detectar competidores',
     body: 'La detección automática falló. Puedes añadirlos manualmente.',
-    actionUrl: '/memory?tab=competitors',
+    actionUrl: '/competitors',
   },
   competitor_analyze: {
     title: 'Falló el análisis del competidor',
     body: 'No pudimos completar el análisis de este competidor. Intenta de nuevo.',
-    actionUrl: '/memory?tab=competitors',
+    actionUrl: '/competitors',
   },
   competitor_narrative: {
     title: 'No pudimos interpretar al competidor',
     body: 'Los datos siguen disponibles. Puedes regenerar la interpretación en un momento.',
-    actionUrl: '/memory?tab=competitors',
+    actionUrl: '/competitors',
   },
   news_aggregate: {
     title: 'Falló la búsqueda de noticias',

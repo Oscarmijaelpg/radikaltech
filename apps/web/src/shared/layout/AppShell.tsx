@@ -39,7 +39,7 @@ const NAV_SECTIONS: NavSection[] = [
 ];
 
 // Rutas que el item "Análisis" considera propias (marca activo)
-const ANALYSIS_ROUTES = ['/news', '/reports', '/recommendations'];
+const ANALYSIS_ROUTES = ['/competitors', '/news', '/reports', '/recommendations'];
 
 function getInitials(name?: string | null) {
   if (!name) return '??';

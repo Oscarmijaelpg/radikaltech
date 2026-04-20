@@ -34,7 +34,7 @@ export const FIRST_DAY_TASKS: FirstDayTask[] = [
     icon: 'radar',
     points: 15,
     estimatedMinutes: 2,
-    cta: { label: 'Ir a Competencia', to: '/memory?tab=competitors' },
+    cta: { label: 'Ir a Competencia', to: '/competitors' },
   },
   {
     id: 'first_chat',

@@ -75,7 +75,7 @@ export function useSmartActions(projectId: string | undefined): {
         gradient: 'from-cyan-500 to-blue-600',
         priority: 2,
         tag: 'Setup',
-        action: () => navigate('/memory?tab=competitors'),
+        action: () => navigate('/competitors'),
       });
     } else {
       const staleComps = competitors.filter((c) => {
@@ -92,7 +92,7 @@ export function useSmartActions(projectId: string | undefined): {
           gradient: 'from-cyan-500 to-blue-600',
           priority: 3,
           tag: 'Competencia',
-          action: () => navigate('/memory?tab=competitors'),
+          action: () => navigate('/competitors'),
         });
       }
     }

@@ -36,7 +36,7 @@ const SETUP_STEPS = [
     description: 'Sira lo empezará a monitorear automáticamente.',
     icon: 'radar',
     gradient: 'from-cyan-500 to-blue-600',
-    cta: { label: 'Agregar', to: '/memory?tab=competitors' },
+    cta: { label: 'Agregar', to: '/competitors' },
   },
   {
     id: 'first_chat',

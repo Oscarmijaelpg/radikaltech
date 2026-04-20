@@ -19,14 +19,6 @@ export const MEMORY_TOUR: TourDefinition = {
       placement: 'bottom',
     },
     {
-      target: '[data-tour="memory-competitors"]',
-      title: 'Suma a tu competencia',
-      description:
-        'Una vez tengas tu identidad, agrega competidores para comparativas automáticas. Yo se la paso a Sira.',
-      placement: 'bottom',
-      character: 'sira',
-    },
-    {
       target: '[data-tour="memory-library"]',
       title: 'Biblioteca: tu memoria de largo plazo',
       description:

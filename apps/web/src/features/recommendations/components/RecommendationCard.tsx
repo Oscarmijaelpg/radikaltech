@@ -71,7 +71,7 @@ function sourceHref(src: RecommendationSource): string | null {
     case 'news':
       return '/news';
     case 'competitor':
-      return src.id ? `/memory?tab=competitors&competitor=${src.id}` : '/memory?tab=competitors';
+      return src.id ? `/competitors?competitor=${src.id}` : '/competitors';
     case 'asset':
       return src.id ? `/content?asset=${src.id}` : '/content';
     case 'memory':
@@ -140,7 +140,7 @@ export function RecommendationCard({ rec }: Props) {
       }
       case 'open_competitor': {
         const cid = payload.competitor_id ? String(payload.competitor_id) : '';
-        navigate(`/memory?tab=competitors${cid ? `&competitor=${cid}` : ''}`);
+        navigate(`/competitors${cid ? `?competitor=${cid}` : ''}`);
         break;
       }
       case 'generate_report': {

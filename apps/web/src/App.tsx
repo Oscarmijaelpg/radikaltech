@@ -14,6 +14,11 @@ const DashboardPage = lazy(() =>
 const MemoryPage = lazy(() =>
   import('./features/memory/pages/MemoryPage').then((m) => ({ default: m.MemoryPage })),
 );
+const CompetitorsPage = lazy(() =>
+  import('./features/memory/pages/CompetitorsPage').then((m) => ({
+    default: m.CompetitorsPage,
+  })),
+);
 const ChatPage = lazy(() =>
   import('./features/chat/pages/ChatPage').then((m) => ({ default: m.ChatPage })),
 );
@@ -88,6 +93,7 @@ export function App() {
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route path="/" element={<LazyRoute><DashboardPage /></LazyRoute>} />
         <Route path="/memory" element={<LazyRoute><MemoryPage /></LazyRoute>} />
+        <Route path="/competitors" element={<LazyRoute><CompetitorsPage /></LazyRoute>} />
         <Route path="/chat" element={<LazyRoute><ChatPage /></LazyRoute>} />
         <Route path="/chat/:chatId" element={<LazyRoute><ChatPage /></LazyRoute>} />
         <Route path="/content" element={<LazyRoute><ContentPage /></LazyRoute>} />

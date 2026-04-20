@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import {
   Card,
   Icon,
@@ -13,21 +13,19 @@ import { useProject } from '@/providers/ProjectProvider';
 import { BrandTab } from '../components/BrandTab';
 import { ProductsTab } from '../components/ProductsTab';
 import { CustomersTab } from '../components/CustomersTab';
-import { CompetitorsTab } from '../components/CompetitorsTab';
 import { SavedChatsTab } from '../components/SavedChatsTab';
 import { NeuronasTab } from '../components/NeuronasTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { usePageTour } from '@/shared/tour';
 
-type TabId = 'brand' | 'products' | 'customers' | 'competitors' | 'saved_chats' | 'neuronas';
-const VALID_TABS: TabId[] = ['brand', 'products', 'customers', 'competitors', 'saved_chats', 'neuronas'];
+type TabId = 'brand' | 'products' | 'customers' | 'saved_chats' | 'neuronas';
+const VALID_TABS: TabId[] = ['brand', 'products', 'customers', 'saved_chats', 'neuronas'];
 
 const TAB_CONTEXT: Record<TabId, { section: string; sub: string }> = {
   brand: { section: 'Mi marca', sub: 'Mi identidad' },
   products: { section: 'Mi marca', sub: 'Productos' },
   customers: { section: 'Mi marca', sub: 'Clientes' },
-  competitors: { section: 'Mi marca', sub: 'Competencia' },
   saved_chats: { section: 'Mi marca', sub: 'Chats guardados' },
   neuronas: { section: 'Mi marca', sub: 'Biblioteca' },
 };
@@ -35,14 +33,21 @@ const TAB_CONTEXT: Record<TabId, { section: string; sub: string }> = {
 export function MemoryPage() {
   const { activeProject } = useProject();
   const [searchParams] = useSearchParams();
-  const initial = searchParams.get('tab') as TabId | null;
-  const [tab, setTab] = useState<TabId>(initial && VALID_TABS.includes(initial) ? initial : 'brand');
+  const initial = searchParams.get('tab');
+  const [tab, setTab] = useState<TabId>(
+    initial && VALID_TABS.includes(initial as TabId) ? (initial as TabId) : 'brand',
+  );
   usePageTour('memory');
 
   useEffect(() => {
-    const t = searchParams.get('tab') as TabId | null;
-    if (t && VALID_TABS.includes(t)) setTab(t);
+    const t = searchParams.get('tab');
+    if (t && VALID_TABS.includes(t as TabId)) setTab(t as TabId);
   }, [searchParams]);
+
+  // Deep-link compat: /memory?tab=competitors -> nueva página
+  if (initial === 'competitors') {
+    return <Navigate to="/competitors" replace />;
+  }
 
   const ctx = TAB_CONTEXT[tab];
 
@@ -110,13 +115,6 @@ export function MemoryPage() {
               </TabsTrigger>
               <TabsTrigger value="products" className="shrink-0">Productos</TabsTrigger>
               <TabsTrigger value="customers" className="shrink-0">Clientes</TabsTrigger>
-              <TabsTrigger
-                value="competitors"
-                data-tour="memory-competitors"
-                className="shrink-0"
-              >
-                Competencia
-              </TabsTrigger>
               <TabsTrigger value="saved_chats" className="shrink-0">Chats guardados</TabsTrigger>
               <TabsTrigger value="neuronas" data-tour="memory-library" className="shrink-0">
                 Biblioteca
@@ -130,9 +128,6 @@ export function MemoryPage() {
             </TabsContent>
             <TabsContent value="customers" className="animate-in fade-in slide-in-from-right-2 duration-300">
               <CustomersTab projectId={activeProject.id} />
-            </TabsContent>
-            <TabsContent value="competitors" className="animate-in fade-in slide-in-from-right-2 duration-300">
-              <CompetitorsTab projectId={activeProject.id} />
             </TabsContent>
             <TabsContent value="saved_chats" className="animate-in fade-in slide-in-from-right-2 duration-300">
               <SavedChatsTab projectId={activeProject.id} />
