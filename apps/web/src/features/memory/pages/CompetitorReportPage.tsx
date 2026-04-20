@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Icon, Skeleton } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
-import { exportToPDF } from '@/shared/utils/exportUtils';
+import { exportHtmlToPDF } from '@/shared/utils/exportUtils';
 import {
   useCompetitor,
+  useCompetitorBenchmark,
   useCompetitorPosts,
   useCompetitorStats,
   useRegenerateNarrative,
@@ -20,6 +21,7 @@ import { PerformanceSection } from '../components/competitor-report/PerformanceS
 import { StrengthsWeaknesses } from '../components/competitor-report/StrengthsWeaknesses';
 import { TopPostsSection } from '../components/competitor-report/TopPostsSection';
 import { VsMyBrandSection } from '../components/competitor-report/VsMyBrandSection';
+import { buildCompetitorReportHtml } from '../components/competitor-report/pdf-builder';
 
 const REPORT_DOM_ID = 'competitor-report-root';
 const POSTS_LIMIT = 40;
@@ -34,6 +36,9 @@ export function CompetitorReportPage() {
   const competitorQ = useCompetitor(id);
   const statsQ = useCompetitorStats(id);
   const postsQ = useCompetitorPosts(id, { limit: POSTS_LIMIT });
+  const benchmarkQ = useCompetitorBenchmark(
+    competitorQ.data?.project_id ?? activeProject?.id ?? null,
+  );
   const syncSocial = useSyncSocial();
   const regenerate = useRegenerateNarrative();
 
@@ -63,7 +68,13 @@ export function CompetitorReportPage() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-    await exportToPDF(REPORT_DOM_ID, `reporte-${safeName}.pdf`);
+    const html = buildCompetitorReportHtml({
+      competitor,
+      stats: statsQ.data,
+      posts: postsQ.data,
+      benchmark: benchmarkQ.data ?? null,
+    });
+    await exportHtmlToPDF(html, `reporte-${safeName}.pdf`);
   };
 
   const handleSyncSocial = () => {

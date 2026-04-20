@@ -3,6 +3,74 @@ import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
 
+/**
+ * Renderiza un string de HTML a PDF usando jsPDF.doc.html (que a su vez usa
+ * html2canvas). El HTML debe ser autocontenido con estilos inline — nada de
+ * clases de Tailwind del reporte de la app.
+ */
+export const exportHtmlToPDF = async (html: string, fileName: string) => {
+  const container = document.createElement('div');
+  container.id = 'radikal-pdf-temp-container';
+  container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210mm;
+    background: #ffffff;
+    z-index: -9999;
+    visibility: visible;
+    pointer-events: none;
+  `;
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  // Espera a que se carguen las imágenes (logo, avatar) antes de rasterizar.
+  const imgs = Array.from(container.querySelectorAll('img'));
+  await Promise.all(
+    imgs.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        }),
+    ),
+  );
+
+  try {
+    const doc = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: 'a4',
+      hotfixes: ['px_scaling'],
+    });
+
+    await doc.html(container, {
+      callback: function (pdf) {
+        const pageCount = pdf.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(8);
+          pdf.setTextColor(148, 163, 184);
+          pdf.text(`${i} / ${pageCount}`, 210 - 20, 297 - 10, { align: 'right' });
+        }
+        pdf.save(fileName);
+        document.body.removeChild(container);
+      },
+      x: 0,
+      y: 0,
+      width: 210,
+      windowWidth: 793,
+      autoPaging: 'text',
+      margin: [0, 0, 15, 0],
+    });
+  } catch (err) {
+    console.error('[pdf] generation failed', err);
+    if (document.body.contains(container)) document.body.removeChild(container);
+    throw err;
+  }
+};
+
 export const exportToPDF = async (
   elementId: string,
   fileName: string = 'informe-radikal.pdf',
