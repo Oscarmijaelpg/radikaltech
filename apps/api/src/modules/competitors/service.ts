@@ -54,11 +54,12 @@ function dispatchNarrativeGeneration(
   userId: string,
   projectId: string,
 ) {
+  logger.info({ competitorId, projectId }, '[competitors.dispatchNarrative] scheduling');
   void (async () => {
     try {
       await competitorNarrativeGenerator.generate({ competitorId, userId, projectId });
     } catch (err) {
-      logger.warn({ err, competitorId }, 'narrative generation failed');
+      logger.warn({ err, competitorId }, '[competitors.dispatchNarrative] failed');
     }
   })();
 }
@@ -143,6 +144,11 @@ export const competitorsService = {
     const competitor = await assertCompetitorOwner(id, userId);
     const mode: AnalysisMode = options.mode ?? 'combined';
     const networks: ScrapeNetwork[] = options.networks ?? DEFAULT_NETWORKS;
+
+    logger.info(
+      { competitorId: id, name: competitor.name, mode, networks },
+      '[competitors.analyze] START',
+    );
 
     const project = await prisma.project.findUnique({ where: { id: competitor.projectId } });
     let socialLinks = (competitor.socialLinks ?? {}) as Record<string, string>;
@@ -245,9 +251,19 @@ export const competitorsService = {
           handle: r.handle,
         };
       }
+      logger.info(
+        {
+          competitorId: id,
+          scrapesAttempted: scrapeJobs.length,
+          scrapesSucceeded: results.filter(Boolean).length,
+          perPlatform: results.filter(Boolean),
+        },
+        '[competitors.analyze] scrapes done',
+      );
     }
 
     const socialStats = await computeSocialStats(competitor.id);
+    logger.info({ competitorId: id, socialStats }, '[competitors.analyze] socialStats computed');
 
     const combinedAnalysisData = {
       ...(webResult && typeof webResult === 'object' ? (webResult as object) : {}),
@@ -271,6 +287,15 @@ export const competitorsService = {
       },
     });
 
+    logger.info(
+      {
+        competitorId: id,
+        totalPosts: engagementStats?.total_posts ?? 0,
+        avgEngagement: engagementStats?.avg_engagement ?? 0,
+      },
+      '[competitors.analyze] DONE — dispatching narrative',
+    );
+
     dispatchNarrativeGeneration(updated.id, userId, updated.projectId);
 
     return {
@@ -284,11 +309,13 @@ export const competitorsService = {
 
   async syncSocial(id: string, userId: string, networks?: ScrapeNetwork[]) {
     await assertCompetitorOwner(id, userId);
+    logger.info({ competitorId: id, networks }, '[competitors.syncSocial] scheduled');
     void (async () => {
       try {
         await competitorsService.analyze(id, userId, { mode: 'social', networks });
+        logger.info({ competitorId: id }, '[competitors.syncSocial] DONE');
       } catch (err) {
-        logger.warn({ err, id }, 'sync-social failed');
+        logger.warn({ err, id }, '[competitors.syncSocial] FAILED');
       }
     })();
     return { scheduled: true };
@@ -297,10 +324,19 @@ export const competitorsService = {
   async regenerateNarrative(id: string, userId: string) {
     const owned = await assertCompetitorOwner(id, userId);
     const last = owned.narrativeGeneratedAt;
+    logger.info(
+      {
+        competitorId: id,
+        lastGeneratedAt: last?.toISOString() ?? null,
+        cooldownMs: NARRATIVE_COOLDOWN_MS,
+      },
+      '[competitors.regenerateNarrative] request',
+    );
     if (last && Date.now() - last.getTime() < NARRATIVE_COOLDOWN_MS) {
       const wait = Math.ceil(
         (NARRATIVE_COOLDOWN_MS - (Date.now() - last.getTime())) / 1000,
       );
+      logger.info({ competitorId: id, waitSec: wait }, '[competitors.regenerateNarrative] cooldown hit');
       throw new Conflict(`Espera ${wait}s antes de regenerar la interpretación.`);
     }
     dispatchNarrativeGeneration(id, userId, owned.projectId);

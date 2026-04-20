@@ -95,12 +95,14 @@ export function useCompetitorsTab(projectId: string) {
   };
 
   const onAnalyze = (c: Competitor) => {
+    console.info('[comp] onAnalyze preview', { id: c.id, name: c.name });
     setPendingAnalyze(c);
   };
 
   const onConfirmAnalyze = async () => {
     const c = pendingAnalyze;
     if (!c) return;
+    console.info('[comp] onConfirmAnalyze START', { id: c.id, mode: lastMode });
     setPendingAnalyze(null);
     setAnalyzingId(c.id);
     setAnalysisName(c.name);
@@ -110,15 +112,22 @@ export function useCompetitorsTab(projectId: string) {
         project_id: projectId,
         mode: lastMode,
       });
+      console.info('[comp] analyze complete, navigating to report', { id: c.id });
       navigate(`/competitors/${c.id}/report`);
+    } catch (err) {
+      console.error('[comp] analyze threw', { id: c.id, err });
     } finally {
       setAnalyzingId(null);
     }
   };
 
-  const onCancelAnalyze = () => setPendingAnalyze(null);
+  const onCancelAnalyze = () => {
+    console.info('[comp] analyze cancelled');
+    setPendingAnalyze(null);
+  };
 
   const onViewAnalysis = (c: Competitor) => {
+    console.info('[comp] onViewAnalysis → navigating', { id: c.id });
     navigate(`/competitors/${c.id}/report`);
   };
 

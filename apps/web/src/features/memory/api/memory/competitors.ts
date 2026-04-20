@@ -208,6 +208,7 @@ export function useAnalyzeCompetitor() {
       mode?: AnalysisMode;
       networks?: ScrapeNetwork[];
     }) => {
+      console.info('[comp] POST /:id/analyze', { id, mode, networks });
       const r = await api.post<{
         data: {
           competitor: Competitor;
@@ -216,10 +217,20 @@ export function useAnalyzeCompetitor() {
           social_stats: unknown;
         };
       }>(`/competitors/${id}/analyze`, mode || networks ? { mode, networks } : undefined);
+      console.info('[comp] analyze response', {
+        id,
+        syncStatus: r.data.sync_status,
+        socialStats: r.data.social_stats,
+        hasResult: !!r.data.result,
+      });
       return r.data;
+    },
+    onError: (err, vars) => {
+      console.error('[comp] analyze FAILED', { err, vars });
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['competitors', vars.project_id] });
+      qc.invalidateQueries({ queryKey: ['competitor', vars.id] });
       qc.invalidateQueries({ queryKey: ['competitor-stats', vars.id] });
       qc.invalidateQueries({ queryKey: ['competitor-posts', vars.id] });
     },
@@ -230,15 +241,31 @@ export function useCompetitor(competitorId: string | null | undefined) {
   return useQuery({
     queryKey: ['competitor', competitorId],
     queryFn: async () => {
+      console.debug('[comp] fetching competitor', { competitorId });
       const r = await api.get<{ data: Competitor }>(`/competitors/${competitorId}`);
+      console.debug('[comp] competitor loaded', {
+        competitorId,
+        name: r.data.name,
+        lastAnalyzedAt: r.data.last_analyzed_at,
+        hasNarrative: !!r.data.narrative,
+        narrativeStale: r.data.narrative_stale,
+        summaryLen: r.data.narrative?.summary?.length ?? 0,
+        aestheticLen: r.data.narrative?.aesthetic?.length ?? 0,
+        opportunityLen: r.data.narrative?.opportunity?.length ?? 0,
+        syncStatusKeys: Object.keys(r.data.sync_status ?? {}),
+      });
       return r.data;
     },
     enabled: !!competitorId,
-    // Poll cada 3s mientras tengamos AiJobs pendientes (narrativa async)
     refetchInterval: (query) => {
       const c = query.state.data;
       if (!c) return false;
-      if (c.narrative_stale || (!c.narrative && c.last_analyzed_at)) return 3000;
+      const shouldPoll =
+        c.narrative_stale === true || (!c.narrative && !!c.last_analyzed_at);
+      if (shouldPoll) {
+        console.debug('[comp] polling (narrative pending)', { id: c.id });
+        return 3000;
+      }
       return false;
     },
   });
@@ -255,11 +282,16 @@ export function useSyncSocial() {
       project_id: string;
       networks?: ScrapeNetwork[];
     }) => {
+      console.info('[comp] POST /:id/sync-social', { id, networks });
       const r = await api.post<{ data: { scheduled: boolean } }>(
         `/competitors/${id}/sync-social`,
         networks ? { networks } : undefined,
       );
+      console.info('[comp] sync-social response', r.data);
       return r.data;
+    },
+    onError: (err, vars) => {
+      console.error('[comp] sync-social FAILED', { err, vars });
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['competitor', vars.id] });
@@ -274,10 +306,15 @@ export function useRegenerateNarrative() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
+      console.info('[comp] POST /:id/regenerate-narrative', { id });
       const r = await api.post<{ data: { scheduled: boolean } }>(
         `/competitors/${id}/regenerate-narrative`,
       );
+      console.info('[comp] regenerate-narrative response', r.data);
       return r.data;
+    },
+    onError: (err, vars) => {
+      console.error('[comp] regenerate-narrative FAILED', { err, vars });
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['competitor', vars.id] });

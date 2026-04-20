@@ -192,6 +192,11 @@ async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'versi
   const apiKey = env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Sin LLM configurado (OPENROUTER o OPENAI)');
 
+  logger.info(
+    { endpoint, model, promptLength: prompt.length },
+    '[narrative] calling LLM',
+  );
+
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -216,19 +221,43 @@ async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'versi
     }),
     signal: AbortSignal.timeout(45_000),
   });
-  if (!res.ok) throw new Error(`LLM ${res.status}: ${await res.text().catch(() => '')}`);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    logger.error({ status: res.status, body: errText.slice(0, 500) }, '[narrative] LLM error');
+    throw new Error(`LLM ${res.status}: ${errText}`);
+  }
   const body = await res.json();
   const raw = body.choices?.[0]?.message?.content ?? '{}';
-  const parsed = JSON.parse(raw);
-  return {
+  logger.info(
+    { rawLength: raw.length, rawPreview: raw.slice(0, 400) },
+    '[narrative] LLM raw response',
+  );
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    logger.error({ err, raw: raw.slice(0, 500) }, '[narrative] failed to parse LLM JSON');
+    throw err;
+  }
+  const result = {
     summary: typeof parsed.summary === 'string' ? parsed.summary : '',
     aesthetic: typeof parsed.aesthetic === 'string' ? parsed.aesthetic : '',
     opportunity: typeof parsed.opportunity === 'string' ? parsed.opportunity : '',
   };
+  logger.info(
+    {
+      summaryLen: result.summary.length,
+      aestheticLen: result.aesthetic.length,
+      opportunityLen: result.opportunity.length,
+    },
+    '[narrative] parsed result',
+  );
+  return result;
 }
 
 export class CompetitorNarrativeGenerator {
   async generate(input: GenerateNarrativeInput): Promise<CompetitorNarrative> {
+    logger.info({ input }, '[narrative] START generate');
     const job = await prisma.aiJob.create({
       data: {
         kind: 'competitor_narrative',
@@ -240,6 +269,17 @@ export class CompetitorNarrativeGenerator {
     });
     try {
       const { brand, competitor } = await loadSnapshot(input.competitorId);
+      logger.info(
+        {
+          competitorName: competitor.name,
+          postsCount: competitor.topPosts.length,
+          colorsCount: competitor.topColors.length,
+          tagsCount: competitor.topStyleTags.length,
+          hasWebAnalysis: !!competitor.webAnalysis,
+          hasEngagement: !!competitor.engagement,
+        },
+        '[narrative] snapshot loaded',
+      );
       const prompt = buildPrompt(brand, competitor);
       const body = await callLLM(prompt);
       const narrative = CompetitorNarrativeSchema.parse({
@@ -261,9 +301,13 @@ export class CompetitorNarrativeGenerator {
           finishedAt: new Date(),
         },
       });
+      logger.info(
+        { competitorId: input.competitorId, jobId: job.id },
+        '[narrative] SUCCESS',
+      );
       return narrative;
     } catch (err) {
-      logger.error({ err, competitorId: input.competitorId }, 'narrative generation failed');
+      logger.error({ err, competitorId: input.competitorId }, '[narrative] FAILED');
       await prisma.aiJob.update({
         where: { id: job.id },
         data: { status: 'failed', error: String(err), finishedAt: new Date() },
