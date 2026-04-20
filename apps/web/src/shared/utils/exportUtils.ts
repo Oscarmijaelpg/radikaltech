@@ -4,70 +4,147 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
 
 /**
- * Renderiza un string de HTML a PDF usando jsPDF.doc.html (que a su vez usa
- * html2canvas). El HTML debe ser autocontenido con estilos inline — nada de
- * clases de Tailwind del reporte de la app.
+ * Renderiza un string HTML a PDF en un iframe aislado y paginado.
+ *
+ * - iframe aislado: nada del CSS de la app se filtra (sin oklch, sin Tailwind).
+ * - html2canvas directo: control total sobre el render, sin parches globales
+ *   que desajusten la página visible.
+ * - Paginación A4 automática: divide el canvas resultante en páginas.
  */
 export const exportHtmlToPDF = async (html: string, fileName: string) => {
-  const container = document.createElement('div');
-  container.id = 'radikal-pdf-temp-container';
-  container.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 210mm;
-    background: #ffffff;
-    z-index: -9999;
-    visibility: visible;
-    pointer-events: none;
-  `;
-  container.innerHTML = html;
-  document.body.appendChild(container);
+  const A4_W_MM = 210;
+  const A4_H_MM = 297;
+  const RENDER_PX = 793; // ~210mm a 96 DPI
 
-  // Espera a que se carguen las imágenes (logo, avatar) antes de rasterizar.
-  const imgs = Array.from(container.querySelectorAll('img'));
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = `
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
+    width: ${RENDER_PX}px;
+    height: 100px;
+    border: 0;
+    visibility: hidden;
+  `;
+  document.body.appendChild(iframe);
+
+  const idoc = iframe.contentDocument;
+  if (!idoc) {
+    document.body.removeChild(iframe);
+    throw new Error('No se pudo crear el iframe para el PDF');
+  }
+
+  idoc.open();
+  idoc.write(
+    `<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank"></head><body style="margin:0;padding:0;">${html}</body></html>`,
+  );
+  idoc.close();
+
+  // Espera imágenes (logo + avatar) antes de rasterizar
+  const imgs = Array.from(idoc.images);
   await Promise.all(
     imgs.map(
       (img) =>
         new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
+          if (img.complete && img.naturalWidth > 0) return resolve();
           img.onload = () => resolve();
           img.onerror = () => resolve();
+          // Timeout para no colgar si la imagen no responde
+          setTimeout(resolve, 3000);
         }),
     ),
   );
 
-  try {
-    const doc = new jsPDF({
-      orientation: 'p',
-      unit: 'mm',
-      format: 'a4',
-      hotfixes: ['px_scaling'],
-    });
+  // Pequeño delay para permitir el layout final
+  await new Promise((r) => setTimeout(r, 150));
 
-    await doc.html(container, {
-      callback: function (pdf) {
-        const pageCount = pdf.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          pdf.setPage(i);
-          pdf.setFontSize(8);
-          pdf.setTextColor(148, 163, 184);
-          pdf.text(`${i} / ${pageCount}`, 210 - 20, 297 - 10, { align: 'right' });
+  try {
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const MARGIN_MM = 10;
+    const PAGE_USABLE_H_MM = A4_H_MM - MARGIN_MM * 2;
+
+    // Render sección por sección para respetar page-breaks visualmente.
+    // Si el HTML envuelve todo en un .page wrapper, iteramos sus hijos.
+    const root =
+      (idoc.body.querySelector('.page') as HTMLElement | null) ?? idoc.body;
+    const blocks = Array.from(root.children) as HTMLElement[];
+    let currentY = MARGIN_MM;
+
+    for (const block of blocks) {
+      const canvas = await html2canvas(block, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const blockH_mm = (canvas.height * (A4_W_MM - MARGIN_MM * 2)) / canvas.width;
+      const blockW_mm = A4_W_MM - MARGIN_MM * 2;
+
+      // Si la sección no cabe en lo que queda de página, nueva página
+      if (currentY + blockH_mm > A4_H_MM - MARGIN_MM && currentY > MARGIN_MM) {
+        pdf.addPage();
+        currentY = MARGIN_MM;
+      }
+
+      // Si la sección por sí sola es más alta que una página, la partimos
+      if (blockH_mm > PAGE_USABLE_H_MM) {
+        // Partimos el canvas en rebanadas que caben
+        const pxPerMM = canvas.width / blockW_mm;
+        const sliceH_px = PAGE_USABLE_H_MM * pxPerMM;
+        const totalSlices = Math.ceil(canvas.height / sliceH_px);
+        for (let s = 0; s < totalSlices; s++) {
+          if (s > 0 || currentY > MARGIN_MM) {
+            pdf.addPage();
+            currentY = MARGIN_MM;
+          }
+          const startY = s * sliceH_px;
+          const thisSliceH_px = Math.min(sliceH_px, canvas.height - startY);
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = thisSliceH_px;
+          const ctx = sliceCanvas.getContext('2d');
+          if (!ctx) continue;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0,
+            startY,
+            canvas.width,
+            thisSliceH_px,
+            0,
+            0,
+            canvas.width,
+            thisSliceH_px,
+          );
+          const img = sliceCanvas.toDataURL('image/jpeg', 0.92);
+          const thisSliceH_mm = (thisSliceH_px / canvas.width) * blockW_mm;
+          pdf.addImage(img, 'JPEG', MARGIN_MM, currentY, blockW_mm, thisSliceH_mm);
+          currentY += thisSliceH_mm;
         }
-        pdf.save(fileName);
-        document.body.removeChild(container);
-      },
-      x: 0,
-      y: 0,
-      width: 210,
-      windowWidth: 793,
-      autoPaging: 'text',
-      margin: [0, 0, 15, 0],
-    });
+      } else {
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        pdf.addImage(imgData, 'JPEG', MARGIN_MM, currentY, blockW_mm, blockH_mm);
+        currentY += blockH_mm + 3; // gap entre secciones
+      }
+    }
+
+    // Pie con paginación
+    const total = pdf.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`${i} / ${total}`, A4_W_MM - 15, A4_H_MM - 5, { align: 'right' });
+    }
+
+    pdf.save(fileName);
   } catch (err) {
     console.error('[pdf] generation failed', err);
-    if (document.body.contains(container)) document.body.removeChild(container);
     throw err;
+  } finally {
+    if (document.body.contains(iframe)) document.body.removeChild(iframe);
   }
 };
 

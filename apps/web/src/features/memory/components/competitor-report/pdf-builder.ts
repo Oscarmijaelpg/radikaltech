@@ -1,5 +1,5 @@
 import radikalLogo from '@/media/radikal-logo.png';
-import siraProfile from '@/media/Sira.webp';
+import siraProfile from '@/media/sira_profile.webp';
 import type {
   BenchmarkResult,
   Competitor,
@@ -101,7 +101,7 @@ export function buildCompetitorReportHtml({ competitor, stats, posts, benchmark 
   .section h2 { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin: 0 0 2mm 0; }
   .section h3 { font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 5mm 0; }
   .section p { font-size: 13px; margin: 0 0 3mm 0; color: #334155; }
-  .sira-intro { display: flex; gap: 4mm; align-items: flex-start; padding: 5mm; background: linear-gradient(135deg, #fdf2f8 0%, #fae8ff 100%); border: 1px solid #f5d0fe; border-radius: 10px; margin-bottom: 8mm; }
+  .sira-intro { display: flex; gap: 4mm; align-items: flex-start; padding: 5mm; background: #fdf2f8; border: 1px solid #f5d0fe; border-radius: 10px; margin-bottom: 8mm; }
   .sira-intro img { width: 20mm; height: 20mm; border-radius: 10px; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
   .sira-intro .text { flex: 1; }
   .sira-intro .tag { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #c026d3; margin-bottom: 2mm; }
@@ -141,8 +141,8 @@ export function buildCompetitorReportHtml({ competitor, stats, posts, benchmark 
   .insights ol { margin: 0; padding-left: 6mm; }
   .insights li { font-size: 12px; margin-bottom: 2mm; color: #334155; }
   .opp { margin: 0; padding: 0; list-style: none; }
-  .opp li { display: flex; gap: 3mm; padding: 3mm 4mm; background: linear-gradient(135deg, #ede9fe 0%, #fae8ff 100%); border: 1px solid #ddd6fe; border-radius: 8px; margin-bottom: 3mm; font-size: 12px; color: #1e1b4b; }
-  .opp .num { flex-shrink: 0; width: 7mm; height: 7mm; border-radius: 999px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+  .opp li { display: flex; gap: 3mm; padding: 3mm 4mm; background: #ede9fe; border: 1px solid #ddd6fe; border-radius: 8px; margin-bottom: 3mm; font-size: 12px; color: #1e1b4b; }
+  .opp .num { flex-shrink: 0; width: 7mm; height: 7mm; border-radius: 999px; background: #8b5cf6; color: #fff; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
   .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin-top: 3mm; }
   .post { border: 1px solid #e2e8f0; border-radius: 6px; padding: 3mm; background: #f8fafc; font-size: 10px; }
   .post .plat { font-size: 8px; font-weight: 900; text-transform: uppercase; color: #94a3b8; margin-bottom: 1mm; letter-spacing: 1px; }
