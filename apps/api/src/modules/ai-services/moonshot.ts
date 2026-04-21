@@ -39,21 +39,20 @@ export async function moonshotWebSearch(systemPrompt: string, userPrompt: string
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${env.MOONSHOT_API_KEY}`
+        Authorization: `Bearer ${env.MOONSHOT_API_KEY?.trim()}`
       },
       body: JSON.stringify({
-        model: "kimi-k2.6",
+        model: "moonshot-v1-8k",
         messages,
         temperature: 0.6,
         tools,
-        thinking: { type: "disabled" }
       })
     });
 
     if (!res.ok) {
       const errorText = await res.text();
       logger.error({ status: res.status, errorText }, 'Moonshot API failed');
-      throw new Error(`Moonshot API error: ${res.status}`);
+      throw new Error(`Moonshot API error (${res.status}): ${errorText}`);
     }
 
     const body = await res.json();
