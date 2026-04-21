@@ -29,6 +29,7 @@ import {
   updateChat,
 } from './service.js';
 import { handleStreamMessage } from './stream.js';
+import { ACTION_KEYS, withCredits } from '../../lib/credits.js';
 
 export const chatsRouter = new Hono<{ Variables: AuthVariables }>();
 
@@ -146,7 +147,14 @@ chatsRouter.post('/route-preview', zValidator('json', routePreviewSchema), async
 chatsRouter.post(
   '/:id/messages/stream',
   zValidator('json', streamMessageSchema),
-  handleStreamMessage,
+  async (c) => {
+    const user = c.get('user');
+    const chatId = c.req.param('id');
+    return withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.chatMessage, metadata: { chatId } },
+      () => handleStreamMessage(c),
+    );
+  },
 );
 
 chatsRouter.get('/meta/agents', (c) => {
