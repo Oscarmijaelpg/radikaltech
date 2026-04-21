@@ -36,6 +36,12 @@ const ScheduledReportsPage = lazy(() =>
 const AuditPage = lazy(() =>
   import('@/features/audit/pages/AuditPage').then((m) => ({ default: m.AuditPage })),
 );
+const PricesPage = lazy(() =>
+  import('@/features/prices/pages/PricesPage').then((m) => ({ default: m.PricesPage })),
+);
+const ConfigPage = lazy(() =>
+  import('@/features/config/pages/ConfigPage').then((m) => ({ default: m.ConfigPage })),
+);
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { session, profile, loading, profileError, refreshProfile, signOut } = useAuth();
@@ -81,6 +87,8 @@ export function App() {
         <Route path="/scheduled-reports" element={<LazyRoute><ScheduledReportsPage /></LazyRoute>} />
         <Route path="/flags" element={<LazyRoute><FlagsPage /></LazyRoute>} />
         <Route path="/audit" element={<LazyRoute><AuditPage /></LazyRoute>} />
+        <Route path="/prices" element={<LazyRoute><PricesPage /></LazyRoute>} />
+        <Route path="/config" element={<LazyRoute><ConfigPage /></LazyRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

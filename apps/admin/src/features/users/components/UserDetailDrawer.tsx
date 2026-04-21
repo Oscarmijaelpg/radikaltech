@@ -24,6 +24,7 @@ import {
   useImpersonate,
 } from '../api/users';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
+import { UserCreditsPanel } from './UserCreditsPanel';
 import { useToast } from '@/shared/ui/Toaster';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 
@@ -184,6 +185,8 @@ export function UserDetailDrawer({ userId, onClose }: Props) {
                 <MetricBox label="Chats" value={user.counts.chats} />
                 <MetricBox label="Tareas" value={user.counts.jobs} />
               </div>
+
+              <UserCreditsPanel userId={user.id} />
 
               <div className="border-t border-slate-200 pt-4 space-y-3">
                 <div className="text-sm font-medium">Cambiar rol</div>
