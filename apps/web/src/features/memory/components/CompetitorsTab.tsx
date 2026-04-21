@@ -129,20 +129,26 @@ export function CompetitorsTab({ projectId }: Props) {
         </div>
       )}
 
-      {t.analyzingId && (
-        <BusyOverlay
-          character="sira"
-          title={`Analizando a ${t.analysisName}`}
-          subtitle="Leemos su sitio, detectamos sus redes y sacamos los insights clave."
-          estimatedSeconds={30}
-          stages={[
-            'Leyendo su sitio web',
-            'Buscando sus redes sociales',
-            'Extrayendo fortalezas y debilidades',
-            'Analizando sus últimas publicaciones',
-          ]}
-        />
-      )}
+      {t.analyzingId && (() => {
+        const c = t.competitors.find(comp => comp.id === t.analyzingId);
+        const socialKeys = Object.keys(c?.social_links || {});
+        return (
+          <BusyOverlay
+            character="sira"
+            title={`Analizando a ${t.analysisName}`}
+            subtitle="Leemos su sitio, detectamos sus redes y sacamos los insights clave."
+            estimatedSeconds={30}
+            stages={[
+              'Leyendo su sitio web',
+              socialKeys.length > 0 
+                ? `Analizando ${socialKeys.join(', ')}` 
+                : 'Buscando sus redes sociales',
+              'Extrayendo fortalezas y debilidades',
+              'Analizando sus últimas publicaciones',
+            ]}
+          />
+        );
+      })()}
 
       <CompetitorModal
         open={t.modalOpen}
@@ -157,7 +163,7 @@ export function CompetitorsTab({ projectId }: Props) {
         onOpenChange={(v) => {
           if (!v) t.onCancelAnalyze();
         }}
-        competitorName={t.pendingAnalyze?.name ?? ''}
+        competitor={t.pendingAnalyze}
         onConfirm={t.onConfirmAnalyze}
       />
 
