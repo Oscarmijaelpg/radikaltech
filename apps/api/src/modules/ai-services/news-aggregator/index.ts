@@ -1,11 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
-import { env } from '../../../config/env.js';
-import { PROVIDER_URLS } from '../../../config/providers.js';
 import { logger } from '../../../lib/logger.js';
 import { notificationService } from '../../notifications/service.js';
-import { analyzeNewsWithAI, buildEnhancedQuery } from './ai-analyzer.js';
-import { hostnameOf } from './authority.js';
-import { enrichItems } from './enricher.js';
+import { moonshotWebSearch } from '../moonshot.js';
 import type {
   AggregateNewsInput,
   AggregateNewsOutput,
@@ -25,11 +21,6 @@ export type {
   ProjectContext,
 } from './types.js';
 
-const TAVILY_TIMEOUT_MS = 25_000;
-const TAVILY_DAYS_WINDOW = 21;
-const TAVILY_MAX_RESULTS = 12;
-const TAVILY_SUMMARY_MAX_CHARS = 280;
-const FALLBACK_PREVIEW_ITEMS = 3;
 const REPORT_SUMMARY_MAX_CHARS = 600;
 
 async function fetchProjectContext(projectId: string | undefined): Promise<ProjectContext | null> {
@@ -52,40 +43,6 @@ async function fetchProjectContext(projectId: string | undefined): Promise<Proje
   }
 }
 
-async function fetchTavilyNews(query: string): Promise<NewsItem[]> {
-  if (!env.TAVILY_API_KEY) {
-    logger.warn('TAVILY_API_KEY not set');
-    return [];
-  }
-  const res = await fetch(PROVIDER_URLS.tavily.search, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key: env.TAVILY_API_KEY,
-      query,
-      topic: 'news',
-      days: TAVILY_DAYS_WINDOW,
-      max_results: TAVILY_MAX_RESULTS,
-      include_answer: false,
-    }),
-    signal: AbortSignal.timeout(TAVILY_TIMEOUT_MS),
-  });
-  if (!res.ok) {
-    logger.warn({ status: res.status }, 'tavily news failed');
-    return [];
-  }
-  const body = (await res.json()) as {
-    results: Array<{ title: string; url: string; content: string; published_date?: string }>;
-  };
-  return body.results.map((r) => ({
-    title: r.title,
-    url: r.url,
-    source: hostnameOf(r.url),
-    published_at: r.published_date,
-    summary: r.content?.slice(0, TAVILY_SUMMARY_MAX_CHARS),
-  }));
-}
-
 export class NewsAggregator {
   async aggregate(input: AggregateNewsInput): Promise<AggregateNewsOutput> {
     const job = await prisma.aiJob.create({
@@ -100,61 +57,83 @@ export class NewsAggregator {
 
     try {
       const projectCtx = await fetchProjectContext(input.projectId);
-      const enhancedQuery = buildEnhancedQuery(input.topic, projectCtx);
-      logger.info(
-        { original: input.topic, enhanced: enhancedQuery },
-        'news query enhanced with brand context',
-      );
 
-      const items = await fetchTavilyNews(enhancedQuery);
+      const systemPrompt = `Actúa como analista senior en inteligencia competitiva y monitoreo sectorial. Tienes acceso a la web mediante la herramienta \`$web_search\`. TU TAREA PRINCIPAL es buscar noticias reales.
+Debes devolver tu respuesta EXCLUSIVAMENTE en formato JSON válido.
 
-      const aiResult = await analyzeNewsWithAI(input.topic, items, projectCtx);
-      let analysis: NewsAnalysis | undefined = aiResult?.analysis;
-      const perItemRelevance = aiResult?.per_item_relevance ?? {};
-      if (items.length > 0) {
-        const sentMap = analysis?.per_item_sentiment ?? {};
-        const enriched = enrichItems(items, sentMap, perItemRelevance);
-        if (!analysis) {
-          analysis = {
-            narrative: '',
-            executive_summary: '',
-            top_themes: [],
-            overall_sentiment: 'neutral',
-            sentiment_breakdown: { positive: 0, neutral: items.length, negative: 0 },
-            per_item_sentiment: {},
-            key_insights: [],
-            trending_keywords: [],
-            items_enriched: enriched,
-          };
-        } else {
-          analysis.items_enriched = enriched;
-        }
+Empresa objetivo
+Nombre: ${projectCtx?.company_name || 'Desconocida'}
+Contexto de la empresa: ${projectCtx?.business_summary || 'No especificado'}
+Industria principal: ${projectCtx?.industry || 'General'}
+Mercado geográfico: ${projectCtx?.operating_countries?.join(', ') || 'Global'}
+
+Objetivo de la investigación
+Utiliza \`$web_search\` para identificar noticias estratégicas, tendencias sectoriales y cambios estructurales de los ÚLTIMOS 12 MESES sobre el tema: "${input.topic}".
+
+Reglas de Búsqueda de Noticias (PRIORIDAD ALTA):
+1. Usa \`$web_search\` exhaustivamente para buscar noticias reales sobre la industria en los mercados detectados.
+2. Encuentra al menos 5 noticias clave que afecten regulaciones, tecnología, competencia, crecimiento, inversiones o comportamiento del consumidor.
+3. EXIGENCIA DE FUENTES: Cada noticia debe provenir de una URL real devuelta por \`$web_search\`. PROHIBIDO inventar URLs.
+
+Formato Obligatorio de Salida (JSON):
+Debes devolver un JSON con esta estructura exacta:
+{
+  "narrative": "Un análisis en formato Markdown (3-5 párrafos) detallando las tendencias y el impacto de las noticias encontradas para la empresa objetivo.",
+  "executive_summary": "Un resumen breve (2-3 frases) de las noticias y su impacto.",
+  "key_insights": ["Insight accionable 1", "Insight accionable 2", "Insight accionable 3"],
+  "items": [
+    {
+      "title": "Titular de la noticia",
+      "url": "URL verificable de la fuente",
+      "source": "Nombre del medio",
+      "published_at": "Fecha (ej. 2024-05-20)",
+      "summary": "Resumen de la noticia (máx 120 palabras)"
+    }
+  ]
+}`;
+
+      const userPrompt = `Por favor, ejecuta la investigación sobre el tema "${input.topic}" y devuelve los resultados en el formato JSON indicado.`;
+
+      // Llamamos a Moonshot
+      const rawMoonshotResult = await moonshotWebSearch(systemPrompt, userPrompt);
+      
+      // Parsear resultado de Moonshot (puede venir con Markdown wrap)
+      let parsedData: any;
+      try {
+        const jsonStr = rawMoonshotResult.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+        parsedData = JSON.parse(jsonStr);
+      } catch (err) {
+        logger.error({ err, rawMoonshotResult }, 'Failed to parse Moonshot JSON');
+        throw new Error('Moonshot output was not valid JSON');
       }
+
+      const items: NewsItem[] = parsedData.items || [];
+      const analysis: NewsAnalysis = {
+        narrative: parsedData.narrative || '',
+        executive_summary: parsedData.executive_summary || '',
+        key_insights: parsedData.key_insights || [],
+        top_themes: [],
+        overall_sentiment: 'neutral',
+        sentiment_breakdown: { positive: 0, neutral: items.length, negative: 0 },
+        per_item_sentiment: {},
+        trending_keywords: []
+      };
+
       const result: NewsResult = { topic: input.topic, items, analysis };
 
       let report: AggregateNewsOutput['report'];
       if (input.projectId) {
         try {
-          const fallbackSummary = items
-            .slice(0, FALLBACK_PREVIEW_ITEMS)
-            .map((it, i) => `${i + 1}. ${it.title}${it.source ? ` — ${it.source}` : ''}`)
-            .join('\n');
+          // Construir un contenido Markdown rico para la tabla Report
+          const newsListMarkdown = items.map(it => 
+            `### ${it.title}\n- **Medio:** ${it.source}\n- **Enlace:** [${it.url}](${it.url})\n- **Resumen:** ${it.summary}`
+          ).join('\n\n');
 
-          const contentMd = analysis?.narrative
-            ? analysis.narrative
-            : analysis?.executive_summary
-              ? analysis.executive_summary
-              : JSON.stringify(items);
+          const contentMd = `# Reporte de Noticias: ${input.topic}\n\n## Resumen Ejecutivo\n${analysis.executive_summary}\n\n## Análisis Estratégico\n${analysis.narrative}\n\n## Insights Clave\n${analysis.key_insights?.map(i => `- ${i}`).join('\n')}\n\n## Noticias Detectadas\n${newsListMarkdown}`;
 
-          const summaryText = analysis?.executive_summary
-            ? analysis.executive_summary.slice(0, REPORT_SUMMARY_MAX_CHARS)
-            : fallbackSummary || null;
+          const summaryText = analysis.executive_summary.slice(0, REPORT_SUMMARY_MAX_CHARS);
 
-          const keyInsights = analysis?.key_insights ?? [];
-
-          const sourceDataPayload: Prisma.InputJsonValue = analysis
-            ? ({ items, analysis } as unknown as Prisma.InputJsonValue)
-            : (items as unknown as Prisma.InputJsonValue);
+          const sourceDataPayload: Prisma.InputJsonValue = { items, analysis } as unknown as Prisma.InputJsonValue;
 
           const created = await prisma.report.create({
             data: {
@@ -164,7 +143,7 @@ export class NewsAggregator {
               reportType: 'news',
               content: contentMd,
               summary: summaryText,
-              keyInsights,
+              keyInsights: analysis.key_insights,
               sourceData: sourceDataPayload,
             },
           });
@@ -187,6 +166,7 @@ export class NewsAggregator {
           finishedAt: new Date(),
         },
       });
+      
       return { jobId: job.id, result, report };
     } catch (err) {
       logger.error({ err }, 'news aggregator failed');
@@ -206,3 +186,4 @@ export class NewsAggregator {
     }
   }
 }
+
