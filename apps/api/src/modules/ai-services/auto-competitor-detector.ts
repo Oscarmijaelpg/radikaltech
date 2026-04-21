@@ -70,12 +70,17 @@ Debes devolver un JSON con esta estructura exacta:
       "website": "URL oficial",
       "country": "País donde compite (ISO 2 letras, ej: 'MX', 'CO')",
       "description": "Modelo de Negocio (máx 60 palabras)",
-      "why_competitor": "Evidencia verificable y razón por la cual compite, incluyendo URL probatoria de su existencia"
+      "why_competitor": "Evidencia verificable y razón por la cual compite, incluyendo URL probatoria de su existencia",
+      "social_links": {
+        "instagram": "URL de Instagram o null",
+        "tiktok": "URL de TikTok o null",
+        "linkedin": "URL de LinkedIn o null"
+      }
     }
   ]
 }`;
 
-      const userPrompt = `Inicia la búsqueda de competidores para ${project.companyName || 'la empresa'} en ${countryText}. Recuerda usar $web_search y devolver SOLO el formato JSON.`;
+      const userPrompt = `Inicia la búsqueda de competidores para ${project.companyName || 'la empresa'} en ${countryText}. Recuerda usar $web_search, buscar sus redes sociales principales y devolver SOLO el formato JSON.`;
 
       const rawMoonshotResult = await moonshotWebSearch(systemPrompt, userPrompt);
       
@@ -108,6 +113,16 @@ Debes devolver un JSON con esta estructura exacta:
       for (const c of synthed) {
         if (!c.name) continue;
         try {
+          // Filtrar social links para no guardar nulos
+          const socialLinks: Record<string, string> = {};
+          if (c.social_links) {
+            for (const [k, v] of Object.entries(c.social_links)) {
+              if (v && typeof v === 'string' && v.startsWith('http')) {
+                socialLinks[k.toLowerCase()] = v;
+              }
+            }
+          }
+
           const rec = await prisma.competitor.create({
             data: {
               projectId: input.projectId,
@@ -115,6 +130,7 @@ Debes devolver un JSON con esta estructura exacta:
               name: c.name,
               website: c.website ?? null,
               notes: c.why_competitor ?? c.description ?? null,
+              socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
               status: 'suggested', // Se guarda como sugerido para la UI
               source: 'auto_detected',
               detectedAt: new Date(),
