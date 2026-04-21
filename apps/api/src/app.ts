@@ -24,6 +24,7 @@ import { schedulerRouter } from './modules/scheduler/routes.js';
 import { recommendationsRouter } from './modules/recommendations/routes.js';
 import { scheduledReportsRouter } from './modules/scheduled-reports/routes.js';
 import { notificationsRouter } from './modules/notifications/routes.js';
+import { adminRouter } from './modules/admin/routes.js';
 
 export function createApp() {
   const app = new Hono<{ Variables: AuthVariables }>();
@@ -59,6 +60,7 @@ export function createApp() {
   api.route('/recommendations', recommendationsRouter);
   api.route('/scheduled-reports', scheduledReportsRouter);
   api.route('/notifications', notificationsRouter);
+  api.route('/admin', adminRouter);
 
   app.route('/api/v1', api);
 

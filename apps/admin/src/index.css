@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: hsl(var(--color-bg));
+  color: hsl(var(--color-fg));
+}
+
+:root {
+  --color-fg: 222 47% 11%;
+  --color-card: 0 0% 100%;
+  --color-card-hover: 210 40% 96%;
+  --color-sentiment-positive: 160 84% 39%;
+  --color-sentiment-neutral: 215 16% 63%;
+  --color-sentiment-negative: 0 72% 51%;
+  --color-chart-primary: 188 92% 43%;
+  --color-chart-grid: 214 32% 91%;
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--color-primary));
+  outline-offset: 2px;
+}
