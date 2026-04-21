@@ -38,6 +38,11 @@ export type {
   Notification,
   AdminAuditLog,
   FeatureFlag,
+  CreditAccount,
+  CreditTransaction,
+  CreditTransactionKind,
+  ActionPrice,
+  SystemConfig,
 } from '@prisma/client';
 
 export { Prisma } from '@prisma/client';
