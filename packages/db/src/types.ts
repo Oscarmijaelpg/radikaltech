@@ -36,6 +36,8 @@ export type {
   ScheduledReportKind,
   ScheduledReportFrequency,
   Notification,
+  AdminAuditLog,
+  FeatureFlag,
 } from '@prisma/client';
 
 export { Prisma } from '@prisma/client';
