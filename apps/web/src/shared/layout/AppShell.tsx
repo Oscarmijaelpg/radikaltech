@@ -6,6 +6,8 @@ import { cn } from '@/shared/utils/cn';
 import { useProjectLogoWithBrightness, logoContainerStyle } from '@/shared/hooks/useProjectLogo';
 import radikalLogo from '@/media/radikal-logo.png';
 import { NotificationsBell } from '@/features/notifications/components/NotificationsBell';
+import { CreditBadge } from '@/features/credits/components/CreditBadge';
+import { PaymentRequiredToaster } from '@/features/credits/components/PaymentRequiredToaster';
 import { JobFailureToasts } from '@/features/notifications/components/JobFailureToasts';
 import { LevelBadge } from '@/shared/fte/FirstTimeExperience';
 import { GlobalJobsBanner } from './GlobalJobsBanner';
@@ -439,6 +441,7 @@ export function AppShell() {
         </button>
         <img src={radikalLogo} alt="Radikal" className="h-7 w-auto" />
         <div className="flex-1" />
+        <CreditBadge compact />
         <NotificationsBell />
         {activeProject && (
           <ProjectBadge
@@ -514,10 +517,12 @@ export function AppShell() {
         )}
       >
         <div className="hidden lg:flex absolute top-4 right-6 z-20 items-center gap-2">
+          <CreditBadge />
           <NotificationsBell />
         </div>
         <GlobalJobsBanner />
         <JobFailureToasts />
+        <PaymentRequiredToaster />
         <Outlet />
       </main>
     </div>

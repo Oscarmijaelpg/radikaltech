@@ -50,6 +50,9 @@ const RecommendationsPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('./features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
+const CreditsPage = lazy(() =>
+  import('./features/credits/pages/CreditsPage').then((m) => ({ default: m.CreditsPage })),
+);
 
 function ProtectedRoute({ children, requireOnboarding = true }: { children: React.ReactNode; requireOnboarding?: boolean }) {
   const { session, profile, loading, profileError, refreshProfile, signOut } = useAuth();
@@ -109,6 +112,7 @@ export function App() {
         <Route path="/team" element={<LazyRoute><TeamPage /></LazyRoute>} />
         <Route path="/projects" element={<LazyRoute><ProjectsPage /></LazyRoute>} />
         <Route path="/settings" element={<LazyRoute><SettingsPage /></LazyRoute>} />
+        <Route path="/settings/credits" element={<LazyRoute><CreditsPage /></LazyRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

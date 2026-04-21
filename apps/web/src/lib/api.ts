@@ -67,6 +67,17 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: res.statusText }));
+      if (res.status === 402 && typeof window !== 'undefined') {
+        const errObj = err as { error?: { message?: string; details?: unknown }; message?: string };
+        window.dispatchEvent(
+          new CustomEvent('radikal:payment-required', {
+            detail: {
+              message: errObj?.error?.message ?? errObj?.message ?? 'Saldo insuficiente',
+              details: errObj?.error?.details,
+            },
+          }),
+        );
+      }
       throw new ApiError(err.message || 'Error en la solicitud', res.status, err);
     }
 
