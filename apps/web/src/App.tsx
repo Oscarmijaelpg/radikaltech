@@ -53,6 +53,9 @@ const SettingsPage = lazy(() =>
 const SiraAnalysisPage = lazy(() =>
   import('./features/sira/pages/SiraAnalysisPage').then((m) => ({ default: m.SiraAnalysisPage })),
 );
+const CreditsPage = lazy(() =>
+  import('./features/credits/pages/CreditsPage').then((m) => ({ default: m.CreditsPage })),
+);
 
 function ProtectedRoute({ children, requireOnboarding = true }: { children: React.ReactNode; requireOnboarding?: boolean }) {
   const { session, profile, loading, profileError, refreshProfile, signOut } = useAuth();
@@ -113,6 +116,7 @@ export function App() {
         <Route path="/projects" element={<LazyRoute><ProjectsPage /></LazyRoute>} />
         <Route path="/sira" element={<LazyRoute><SiraAnalysisPage /></LazyRoute>} />
         <Route path="/settings" element={<LazyRoute><SettingsPage /></LazyRoute>} />
+        <Route path="/settings/credits" element={<LazyRoute><CreditsPage /></LazyRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
