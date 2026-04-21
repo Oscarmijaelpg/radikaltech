@@ -12,3 +12,4 @@ export * from './notification.js';
 export * from './recommendation.js';
 export * from './ai.js';
 export * from './competitor-narrative.js';
+export * from './credits.js';
