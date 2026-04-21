@@ -81,11 +81,25 @@ Debes devolver un JSON con esta estructura exacta:
       
       let parsedData: any;
       try {
-        const jsonStr = rawMoonshotResult.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-        parsedData = JSON.parse(jsonStr);
+        // Limpiar posibles bloques de Markdown
+        const cleaned = rawMoonshotResult
+          .replace(/```json\n?/g, '')
+          .replace(/\n?```/g, '')
+          .trim();
+        parsedData = JSON.parse(cleaned);
       } catch (err) {
         logger.error({ err, rawMoonshotResult }, 'Failed to parse Moonshot Competitors JSON');
-        throw new Error('Moonshot output was not valid JSON');
+        // Si falla el parseo, intentamos extraer el JSON con un regex básico si hay ruido
+        const match = rawMoonshotResult.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            parsedData = JSON.parse(match[0]);
+          } catch (e2) {
+            throw new Error('Moonshot output was not valid JSON even after extraction attempt');
+          }
+        } else {
+          throw new Error('Moonshot output was not valid JSON and no JSON block found');
+        }
       }
 
       const synthed = Array.isArray(parsedData?.competitors) ? parsedData.competitors : [];

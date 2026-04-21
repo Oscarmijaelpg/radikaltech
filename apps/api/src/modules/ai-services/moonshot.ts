@@ -30,8 +30,11 @@ export async function moonshotWebSearch(systemPrompt: string, userPrompt: string
 
   let finishReason: string | null = null;
   let finalContent = "";
+  let turns = 0;
+  const MAX_TURNS = 10;
 
-  while (finishReason === null || finishReason === "tool_calls") {
+  while ((finishReason === null || finishReason === "tool_calls") && turns < MAX_TURNS) {
+    turns++;
     const res = await fetch("https://api.moonshot.ai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -43,7 +46,7 @@ export async function moonshotWebSearch(systemPrompt: string, userPrompt: string
         messages,
         temperature: 0.6,
         tools,
-        // En Moonshot, usar $web_search internamente
+        thinking: { type: "disabled" }
       })
     });
 
@@ -62,29 +65,15 @@ export async function moonshotWebSearch(systemPrompt: string, userPrompt: string
       messages.push(message);
       
       for (const toolCall of message.tool_calls) {
-        if (toolCall.function.name === "$web_search") {
-          // Kimi ejecutó la búsqueda. Los resultados de la búsqueda vienen inyectados en los argumentos de la tool
-          let toolResult = {};
-          try {
-            toolResult = JSON.parse(toolCall.function.arguments);
-          } catch (e) {
-            logger.warn({ err: e }, 'Error parsing Moonshot web search arguments');
-          }
-          
-          messages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            name: toolCall.function.name,
-            content: JSON.stringify(toolResult)
-          });
-        } else {
-          messages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            name: toolCall.function.name,
-            content: JSON.stringify({ error: "no tool found" })
-          });
-        }
+        // En Moonshot, para builtin_function como $web_search, 
+        // simplemente devolvemos los argumentos como "content" para que el backend de Moonshot
+        // inyecte los resultados reales en el siguiente turno.
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          name: toolCall.function.name,
+          content: toolCall.function.arguments // Enviamos los argumentos tal cual
+        });
       }
     } else {
       finalContent = message.content || "";

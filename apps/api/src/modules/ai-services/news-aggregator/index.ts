@@ -100,11 +100,23 @@ Debes devolver un JSON con esta estructura exacta:
       // Parsear resultado de Moonshot (puede venir con Markdown wrap)
       let parsedData: any;
       try {
-        const jsonStr = rawMoonshotResult.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-        parsedData = JSON.parse(jsonStr);
+        const cleaned = rawMoonshotResult
+          .replace(/```json\n?/g, '')
+          .replace(/\n?```/g, '')
+          .trim();
+        parsedData = JSON.parse(cleaned);
       } catch (err) {
         logger.error({ err, rawMoonshotResult }, 'Failed to parse Moonshot JSON');
-        throw new Error('Moonshot output was not valid JSON');
+        const match = rawMoonshotResult.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            parsedData = JSON.parse(match[0]);
+          } catch (e2) {
+            throw new Error('Moonshot output was not valid JSON even after extraction attempt');
+          }
+        } else {
+          throw new Error('Moonshot output was not valid JSON and no JSON block found');
+        }
       }
 
       const items: NewsItem[] = parsedData.items || [];
