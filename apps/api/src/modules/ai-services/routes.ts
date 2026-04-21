@@ -23,11 +23,11 @@ import {
 import { prisma, Prisma } from '@radikal/db';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
 import { aiRateLimits } from '../../middleware/rate-limit.js';
+import { ACTION_KEYS, withCredits } from '../../lib/credits.js';
+import { creditService } from '../credits/service.js';
+import { logger } from '../../lib/logger.js';
 import { assertCompetitorOwnerOptional, assertOptionalProject } from './guards.js';
-import {
-  captionRequestSchema,
-  handleGenerateCaption,
-} from './caption-handler.js';
+import { captionRequestSchema, handleGenerateCaption } from './caption-handler.js';
 
 const rlAnalyzeWebsite = aiRateLimits.default('analyze-website');
 const rlAnalyzeCompetitor = aiRateLimits.default('analyze-competitor');
@@ -51,7 +51,10 @@ aiServicesRouter.post(
     const user = c.get('user');
     const { url, project_id } = c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
-    const res = await websiteAnalyzer.analyze({ url, userId: user.id, projectId: project_id });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.websiteAnalyze, metadata: { url, project_id } },
+      () => websiteAnalyzer.analyze({ url, userId: user.id, projectId: project_id }),
+    );
     return c.json(ok(res));
   },
 );
@@ -67,11 +70,10 @@ aiServicesRouter.post(
     const user = c.get('user');
     const { query, project_id } = c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
-    const res = await competitorAnalyzer.analyze({
-      query,
-      userId: user.id,
-      projectId: project_id,
-    });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.competitorAnalyze, metadata: { query, project_id } },
+      () => competitorAnalyzer.analyze({ query, userId: user.id, projectId: project_id }),
+    );
     return c.json(ok(res));
   },
 );
@@ -87,16 +89,20 @@ aiServicesRouter.post(
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
     const socials = await prisma.socialAccount.findMany({ where: { projectId: project_id } });
-    const res = await brandSynthesizer.synthesize({
-      project,
-      socialAccounts: socials.map((s) => ({
-        platform: s.platform,
-        source: s.source ?? 'none',
-        url: s.url,
-        manual_description: s.manualDescription,
-      })),
-      userId: user.id,
-    });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.brandSynthesize, metadata: { project_id } },
+      () =>
+        brandSynthesizer.synthesize({
+          project,
+          socialAccounts: socials.map((s) => ({
+            platform: s.platform,
+            source: s.source ?? 'none',
+            url: s.url,
+            manual_description: s.manualDescription,
+          })),
+          userId: user.id,
+        }),
+    );
     return c.json(ok(res));
   },
 );
@@ -108,7 +114,10 @@ aiServicesRouter.post(
   async (c) => {
     const user = c.get('user');
     const { asset_id } = c.req.valid('json');
-    const res = await contentEvaluator.evaluate({ assetId: asset_id, userId: user.id });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.contentEvaluate, metadata: { asset_id } },
+      () => contentEvaluator.evaluate({ assetId: asset_id, userId: user.id }),
+    );
     return c.json(ok(res));
   },
 );
@@ -124,11 +133,10 @@ aiServicesRouter.post(
     const user = c.get('user');
     const { topic, project_id } = c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
-    const res = await newsAggregator.aggregate({
-      topic,
-      userId: user.id,
-      projectId: project_id,
-    });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.newsAggregate, metadata: { topic, project_id } },
+      () => newsAggregator.aggregate({ topic, userId: user.id, projectId: project_id }),
+    );
     return c.json(ok(res));
   },
 );
@@ -153,16 +161,24 @@ aiServicesRouter.post(
     const { prompt, size, style, project_id, reference_asset_ids, use_brand_palette, variations } =
       c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
-    const res = await imageGenerator.generate({
-      prompt,
-      size,
-      style,
-      userId: user.id,
-      projectId: project_id,
-      referenceAssetIds: reference_asset_ids,
-      useBrandPalette: use_brand_palette,
-      variations,
-    });
+    const res = await withCredits(
+      {
+        userId: user.id,
+        actionKey: ACTION_KEYS.imageGenerate,
+        metadata: { project_id, variations: variations ?? 1 },
+      },
+      () =>
+        imageGenerator.generate({
+          prompt,
+          size,
+          style,
+          userId: user.id,
+          projectId: project_id,
+          referenceAssetIds: reference_asset_ids,
+          useBrandPalette: use_brand_palette,
+          variations,
+        }),
+    );
     return c.json(ok(res));
   },
 );
@@ -185,12 +201,20 @@ aiServicesRouter.post(
     const source = await prisma.contentAsset.findUnique({ where: { id: source_asset_id } });
     if (!source) throw new NotFound('Asset not found');
     if (source.userId !== user.id) throw new Forbidden();
-    const res = await imageGenerator.edit({
-      sourceAssetId: source_asset_id,
-      editInstruction: edit_instruction,
-      userId: user.id,
-      projectId: project_id,
-    });
+    const res = await withCredits(
+      {
+        userId: user.id,
+        actionKey: ACTION_KEYS.imageEdit,
+        metadata: { source_asset_id, project_id },
+      },
+      () =>
+        imageGenerator.edit({
+          sourceAssetId: source_asset_id,
+          editInstruction: edit_instruction,
+          userId: user.id,
+          projectId: project_id,
+        }),
+    );
     return c.json(ok(res));
   },
 );
@@ -205,7 +229,10 @@ aiServicesRouter.post(
     const asset = await prisma.contentAsset.findUnique({ where: { id: asset_id } });
     if (!asset) throw new NotFound('Asset not found');
     if (asset.userId !== user.id) throw new Forbidden();
-    const result = await imageAnalyzer.analyze(asset.assetUrl);
+    const result = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.imageAnalyze, metadata: { asset_id } },
+      () => imageAnalyzer.analyze(asset.assetUrl),
+    );
     if (result) {
       const prev = (asset.metadata as Record<string, unknown> | null) ?? {};
       await prisma.contentAsset.update({
@@ -227,17 +254,31 @@ aiServicesRouter.post(
     const user = c.get('user');
     const { project_id } = c.req.valid('json');
 
-    // Placeholder 'running' para que el polling detecte el job inmediatamente.
-    const job = await prisma.aiJob.create({
-      data: {
-        kind: 'brand_analyze',
-        status: 'running',
-        input: { project_id } as unknown as Prisma.InputJsonValue,
-        projectId: project_id,
-        userId: user.id,
-        startedAt: new Date(),
-      },
+    // Cobro upfront. Si el background job falla, hacemos refund en el catch interno.
+    const charge = await creditService.charge({
+      userId: user.id,
+      actionKey: ACTION_KEYS.brandAnalyze,
+      metadata: { project_id },
     });
+
+    const job = await prisma.aiJob
+      .create({
+        data: {
+          kind: 'brand_analyze',
+          status: 'running',
+          input: { project_id } as unknown as Prisma.InputJsonValue,
+          projectId: project_id,
+          userId: user.id,
+          startedAt: new Date(),
+        },
+      })
+      .catch(async (err) => {
+        await creditService.refund({
+          transactionId: charge.transactionId,
+          reason: 'No se pudo crear el job',
+        });
+        throw err;
+      });
 
     void (async () => {
       try {
@@ -254,6 +295,14 @@ aiServicesRouter.post(
           },
         });
       } catch (err) {
+        try {
+          await creditService.refund({
+            transactionId: charge.transactionId,
+            reason: `brand.analyze fallido: ${err instanceof Error ? err.message : 'error'}`,
+          });
+        } catch (refundErr) {
+          logger.warn({ err: refundErr }, '[credits] refund failed for brand.analyze');
+        }
         await prisma.aiJob
           .update({
             where: { id: job.id },
@@ -292,12 +341,20 @@ aiServicesRouter.post(
     const parsed = parseInstagramHandle(handle ?? url ?? '');
     if (!parsed) throw new BadRequest('Invalid instagram handle or URL');
 
-    const res = await instagramScraper.scrape({
-      handle: parsed,
-      userId: user.id,
-      projectId: project_id,
-      competitorId: competitor_id,
-    });
+    const res = await withCredits(
+      {
+        userId: user.id,
+        actionKey: ACTION_KEYS.instagramScrape,
+        metadata: { handle: parsed, project_id, competitor_id },
+      },
+      () =>
+        instagramScraper.scrape({
+          handle: parsed,
+          userId: user.id,
+          projectId: project_id,
+          competitorId: competitor_id,
+        }),
+    );
     return c.json(ok(res));
   },
 );
@@ -327,12 +384,20 @@ aiServicesRouter.post(
     const parsed = parseTikTokHandle(handle ?? url ?? '');
     if (!parsed) throw new BadRequest('Invalid tiktok handle or URL');
 
-    const res = await tiktokScraper.scrape({
-      handle: parsed,
-      userId: user.id,
-      projectId: project_id,
-      competitorId: competitor_id,
-    });
+    const res = await withCredits(
+      {
+        userId: user.id,
+        actionKey: ACTION_KEYS.tiktokScrape,
+        metadata: { handle: parsed, project_id, competitor_id },
+      },
+      () =>
+        tiktokScraper.scrape({
+          handle: parsed,
+          userId: user.id,
+          projectId: project_id,
+          competitorId: competitor_id,
+        }),
+    );
     return c.json(ok(res));
   },
 );
@@ -347,10 +412,10 @@ aiServicesRouter.post(
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
-    const res = await autoCompetitorDetector.detect({
-      projectId: project_id,
-      userId: user.id,
-    });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.autoCompetitorDetect, metadata: { project_id } },
+      () => autoCompetitorDetector.detect({ projectId: project_id, userId: user.id }),
+    );
     return c.json(ok(res));
   },
 );
@@ -359,7 +424,13 @@ aiServicesRouter.post(
   '/generate-caption',
   rlGenerateCaption,
   zValidator('json', captionRequestSchema),
-  handleGenerateCaption,
+  async (c) => {
+    const user = c.get('user');
+    return withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.captionGenerate },
+      () => handleGenerateCaption(c),
+    );
+  },
 );
 
 aiServicesRouter.post(
@@ -372,30 +443,39 @@ aiServicesRouter.post(
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
-    let markdown = '';
-    if (project.websiteUrl) {
-      try {
-        const wa = await websiteAnalyzer.analyze({
-          url: project.websiteUrl,
-          userId: user.id,
+
+    // El scrape interno del websiteAnalyzer no cobra por sí mismo —
+    // el precio de market.detect cubre toda la operación.
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.marketDetect, metadata: { project_id } },
+      async () => {
+        let markdown = '';
+        if (project.websiteUrl) {
+          try {
+            const wa = await websiteAnalyzer.analyze({
+              url: project.websiteUrl,
+              userId: user.id,
+              projectId: project_id,
+            });
+            markdown = wa.result.pages?.[0]?.excerpt ?? '';
+          } catch {
+            /* ignore website scrape failure */
+          }
+        }
+        const result = await marketDetector.detect({
           projectId: project_id,
+          userId: user.id,
+          websiteMarkdown: markdown,
         });
-        markdown = wa.result.pages?.[0]?.excerpt ?? '';
-      } catch {
-        /* ignore website scrape failure */
-      }
-    }
-    const res = await marketDetector.detect({
-      projectId: project_id,
-      userId: user.id,
-      websiteMarkdown: markdown,
-    });
-    if (res.countries.length > 0) {
-      await prisma.project.update({
-        where: { id: project_id },
-        data: { operatingCountriesSuggested: res.countries },
-      });
-    }
+        if (result.countries.length > 0) {
+          await prisma.project.update({
+            where: { id: project_id },
+            data: { operatingCountriesSuggested: result.countries },
+          });
+        }
+        return result;
+      },
+    );
     return c.json(ok(res));
   },
 );
@@ -410,7 +490,10 @@ aiServicesRouter.post(
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
-    const res = await trendingFinder.detect({ projectId: project_id, userId: user.id });
+    const res = await withCredits(
+      { userId: user.id, actionKey: ACTION_KEYS.trendsDetect, metadata: { project_id } },
+      () => trendingFinder.detect({ projectId: project_id, userId: user.id }),
+    );
     return c.json(ok(res));
   },
 );

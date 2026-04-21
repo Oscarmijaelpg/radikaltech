@@ -41,3 +41,9 @@ export class Conflict extends AppError {
     super(message, 409, 'CONFLICT', details);
   }
 }
+
+export class PaymentRequired extends AppError {
+  constructor(message = 'Payment required', details?: unknown) {
+    super(message, 402, 'PAYMENT_REQUIRED', details);
+  }
+}

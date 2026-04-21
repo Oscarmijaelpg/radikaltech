@@ -6,6 +6,7 @@ import type { AuthVariables } from '../../middleware/auth.js';
 import { ok, paginated, buildPageMeta } from '../../lib/response.js';
 import { NotFound, BadRequest } from '../../lib/errors.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
+import { creditService } from '../credits/service.js';
 import { logAudit } from './audit-service.js';
 
 export const usersAdminRouter = new Hono<{ Variables: AuthVariables }>();
@@ -236,4 +237,51 @@ usersAdminRouter.delete('/:id', async (c) => {
   });
 
   return c.json(ok({ deleted: true }));
+});
+
+// Credits ---------------------------------------------------------------------
+
+usersAdminRouter.get('/:id/credits', async (c) => {
+  const id = c.req.param('id');
+  const profile = await prisma.profile.findUnique({ where: { id } });
+  if (!profile) throw new NotFound('Usuario no encontrado');
+
+  await creditService.ensureAccount(id);
+  const [balance, history] = await Promise.all([
+    creditService.getBalance(id),
+    creditService.listTransactions(id, { limit: 100 }),
+  ]);
+
+  return c.json(ok({ balance, history }));
+});
+
+const adjustSchema = z.object({
+  amount: z.number().int().refine((n) => n !== 0, 'El monto no puede ser 0'),
+  reason: z.string().min(1).max(500),
+});
+
+usersAdminRouter.post('/:id/credits/adjust', zValidator('json', adjustSchema), async (c) => {
+  const id = c.req.param('id');
+  const { amount, reason } = c.req.valid('json');
+  const caller = c.get('user');
+
+  const profile = await prisma.profile.findUnique({ where: { id } });
+  if (!profile) throw new NotFound('Usuario no encontrado');
+
+  const result = await creditService.grant({
+    userId: id,
+    amount,
+    reason,
+    actorId: caller.id,
+    kind: 'adjustment',
+  });
+
+  await logAudit(c, {
+    action: amount > 0 ? 'credits.grant' : 'credits.subtract',
+    targetType: 'credit_account',
+    targetId: id,
+    diff: { amount, applied: result.applied, reason, balanceAfter: result.balance },
+  });
+
+  return c.json(ok(result));
 });
