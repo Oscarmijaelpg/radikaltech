@@ -194,8 +194,8 @@ async function tryDownloadOne(
       assetId = asset.id;
     }
     return { publicUrl, assetId };
-  } catch (err: any) {
-    if (jl) await jl.warn(`Error en descarga: ${err.message}`);
+  } catch (err) {
+    if (jl) await jl.warn(`Error en descarga: ${err instanceof Error ? err.message : String(err)}`);
     return undefined;
   }
 }

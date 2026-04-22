@@ -3,6 +3,10 @@ import { env } from '../../../config/env.js';
 import { logger } from '../../../lib/logger.js';
 import { JobLogger } from '../../jobs/job-logger.js';
 
+type FirecrawlLink = string | { url?: string };
+type FirecrawlMapResponse = { links?: FirecrawlLink[] };
+type FirecrawlCrawlResponse = { success?: boolean; data?: Array<{ url?: string }> };
+
 let _firecrawl: FirecrawlApp | null = null;
 const getFirecrawl = () => {
     if (!_firecrawl) {
@@ -51,22 +55,22 @@ export const mapWebsiteLinks = async (url: string, jl?: JobLogger): Promise<stri
                 });
 
                 if (response.ok) {
-                    const res = await response.json();
+                    const res = (await response.json()) as FirecrawlMapResponse;
                     if (res.links && res.links.length > 0) {
-                        links = res.links.map((l: any) => typeof l === 'object' ? l.url : l);
-                    } 
+                        links = res.links.map((l) => (typeof l === 'object' ? l.url ?? '' : l)).filter(Boolean);
+                    }
                 }
             } else if (strategy.method === 'map') {
                 // @ts-expect-error — tipos del SDK @mendable/firecrawl-js no exponen .map() en v4 aún
-                const res = await getFirecrawl().map(targetUrl, strategy.options);
+                const res = (await getFirecrawl().map(targetUrl, strategy.options)) as FirecrawlMapResponse;
                 if (res && res.links) {
-                    links = res.links.map((l: any) => typeof l === 'object' ? l.url : l);
+                    links = res.links.map((l) => (typeof l === 'object' ? l.url ?? '' : l)).filter(Boolean);
                 }
             } else {
                 // @ts-expect-error — tipos del SDK @mendable/firecrawl-js no exponen .crawl() en v4 aún
-                const res = await getFirecrawl().crawl(targetUrl, strategy.options);
-                if (res && ((res as any).success || (res as any).data)) {
-                    links = (res.data || []).map((d: any) => d.url).filter(Boolean);
+                const res = (await getFirecrawl().crawl(targetUrl, strategy.options)) as FirecrawlCrawlResponse;
+                if (res && (res.success || res.data)) {
+                    links = (res.data ?? []).map((d) => d.url ?? '').filter(Boolean);
                 }
             }
             
@@ -85,9 +89,10 @@ export const mapWebsiteLinks = async (url: string, jl?: JobLogger): Promise<stri
             }
             
             if (jl) await jl.warn(`[Firecrawl] Estrategia "${strategy.name}" devolvió solo ${links.length} enlaces. Intentando alternativa...`);
-        } catch (error: any) {
-            if (jl) await jl.warn(`[Firecrawl] Error en estrategia "${strategy.name}": ${error.message}`);
-            logger.warn({ url: targetUrl, strategy: strategy.name, error: error.message }, '[Firecrawl] Estrategia fallida');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            if (jl) await jl.warn(`[Firecrawl] Error en estrategia "${strategy.name}": ${message}`);
+            logger.warn({ url: targetUrl, strategy: strategy.name, err }, '[Firecrawl] Estrategia fallida');
         }
     }
 

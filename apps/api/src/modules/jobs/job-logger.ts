@@ -28,8 +28,10 @@ export class JobLogger {
 
       if (!job) return;
 
-      const metadata = (job.metadata as any) || {};
-      const logs = metadata.logs || [];
+      const metadata = (job.metadata && typeof job.metadata === 'object' && !Array.isArray(job.metadata)
+        ? (job.metadata as Record<string, unknown>)
+        : {}) as { logs?: unknown[] } & Record<string, unknown>;
+      const logs = Array.isArray(metadata.logs) ? [...metadata.logs] : [];
       logs.push(entry);
 
       // Keep only last 100 logs to avoid bloating DB
@@ -41,7 +43,7 @@ export class JobLogger {
           metadata: {
             ...metadata,
             logs: trimmedLogs,
-          },
+          } as Prisma.InputJsonValue,
         },
       });
     } catch (err) {

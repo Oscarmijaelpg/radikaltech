@@ -4,7 +4,7 @@ import { logger } from '../../lib/logger.js';
 export interface MoonshotMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content?: string;
-  tool_calls?: any[];
+  tool_calls?: unknown[];
   tool_call_id?: string;
   name?: string;
 }

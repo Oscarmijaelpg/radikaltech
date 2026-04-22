@@ -285,15 +285,29 @@ export class BrandOrchestrator {
           const result = JSON.parse(completion || '{}');
 
           // Limpieza de seguridad para evitar [object Object]
-          const formatStringList = (val: any) => {
+          const formatStringList = (val: unknown): string => {
             if (Array.isArray(val)) {
-              return val.map(v => typeof v === 'object' ? (v.name || v.title || JSON.stringify(v)) : String(v)).join('\n');
+              return val
+                .map((v) => {
+                  if (v && typeof v === 'object') {
+                    const o = v as { name?: unknown; title?: unknown };
+                    return String(o.name ?? o.title ?? JSON.stringify(v));
+                  }
+                  return String(v);
+                })
+                .join('\n');
             }
-            return String(val || '');
+            return String(val ?? '');
           };
 
-          const marketList = Array.isArray(result.operating_countries) 
-            ? result.operating_countries.map((v: any) => typeof v === 'object' ? (v.name || JSON.stringify(v)) : String(v))
+          const marketList = Array.isArray(result.operating_countries)
+            ? (result.operating_countries as unknown[]).map((v) => {
+                if (v && typeof v === 'object') {
+                  const o = v as { name?: unknown };
+                  return String(o.name ?? JSON.stringify(v));
+                }
+                return String(v);
+              })
             : [];
 
           // Persistencia incremental de texto
