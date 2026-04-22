@@ -143,7 +143,7 @@ export function SiraAnalysisPage() {
                 ))}
                 {job.status === 'running' && (
                     <div className="flex gap-2 items-center text-blue-400 italic">
-                        <Spinner size="xs" />
+                        <Spinner size="sm" />
                         <span>Procesando...</span>
                     </div>
                 )}
