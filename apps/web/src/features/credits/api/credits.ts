@@ -4,6 +4,22 @@ import { api } from '@/lib/api';
 
 export type { CreditTransaction };
 
+export interface ActionPriceLite {
+  key: string;
+  label: string;
+  description: string | null;
+  monedas: number;
+}
+
+export function useActionPrices() {
+  return useQuery({
+    queryKey: ['credits', 'prices'],
+    queryFn: () =>
+      api.get<{ data: ActionPriceLite[] }>('/credits/prices').then((r) => r.data),
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useCreditBalance() {
   return useQuery({
     queryKey: ['credits', 'balance'],

@@ -10,6 +10,7 @@ import {
   Spinner,
 } from '@radikal/ui';
 import { useAnalyzeBrand } from '../../api/memory';
+import { useChargeConfirm } from '@/features/credits/hooks/useChargeConfirm';
 
 const STAGE_LABELS = [
   'Scrape web',
@@ -21,12 +22,18 @@ const STAGE_LABELS = [
 
 export function AnalyzeBrandButton({ projectId }: { projectId: string }) {
   const analyze = useAnalyzeBrand();
+  const confirmCharge = useChargeConfirm();
   const [overlay, setOverlay] = useState(false);
   const [stage, setStage] = useState(0);
   const [summary, setSummary] = useState<string | null>(null);
   const stageTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleClick = async () => {
+    const ok = await confirmCharge('brand.analyze', {
+      detail: 'Analizaremos tu sitio web, redes sociales y generaremos paleta + tono de marca.',
+    });
+    if (!ok) return;
+
     setOverlay(true);
     setStage(0);
     setSummary(null);
