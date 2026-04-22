@@ -25,6 +25,7 @@ enum UserRole {
 enum OnboardingStep {
   welcome
   company
+  socials
   brand
   objectives
   team_intro

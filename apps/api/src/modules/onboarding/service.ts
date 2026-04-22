@@ -96,11 +96,9 @@ export const stepBodySchema = z.discriminatedUnion('step', [
 
 export type StepBody = z.infer<typeof stepBodySchema>;
 
-// --- Step → Prisma OnboardingStep enum ---
 function mapToPrismaStep(
   step: 'company' | 'socials' | 'brand' | 'objectives' | 'complete',
-): 'welcome' | 'company' | 'brand' | 'objectives' | 'completed' {
-  if (step === 'socials') return 'company';
+): 'welcome' | 'company' | 'socials' | 'brand' | 'objectives' | 'completed' {
   if (step === 'complete') return 'completed';
   return step;
 }
@@ -286,7 +284,7 @@ export const onboardingService = {
         const payload: Prisma.BrandProfileUncheckedCreateInput = {
           projectId: project.id,
           userId,
-          voiceTone: d.tone_of_voice ?? null,
+          voiceTone: d.tone_of_voice?.trim() || null,
           brandValues: d.values ?? [],
           targetAudience: d.target_audience ?? null,
           essence: d.brand_story ?? null,
