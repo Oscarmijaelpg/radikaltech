@@ -42,6 +42,9 @@ const PricesPage = lazy(() =>
 const ConfigPage = lazy(() =>
   import('@/features/config/pages/ConfigPage').then((m) => ({ default: m.ConfigPage })),
 );
+const ProvidersPage = lazy(() =>
+  import('@/features/providers/pages/ProvidersPage').then((m) => ({ default: m.ProvidersPage })),
+);
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { session, profile, loading, profileError, refreshProfile, signOut } = useAuth();
@@ -88,6 +91,7 @@ export function App() {
         <Route path="/flags" element={<LazyRoute><FlagsPage /></LazyRoute>} />
         <Route path="/audit" element={<LazyRoute><AuditPage /></LazyRoute>} />
         <Route path="/prices" element={<LazyRoute><PricesPage /></LazyRoute>} />
+        <Route path="/providers" element={<LazyRoute><ProvidersPage /></LazyRoute>} />
         <Route path="/config" element={<LazyRoute><ConfigPage /></LazyRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { to: '/broadcast', label: 'Notificaciones', icon: 'campaign' },
   { to: '/scheduled-reports', label: 'Reportes programados', icon: 'event_repeat' },
   { to: '/prices', label: 'Precios', icon: 'paid' },
+  { to: '/providers', label: 'Proveedores', icon: 'hub' },
   { to: '/audit', label: 'Historial', icon: 'history' },
   { to: '/config', label: 'Configuración', icon: 'settings' },
   // '/flags' (Funcionalidades) oculto hasta que se integre con el código

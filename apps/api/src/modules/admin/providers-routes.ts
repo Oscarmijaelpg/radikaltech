@@ -46,35 +46,54 @@ providersAdminRouter.get('/overview', zValidator('query', rangeSchema), async (c
 
 providersAdminRouter.get('/failures', zValidator('query', rangeSchema), async (c) => {
   const { from, to } = parseRange(c.req.valid('query'));
+  const whereBase = { status: 'failed' as const, createdAt: { gte: from, lte: to } };
 
-  const failedJobs = await prisma.aiJob.findMany({
-    where: { status: 'failed', createdAt: { gte: from, lte: to } },
-    select: { kind: true, error: true, createdAt: true },
-    orderBy: { createdAt: 'desc' },
-    take: 500,
-  });
+  const [total, byKindGroups, recent, errorRows] = await Promise.all([
+    prisma.aiJob.count({ where: whereBase }),
+    prisma.aiJob.groupBy({
+      by: ['kind'],
+      where: whereBase,
+      _count: { _all: true },
+    }),
+    prisma.aiJob.findMany({
+      where: whereBase,
+      select: { id: true, kind: true, error: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    }),
+    prisma.aiJob.findMany({
+      where: { ...whereBase, NOT: { error: null } },
+      select: { error: true },
+      take: 1000,
+    }),
+  ]);
 
-  const byKind = new Map<string, number>();
-  for (const j of failedJobs) byKind.set(j.kind, (byKind.get(j.kind) ?? 0) + 1);
+  const byKind = byKindGroups
+    .map((g) => ({ kind: g.kind, count: g._count._all }))
+    .sort((a, b) => b.count - a.count);
 
-  const byProviderHint = new Map<string, number>();
   const hints = ['openai', 'openrouter', 'gemini', 'firecrawl', 'apify', 'tavily', 'supabase'];
-  for (const j of failedJobs) {
-    const msg = (j.error ?? '').toLowerCase();
-    const hit = hints.find((h) => msg.includes(h));
-    const key = hit ?? 'unknown';
-    byProviderHint.set(key, (byProviderHint.get(key) ?? 0) + 1);
+  const byProviderHintMap = new Map<string, number>();
+  for (const row of errorRows) {
+    const msg = (row.error ?? '').toLowerCase();
+    const key = hints.find((h) => msg.includes(h)) ?? 'unknown';
+    byProviderHintMap.set(key, (byProviderHintMap.get(key) ?? 0) + 1);
   }
+  const byProviderHint = Array.from(byProviderHintMap.entries())
+    .map(([provider, count]) => ({ provider, count }))
+    .sort((a, b) => b.count - a.count);
 
   return c.json(
     ok({
-      total: failedJobs.length,
-      byKind: Array.from(byKind.entries()).map(([kind, count]) => ({ kind, count })),
-      byProviderHint: Array.from(byProviderHint.entries()).map(([provider, count]) => ({
-        provider,
-        count,
+      total,
+      byKind,
+      byProviderHint,
+      recent: recent.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        error: r.error,
+        createdAt: r.createdAt.toISOString(),
       })),
-      recent: failedJobs.slice(0, 50),
     }),
   );
 });
