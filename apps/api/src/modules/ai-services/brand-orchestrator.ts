@@ -6,9 +6,8 @@ import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
 import { NotFound, Forbidden } from '../../lib/errors.js';
 import { WebsiteAnalyzer } from './website-analyzer/index.js';
-import { puppeteerScrape } from './website-analyzer/puppeteer-scraper.js';
+import { firecrawlScrape } from './website-analyzer/scrape.js';
 import { mapWebsiteLinks } from './website-analyzer/firecrawl-service.js';
-import { apifyWebScrape } from './website-analyzer/apify-scraper.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
 import { ImageAnalyzer, type ImageVisualAnalysis } from './image-analyzer.js';
 import { InstagramScraper, parseInstagramHandle } from './instagram-scraper.js';
@@ -57,31 +56,16 @@ async function downloadAndStoreImage(
   }
 }
 
-async function multiProviderScrape(url: string, jl?: JobLogger): Promise<{ html: string; markdown: string; provider: string } | null> {
-  // 1. Puppeteer (Preferido)
+async function scrapePage(url: string, jl?: JobLogger): Promise<{ html: string; markdown: string } | null> {
   try {
-    if (jl) await jl.info(`Intentando scraping con Puppeteer para ${url}...`);
-    const p = await puppeteerScrape(url);
-    if (p.success) {
-      if (jl) await jl.success(`Puppeteer obtuvo contenido de ${url}`);
-      return { html: p.html ?? '', markdown: p.markdown ?? '', provider: 'puppeteer' };
+    const res = await firecrawlScrape(url);
+    if (res.success && res.data) {
+      return { html: res.data.html ?? '', markdown: res.data.markdown ?? '' };
     }
+    if (jl) await jl.warn(`Firecrawl devolvió sin data para ${url}`);
   } catch (err) {
-    if (jl) await jl.warn(`Puppeteer falló en ${url}: ${err instanceof Error ? err.message : String(err)}`);
+    if (jl) await jl.warn(`Firecrawl falló en ${url}: ${err instanceof Error ? err.message : String(err)}`);
   }
-
-  // 2. Apify (Fallback)
-  try {
-    if (jl) await jl.info(`Intentando scraping con Apify para ${url}...`);
-    const a = await apifyWebScrape(url);
-    if (a.success) {
-      if (jl) await jl.success(`Apify obtuvo contenido de ${url}`);
-      return { html: a.html ?? '', markdown: a.markdown ?? '', provider: 'apify' };
-    }
-  } catch (err) {
-    if (jl) await jl.warn(`Apify falló en ${url}: ${err instanceof Error ? err.message : String(err)}`);
-  }
-
   return null;
 }
 
@@ -244,7 +228,7 @@ export class BrandOrchestrator {
           
           const batchResults = await Promise.all(
             batchUrls.map(async (u) => {
-              const res = await multiProviderScrape(u, jl);
+              const res = await scrapePage(u, jl);
               if (res) {
                 const imgs = extractImagesFromHtml(res.html, u);
                 allExtractedImages.push(...imgs);
