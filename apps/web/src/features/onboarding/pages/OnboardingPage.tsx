@@ -218,7 +218,13 @@ export function OnboardingPage() {
 
       {state.currentStep === 'brand' && (
         <BrandStep
-          defaultValues={state.brand}
+          defaultValues={{
+            ...(state.brand ?? {}),
+            target_audience:
+              state.brand?.target_audience || state.company?.ideal_customer || null,
+            brand_story:
+              state.brand?.brand_story || state.company?.unique_value || null,
+          }}
           saving={saving}
           onBack={goBack}
           onSubmit={async (data) => {
