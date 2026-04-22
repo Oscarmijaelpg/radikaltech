@@ -57,13 +57,13 @@ export const mapWebsiteLinks = async (url: string, jl?: JobLogger): Promise<stri
                     } 
                 }
             } else if (strategy.method === 'map') {
-                // @ts-ignore
+                // @ts-expect-error — tipos del SDK @mendable/firecrawl-js no exponen .map() en v4 aún
                 const res = await getFirecrawl().map(targetUrl, strategy.options);
                 if (res && res.links) {
                     links = res.links.map((l: any) => typeof l === 'object' ? l.url : l);
                 }
             } else {
-                // @ts-ignore
+                // @ts-expect-error — tipos del SDK @mendable/firecrawl-js no exponen .crawl() en v4 aún
                 const res = await getFirecrawl().crawl(targetUrl, strategy.options);
                 if (res && ((res as any).success || (res as any).data)) {
                     links = (res.data || []).map((d: any) => d.url).filter(Boolean);

@@ -64,7 +64,7 @@ export function useAnalyzeBrand() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { project_id: string }) => {
-      const r = await api.post<{ data: { jobId: string; status: string } }>(
+      const r = await api.post<{ data: { status: string; message: string } }>(
         '/ai-services/analyze-brand',
         input,
       );

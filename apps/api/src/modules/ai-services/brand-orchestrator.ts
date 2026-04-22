@@ -57,23 +57,6 @@ async function downloadAndStoreImage(
   }
 }
 
-// KEY_PATHS ya no se usa, ahora usamos Firecrawl Map
-
-export interface BrandAnalysisResult {
-  jobId: string;
-  summary: {
-    pagesScraped: number;
-    imagesAnalyzed: number;
-    instagramPosts: number;
-    tiktokPosts: number;
-    logoFound: boolean;
-  };
-  brand_profile: unknown;
-  palette_suggested: string[];
-  moodboard_assets: Array<{ id: string; asset_url: string; visual_analysis: ImageVisualAnalysis | null }>;
-  logo_asset: { id: string; url: string } | null;
-}
-
 async function multiProviderScrape(url: string, jl?: JobLogger): Promise<{ html: string; markdown: string; provider: string } | null> {
   // 1. Puppeteer (Preferido)
   try {
@@ -191,7 +174,7 @@ export class BrandOrchestrator {
   private websiteAnalyzer = new WebsiteAnalyzer();
   private marketDetector = new MarketDetector();
 
-  async analyze(input: { projectId: string; userId: string }): Promise<BrandAnalysisResult> {
+  async analyze(input: { projectId: string; userId: string }): Promise<void> {
     const project = await prisma.project.findUnique({ where: { id: input.projectId } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== input.userId) throw new Forbidden();
@@ -403,11 +386,13 @@ export class BrandOrchestrator {
                     assetType: 'image',
                     assetUrl: stored.publicUrl,
                     tags: ['moodboard', 'website_auto'],
-                    metadata: { source: 'brand_analysis', origin_url: imgUrl } as any
-                  }
+                    metadata: { source: 'brand_analysis', origin_url: imgUrl } as Prisma.InputJsonValue,
+                  },
                 });
               }
-            } catch (e) { /* ignore individual image failures */ }
+            } catch (err) {
+              logger.warn({ err, imgUrl }, 'moodboard image persist failed');
+            }
           }
           await jl.success(`✓ Moodboard actualizado con imágenes del sitio.`);
         }
@@ -421,12 +406,10 @@ export class BrandOrchestrator {
         where: { id: job.id },
         data: { 
           status: 'succeeded', 
-          output: { success: true, pages_total: allPagesData.length, images_found: allPagesData.length } as any,
-          finishedAt: new Date() 
+          output: { success: true, pages_total: allPagesData.length, images_found: allPagesData.length } as Prisma.InputJsonValue,
+          finishedAt: new Date(),
         },
       });
-
-      return { success: true } as any;
     } catch (err) {
       logger.error({ err }, 'brand orchestrator failed');
       await prisma.aiJob.update({

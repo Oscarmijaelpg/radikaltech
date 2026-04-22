@@ -36,7 +36,6 @@ export type { GenerateRecommendationsInput } from './recommendation-generator.js
 export type { DetectMarketsInput, DetectMarketsResult } from './market-detector.js';
 export type { AutoCompetitorDetectInput, AutoCompetitorResult, DetectedCompetitor } from './auto-competitor-detector.js';
 export type { ImageVisualAnalysis } from './image-analyzer.js';
-export type { BrandAnalysisResult } from './brand-orchestrator.js';
 export type { WebsiteAnalysisResult, AnalyzeWebsiteInput } from './website-analyzer/index.js';
 export type { CompetitorAnalysisResult, AnalyzeCompetitorInput } from './competitor-analyzer.js';
 export type { NewsResult, NewsItem, AggregateNewsInput } from './news-aggregator/index.js';
