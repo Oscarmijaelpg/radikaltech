@@ -10,6 +10,7 @@ import { ChatSummarizer } from './summarizer.js';
 import { CHAT_TOOLS, executeTool, toolLabel } from './tools/index.js';
 import { agentRouter } from './agent-router.js';
 import { appendMessage, getChat } from './service.js';
+import { generateChatTitle } from './title-generator.js';
 
 const ROUTER_CONFIDENCE_THRESHOLD = 0.6;
 const MAX_TOOL_ROUNDS = 3;
@@ -213,6 +214,20 @@ export async function handleStreamMessage(c: Context<{ Variables: AuthVariables 
     role: 'user' as MessageRole,
     content,
   });
+
+  // Auto-titular el chat con el primer mensaje del usuario. Fire-and-forget para no
+  // bloquear el stream del LLM principal; el frontend lo recoge en el siguiente refetch.
+  if (!chat.title) {
+    void (async () => {
+      const title = await generateChatTitle(content);
+      if (!title) return;
+      try {
+        await prisma.chat.update({ where: { id: chatId }, data: { title } });
+      } catch (err) {
+        console.warn('[chat-title] update failed', err);
+      }
+    })();
+  }
 
   const recent = await prisma.message.findMany({
     where: { chatId },
