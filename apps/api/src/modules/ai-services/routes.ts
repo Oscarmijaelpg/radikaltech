@@ -87,7 +87,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
     const socials = await prisma.socialAccount.findMany({ where: { projectId: project_id } });
     const res = await withCredits(
       { userId: user.id, actionKey: ACTION_KEYS.brandSynthesize, metadata: { project_id } },
@@ -304,7 +304,7 @@ aiServicesRouter.post(
     const { handle, url, project_id, competitor_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseInstagramHandle(handle ?? url ?? '');
@@ -347,7 +347,7 @@ aiServicesRouter.post(
     const { handle, url, project_id, competitor_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseTikTokHandle(handle ?? url ?? '');
@@ -380,7 +380,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
     const res = await withCredits(
       { userId: user.id, actionKey: ACTION_KEYS.autoCompetitorDetect, metadata: { project_id } },
       () => autoCompetitorDetector.detect({ projectId: project_id, userId: user.id }),
@@ -411,7 +411,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
 
     // El scrape interno del websiteAnalyzer no cobra por sí mismo —
     // el precio de market.detect cubre toda la operación.
@@ -458,7 +458,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+    if (project.userId !== user.id) throw new Forbidden();
     const res = await withCredits(
       { userId: user.id, actionKey: ACTION_KEYS.trendsDetect, metadata: { project_id } },
       () => trendingFinder.detect({ projectId: project_id, userId: user.id }),

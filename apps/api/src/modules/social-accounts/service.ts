@@ -22,7 +22,7 @@ function validateSource(input: Pick<SocialAccountInput, 'source' | 'url' | 'manu
 async function assertProjectOwner(projectId: string, userId: string) {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new NotFound('Project not found');
-  if (process.env.NODE_ENV === 'production' && project.userId !== userId) {
+  if (project.userId !== userId) {
     throw new Forbidden('Not project owner');
   }
 }

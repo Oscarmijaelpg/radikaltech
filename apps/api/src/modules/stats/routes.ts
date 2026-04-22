@@ -27,7 +27,7 @@ statsRouter.get('/', zValidator('query', statsQuerySchema), async (c) => {
   const { project_id } = c.req.valid('query');
   const project = await prisma.project.findUnique({ where: { id: project_id } });
   if (!project) throw new NotFound('Project not found');
-  if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
+  if (project.userId !== user.id) throw new Forbidden();
   const data = await getProjectStats(user.id, project_id);
   return c.json(ok(data));
 });

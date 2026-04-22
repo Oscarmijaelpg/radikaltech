@@ -194,7 +194,7 @@ export class BrandOrchestrator {
   async analyze(input: { projectId: string; userId: string }): Promise<BrandAnalysisResult> {
     const project = await prisma.project.findUnique({ where: { id: input.projectId } });
     if (!project) throw new NotFound('Project not found');
-    if (process.env.NODE_ENV === 'production' && project.userId !== input.userId) throw new Forbidden();
+    if (project.userId !== input.userId) throw new Forbidden();
 
     const job = await prisma.aiJob.create({
       data: {
