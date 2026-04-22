@@ -244,7 +244,6 @@ model Project {
   operatingCountries           String[] @default([]) @map("operating_countries")
   operatingCountriesSuggested  String[] @default([]) @map("operating_countries_suggested")
   isDefault                 Boolean  @default(false) @map("is_default")
-  onboardingSummary         Json?    @map("onboarding_summary")
   createdAt                 DateTime @default(now()) @map("created_at")
   updatedAt                 DateTime @updatedAt @map("updated_at")
 
