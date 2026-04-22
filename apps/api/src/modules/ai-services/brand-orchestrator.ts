@@ -241,11 +241,19 @@ export class BrandOrchestrator {
         await jl.info(`Iniciando escaneo incremental de ${finalUrls.length} páginas en el orden detectado...`);
 
         const BATCH_SIZE = 5;
+        const ORCHESTRATOR_TIMEOUT_MS = 5 * 60_000;
+        const startedAt = Date.now();
         let homeContent = '';
         let otherContent = '';
         const allExtractedImages: string[] = [];
 
         for (let i = 0; i < finalUrls.length; i += BATCH_SIZE) {
+          if (Date.now() - startedAt > ORCHESTRATOR_TIMEOUT_MS) {
+            await jl.warn(
+              `⏱ Timeout de 5 min alcanzado. Deteniendo con ${allPagesData.length} páginas procesadas para no dejar al usuario esperando.`,
+            );
+            break;
+          }
           const batchNum = Math.floor(i / BATCH_SIZE) + 1;
           const batchUrls = finalUrls.slice(i, i + BATCH_SIZE);
           
