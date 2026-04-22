@@ -6,7 +6,6 @@ export const jobsService = {
   async getById(id: string, userId: string) {
     const job = await prisma.aiJob.findUnique({ where: { id } });
     if (!job) throw new NotFound('Job not found');
-    if (process.env.NODE_ENV !== 'production') return job;
     if (job.userId && job.userId !== userId) throw new Forbidden();
     return job;
   },
@@ -15,7 +14,7 @@ export const jobsService = {
     try {
       const jobs = await prisma.aiJob.findMany({
         where: {
-          ...(process.env.NODE_ENV === 'production' ? { userId } : {}),
+          userId,
           projectId: projectId ?? undefined,
           status: { in: ['queued', 'running'] },
         },
@@ -40,9 +39,9 @@ export const jobsService = {
   async listRecent(userId: string, projectId?: string, limit = 10) {
     try {
       const jobs = await prisma.aiJob.findMany({
-        where: { 
-          ...(process.env.NODE_ENV === 'production' ? { userId } : {}),
-          projectId: projectId ?? undefined 
+        where: {
+          userId,
+          projectId: projectId ?? undefined,
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
