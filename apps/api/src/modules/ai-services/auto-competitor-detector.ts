@@ -207,6 +207,7 @@ export class AutoCompetitorDetector {
             description: c.description,
             country: c.country,
             why_competitor: c.why_competitor,
+            social_links: rec.socialLinks as Record<string, string>,
           });
         } catch (err) {
           logger.warn({ err, name: c.name }, 'failed to persist auto competitor');

@@ -69,6 +69,16 @@ export interface CompetitorNarrativePayload {
   opportunity: string;
 }
 
+export interface DetectedCompetitor {
+  id: string;
+  name: string;
+  website: string | null;
+  description: string | null;
+  country: string | null;
+  why_competitor: string | null;
+  social_links?: Record<string, string> | null;
+}
+
 export interface Competitor {
   id: string;
   project_id: string;
@@ -107,6 +117,7 @@ export interface SocialPostItem {
   scraped_at: string;
   visual_analysis?: VisualAnalysisPayload | null;
 }
+
 
 export interface CompetitorStats {
   competitor_id: string;
