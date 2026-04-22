@@ -20,6 +20,7 @@ export interface DetectedCompetitor {
   description: string | null;
   country: string | null;
   why_competitor: string | null;
+  social_links?: Record<string, string>;
 }
 
 export interface AutoCompetitorResult {
@@ -105,7 +106,12 @@ Devuelves SOLO JSON con:
       website: string (URL raíz, ej "https://marca.com"),
       description: string (10-25 palabras sobre QUÉ vende y a QUIÉN),
       country: string (ISO alpha-2),
-      why_competitor: string (1 frase concreta: por qué compite con el negocio del usuario)
+      why_competitor: string (1 frase concreta: por qué compite con el usuario),
+      social_links: {
+        instagram: string (URL o null),
+        tiktok: string (URL o null),
+        linkedin: string (URL o null)
+      }
     }
   ]
 }
@@ -143,6 +149,7 @@ Filtra y devuelve SOLO los competidores directos reales.`,
         description: typeof c.description === 'string' ? c.description : null,
         country: typeof c.country === 'string' ? c.country.toUpperCase().slice(0, 2) : null,
         why_competitor: typeof c.why_competitor === 'string' ? c.why_competitor : null,
+        social_links: (c.social_links as Record<string, string>) || {},
       }));
   } catch {
     return [];
@@ -195,6 +202,7 @@ export class AutoCompetitorDetector {
               name: c.name,
               website: c.website ?? null,
               notes: c.why_competitor ?? c.description ?? null,
+              socialLinks: c.social_links || {},
               status: 'suggested',
               source: 'auto_detected',
               detectedAt: new Date(),
