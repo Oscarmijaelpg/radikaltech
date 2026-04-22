@@ -31,6 +31,13 @@ export async function logAudit(
       },
     });
   } catch (err) {
-    logger.warn({ err, action: params.action }, '[admin] audit log write failed');
+    // Registrar en nivel error (no warn) para que entre en alertas de monitoring.
+    // Intencionalmente no re-lanzamos: una operación admin no debe fallar si el audit log
+    // está caído, porque dejaría estado inconsistente (ej. DELETE user de Supabase Auth OK
+    // pero profile sin tocar). Si se necesita garantía fuerte, mover a un outbox pattern.
+    logger.error(
+      { err, action: params.action, actorId: user.id, targetId: params.targetId },
+      '[admin] audit log write failed — operation proceeded without audit trail',
+    );
   }
 }

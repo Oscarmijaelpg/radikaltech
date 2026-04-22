@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { prisma } from '@radikal/db';
+import { prisma, Prisma } from '@radikal/db';
 import type { AuthVariables } from '../../middleware/auth.js';
 import { ok } from '../../lib/response.js';
 import { logAudit } from './audit-service.js';
@@ -22,10 +22,11 @@ systemConfigAdminRouter.put('/:key', zValidator('json', upsertSchema), async (c)
   const body = c.req.valid('json');
   const before = await prisma.systemConfig.findUnique({ where: { key } });
 
+  const value = body.value as Prisma.InputJsonValue;
   const entry = await prisma.systemConfig.upsert({
     where: { key },
-    update: { value: body.value as never },
-    create: { key, value: body.value as never },
+    update: { value },
+    create: { key, value },
   });
 
   await logAudit(c, {

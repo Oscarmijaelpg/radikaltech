@@ -188,22 +188,25 @@ usersAdminRouter.get('/:id/export', async (c) => {
   const profile = await prisma.profile.findUnique({ where: { id } });
   if (!profile) throw new NotFound('Usuario no encontrado');
 
-  const [projects, chats, messages, competitors, jobs, tokenUsage, reports, notifications] = await Promise.all([
-    prisma.project.findMany({ where: { userId: id } }),
-    prisma.chat.findMany({ where: { userId: id } }),
-    prisma.message.findMany({ where: { userId: id } }),
-    prisma.competitor.findMany({ where: { userId: id } }),
-    prisma.aiJob.findMany({ where: { userId: id } }),
-    prisma.tokenUsage.findMany({ where: { userId: id } }),
-    prisma.report.findMany({ where: { userId: id } }),
-    prisma.notification.findMany({ where: { userId: id } }),
-  ]);
-
+  // Auditar antes de la consulta: si el export timeout/OOM, queda registro del intento.
   await logAudit(c, { action: 'user.export', targetType: 'profile', targetId: id });
+
+  const EXPORT_LIMIT = 10_000;
+  const [projects, chats, messages, competitors, jobs, tokenUsage, reports, notifications] = await Promise.all([
+    prisma.project.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.chat.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.message.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.competitor.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.aiJob.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.tokenUsage.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.report.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+    prisma.notification.findMany({ where: { userId: id }, take: EXPORT_LIMIT, orderBy: { createdAt: 'desc' } }),
+  ]);
 
   return c.json(
     ok({
       exported_at: new Date().toISOString(),
+      export_limit_per_table: EXPORT_LIMIT,
       profile: serializeUser(profile),
       projects,
       chats,

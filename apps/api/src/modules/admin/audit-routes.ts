@@ -5,6 +5,24 @@ import { prisma, Prisma } from '@radikal/db';
 import type { AuthVariables } from '../../middleware/auth.js';
 import { paginated, buildPageMeta } from '../../lib/response.js';
 
+type AuditRow = Prisma.AdminAuditLogGetPayload<{}>;
+
+function serializeAuditLog(row: AuditRow) {
+  return {
+    id: row.id,
+    actorId: row.actorId,
+    actorEmail: row.actorEmail,
+    action: row.action,
+    targetType: row.targetType,
+    targetId: row.targetId,
+    diff: row.diff,
+    metadata: row.metadata,
+    ip: row.ip,
+    userAgent: row.userAgent,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
 export const auditAdminRouter = new Hono<{ Variables: AuthVariables }>();
 
 const listSchema = z.object({
@@ -43,5 +61,5 @@ auditAdminRouter.get('/', zValidator('query', listSchema), async (c) => {
     }),
   ]);
 
-  return c.json(paginated(rows, buildPageMeta(q.page, q.pageSize, total)));
+  return c.json(paginated(rows.map(serializeAuditLog), buildPageMeta(q.page, q.pageSize, total)));
 });
