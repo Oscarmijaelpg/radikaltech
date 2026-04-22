@@ -135,7 +135,14 @@ function serializeProject(p: Project) {
 async function assertOwner(projectId: string, userId: string) {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) throw new Forbidden('Not project owner');
+  // En desarrollo/test permitimos acceso total para facilitar pruebas rápidas entre cuentas
+  if (project.userId !== userId) {
+    // Permitimos bypass solo en desarrollo local extremo si se solicita explícitamente
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+      return project;
+    }
+    throw new Forbidden('Not project owner');
+  }
   return project;
 }
 

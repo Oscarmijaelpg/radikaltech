@@ -233,6 +233,7 @@ model Project {
   operatingCountries           String[] @default([]) @map("operating_countries")
   operatingCountriesSuggested  String[] @default([]) @map("operating_countries_suggested")
   isDefault                 Boolean  @default(false) @map("is_default")
+  onboardingSummary         Json?    @map("onboarding_summary")
   createdAt                 DateTime @default(now()) @map("created_at")
   updatedAt                 DateTime @updatedAt @map("updated_at")
 
@@ -539,6 +540,7 @@ model AiJob {
   error       String?
   startedAt   DateTime?   @map("started_at")
   finishedAt  DateTime?   @map("finished_at")
+  metadata    Json?
   createdAt   DateTime    @default(now()) @map("created_at")
 
   user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)

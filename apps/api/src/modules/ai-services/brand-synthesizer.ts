@@ -114,6 +114,45 @@ async function callOpenRouter(payload: SynthesizeBrandInput): Promise<BrandSynth
 }
 
 export class BrandSynthesizer {
+  /**
+   * Ejecuta una completación de chat genérica usando el modelo de marca configurado.
+   * Útil para análisis incrementales de contenido web.
+   */
+  async getLLMCompletion(prompt: string): Promise<string | null> {
+    if (!env.OPENROUTER_API_KEY) return null;
+
+    try {
+      const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          'HTTP-Referer': env.WEB_URL,
+          'X-Title': 'Radikal',
+        },
+        body: JSON.stringify({
+          model: LLM_MODELS.chat.openrouter,
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: 'Eres un experto en estrategia de marca y análisis de mercado. Analizas contenido web para extraer identidades corporativas de forma precisa y estructurada.',
+            },
+            { role: 'user', content: prompt },
+          ],
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+
+      if (!res.ok) return null;
+      const body = await res.json();
+      return body.choices?.[0]?.message?.content ?? null;
+    } catch (err) {
+      logger.error({ err }, 'BrandSynthesizer.getLLMCompletion failed');
+      return null;
+    }
+  }
+
   async synthesize(input: SynthesizeBrandInput): Promise<BrandSynthesisResult> {
     const job = await prisma.aiJob.create({
       data: {

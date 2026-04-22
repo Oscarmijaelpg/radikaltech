@@ -6,10 +6,14 @@ import { notificationService } from '../../notifications/service.js';
 import { extractInfoWithAI } from './ai-extractor.js';
 import { detectLogoCandidates, downloadAndStoreLogo } from './logo-detector.js';
 import { firecrawlScrape } from './scrape.js';
+import { puppeteerScrape } from './puppeteer-scraper.js';
+import { JobLogger } from '../../jobs/job-logger.js';
+import { apifyWebScrape } from './apify-scraper.js';
 import type {
   AnalyzeWebsiteInput,
   FirecrawlScrapeResponse,
   WebsiteAnalysisResult,
+  PuppeteerScrapeResult,
 } from './types.js';
 
 export { detectLogoCandidates } from './logo-detector.js';
@@ -36,34 +40,48 @@ export class WebsiteAnalyzer {
       },
     });
 
+    const jl = new JobLogger(job.id);
+    await jl.info(`Iniciando análisis de ${input.url}`);
+
     try {
       let markdown = '';
+      let html = '';
       let metadata: WebsiteAnalysisResult['metadata'] = {};
       let scrape: FirecrawlScrapeResponse | undefined;
 
-      if (env.FIRECRAWL_API_KEY) {
-        logger.info({ url: input.url }, 'firecrawl scrape start');
-        scrape = await firecrawlScrape(input.url);
-        if (scrape.success && scrape.data) {
-          markdown = scrape.data.markdown ?? '';
+      // --- Intento 1: Puppeteer (Local) ---
+      await jl.info('Probando scraping con Puppeteer Stealth...');
+      const pScrape = await puppeteerScrape(input.url);
+      
+      if (pScrape.success) {
+        await jl.success('Puppeteer consiguió el contenido exitosamente.');
+        markdown = pScrape.markdown ?? '';
+        html = pScrape.html ?? '';
+        metadata = {
+          title: pScrape.metadata?.title,
+          description: pScrape.metadata?.description,
+        };
+      } 
+      // --- Intento 2: Apify (Plan Alterno) ---
+      else if (env.APIFY_API_KEY) {
+        await jl.warn('Puppeteer no pudo acceder. Probando con Apify (Plan Alterno)...');
+        const aScrape = await apifyWebScrape(input.url);
+        if (aScrape.success) {
+          await jl.success('Apify recuperó el contenido.');
+          markdown = aScrape.markdown ?? '';
+          html = aScrape.html ?? '';
           metadata = {
-            title: scrape.data.metadata?.title ?? scrape.data.metadata?.ogTitle,
-            description:
-              scrape.data.metadata?.description ?? scrape.data.metadata?.ogDescription,
-            language: scrape.data.metadata?.language,
+            title: aScrape.metadata?.title,
+            description: aScrape.metadata?.description,
           };
-          logger.info(
-            { url: input.url, mdLen: markdown.length, title: metadata.title },
-            'firecrawl scrape ok',
-          );
-        } else {
-          logger.warn({ url: input.url, scrape }, 'firecrawl returned success:false');
-          throw new BadRequest(
-            `No pudimos acceder al sitio web. Verifica que la URL sea correcta y el sitio esté accesible públicamente.`,
-          );
         }
-      } else {
-        logger.warn('FIRECRAWL_API_KEY not set — returning empty analysis');
+      }
+
+      if (!markdown) {
+        await jl.error('Todos los métodos de acceso fallaron.');
+        throw new BadRequest(
+          `No pudimos acceder al sitio web con Puppeteer, Firecrawl ni Apify. Verifica que la URL sea correcta.`,
+        );
       }
 
       // Si el sitio respondió pero sin contenido útil (SPA sin SSR, 404 con poco contenido,
@@ -91,22 +109,21 @@ export class WebsiteAnalyzer {
       let logoAssetId: string | undefined;
       let logoFinalUrl: string | undefined;
       try {
-        if (scrape) {
-          const candidates = detectLogoCandidates(scrape, input.url);
-          logger.info(
-            { count: candidates.length, first: candidates.slice(0, 3) },
-            'logo candidates',
-          );
+        if (html || markdown || scrape) {
+          await jl.info('Buscando logotipo de la marca...');
+          const candidates = detectLogoCandidates(scrape || { success: true, data: { html, markdown } }, input.url);
           if (candidates.length > 0) {
-            const stored = await downloadAndStoreLogo(candidates, input.userId, input.projectId);
+            await jl.info(`Detectados ${candidates.length} posibles logos. Procesando...`);
+            const stored = await downloadAndStoreLogo(candidates, input.userId, input.projectId, jl);
             if (stored) {
               logoFinalUrl = stored.publicUrl;
               logoAssetId = stored.assetId;
+              await jl.success('¡Logotipo configurado!');
             }
           }
         }
       } catch (err) {
-        logger.warn({ err }, 'logo auto-detection failed');
+        await jl.warn('No se pudo encontrar el logo automáticamente.');
       }
 
       // Extraer paleta de colores del logo con Gemini Vision (sugerida).
@@ -158,6 +175,7 @@ export class WebsiteAnalyzer {
         logo_asset_id: logoAssetId,
       };
 
+      await jl.success('¡Análisis completado con éxito!');
       await prisma.aiJob.update({
         where: { id: job.id },
         data: {

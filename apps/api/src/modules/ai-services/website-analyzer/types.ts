@@ -42,3 +42,14 @@ export interface FirecrawlScrapeResponse {
     };
   };
 }
+
+export interface PuppeteerScrapeResult {
+  success: boolean;
+  markdown?: string;
+  html?: string;
+  metadata?: {
+    title?: string;
+    description?: string;
+  };
+  error?: string;
+}

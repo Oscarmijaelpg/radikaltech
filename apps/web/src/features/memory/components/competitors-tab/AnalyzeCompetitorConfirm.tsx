@@ -9,14 +9,20 @@ import {
   Spinner,
 } from '@radikal/ui';
 import { CHARACTERS } from '@/shared/characters';
-import type { Competitor } from '../../api/memory';
+
+const ANALYZE_STEPS = [
+  { icon: 'public', label: 'Leemos su sitio web' },
+  { icon: 'hub', label: 'Buscamos sus redes sociales' },
+  { icon: 'balance', label: 'Extraemos fortalezas y debilidades' },
+  { icon: 'insights', label: 'Analizamos sus últimas publicaciones' },
+];
 
 const ESTIMATED_SECONDS = 30;
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  competitor: Competitor | null;
+  competitorName: string;
   onConfirm: () => void;
   loading?: boolean;
 }
@@ -24,31 +30,17 @@ interface Props {
 export function AnalyzeCompetitorConfirm({
   open,
   onOpenChange,
-  competitor,
+  competitorName,
   onConfirm,
   loading,
 }: Props) {
   const sira = CHARACTERS.sira;
-  const socialLinks = competitor?.social_links || {};
-  const hasSocials = Object.keys(socialLinks).length > 0;
-
-  const steps = [
-    { icon: 'public', label: 'Leemos su sitio web' },
-    { 
-      icon: 'hub', 
-      label: hasSocials 
-        ? `Analizamos ${Object.keys(socialLinks).join(', ')}` 
-        : 'Buscamos sus redes sociales' 
-    },
-    { icon: 'balance', label: 'Extraemos fortalezas y debilidades' },
-    { icon: 'insights', label: 'Analizamos sus últimas publicaciones' },
-  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Analizar a {competitor?.name}</DialogTitle>
+          <DialogTitle>Analizar a {competitorName}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
@@ -71,7 +63,7 @@ export function AnalyzeCompetitorConfirm({
               Qué vamos a hacer
             </p>
             <ul className="space-y-2">
-              {steps.map((s) => (
+              {ANALYZE_STEPS.map((s) => (
                 <li key={s.icon} className="flex items-center gap-3 text-sm text-slate-700">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 grid place-items-center text-slate-600 shrink-0">
                     <Icon name={s.icon} className="text-[18px]" />

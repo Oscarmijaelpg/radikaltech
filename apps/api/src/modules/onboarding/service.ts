@@ -5,6 +5,7 @@ import { logger } from '../../lib/logger.js';
 import {
   instagramScraper,
   websiteAnalyzer,
+  brandOrchestrator,
   parseInstagramHandle,
 } from '../ai-services/index.js';
 
@@ -222,24 +223,9 @@ export const onboardingService = {
           d.website_url &&
           d.website_url !== previousUrl
         ) {
-          void websiteAnalyzer
-            .analyze({ url: d.website_url, userId, projectId: updated.id })
-            .then(async ({ result }) => {
-              // Auto-aplicar detected_info al proyecto SOLO en campos vacíos
-              const di = result.detected_info;
-              const patch: Record<string, string> = {};
-              const fresh = await prisma.project.findUnique({ where: { id: updated.id } });
-              if (!fresh) return;
-              if (di.business_summary && !fresh.businessSummary) patch.businessSummary = di.business_summary;
-              if (di.main_products && !fresh.mainProducts) patch.mainProducts = di.main_products;
-              if (di.ideal_customer && !fresh.idealCustomer) patch.idealCustomer = di.ideal_customer;
-              if (di.unique_value && !fresh.uniqueValue) patch.uniqueValue = di.unique_value;
-              if (di.industry && !fresh.industry) patch.industry = di.industry;
-              if (Object.keys(patch).length > 0) {
-                await prisma.project.update({ where: { id: updated.id }, data: patch });
-                logger.info({ projectId: updated.id, fields: Object.keys(patch) }, 'auto-applied detected_info to project');
-              }
-            })
+          // Lanzamos el análisis profundo (hasta 30 páginas) en segundo plano
+          void brandOrchestrator
+            .analyze({ projectId: updated.id, userId })
             .catch((err) =>
               logger.warn({ err, url: d.website_url }, 'onboarding website auto-analyze failed'),
             );

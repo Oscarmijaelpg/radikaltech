@@ -16,7 +16,7 @@ export const usersRouter = new Hono<{ Variables: AuthVariables }>();
 
 usersRouter.get('/me', async (c) => {
   const user = c.get('user');
-  const profile = await usersService.getMe(user.id);
+  const profile = await usersService.getMe(user);
   return c.json(ok(profile));
 });
 

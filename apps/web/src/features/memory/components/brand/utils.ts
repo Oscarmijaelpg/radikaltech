@@ -44,8 +44,8 @@ export function extractVisualAnalysis(asset: ContentAssetLite): VisualAnalysisLi
   return meta?.visual_analysis ?? null;
 }
 
-export function flagFromIso(code: string): string {
-  if (!code || code.length !== 2) return '🌐';
+export function flagFromIso(code: string): string | null {
+  if (!code || code.length !== 2) return null;
   const A = 0x1f1e6;
   const upper = code.toUpperCase();
   const cp1 = A + (upper.charCodeAt(0) - 65);
@@ -53,7 +53,7 @@ export function flagFromIso(code: string): string {
   try {
     return String.fromCodePoint(cp1, cp2);
   } catch {
-    return '🌐';
+    return null;
   }
 }
 

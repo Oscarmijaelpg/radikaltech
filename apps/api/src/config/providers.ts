@@ -27,7 +27,9 @@ export function geminiGenerateContentUrl(model: string, apiKey: string): string 
 }
 
 export function apifyRunSyncUrl(actorId: string, token: string): string {
-  return `${APIFY_BASE_URL}/${actorId}/run-sync-get-dataset-items?token=${token}`;
+  // Apify requiere que los slashes en los actorIds se reemplacen por ~ en las URLs de su API v2
+  const formattedId = actorId.replace('/', '~');
+  return `${APIFY_BASE_URL}/${formattedId}/run-sync-get-dataset-items?token=${token}`;
 }
 
 export const LLM_MODELS = {

@@ -18,6 +18,7 @@ export interface AuthUser {
   id: string;
   email: string | null;
   role: string;
+  fullName?: string | null;
 }
 
 export async function getUserFromToken(token: string): Promise<AuthUser> {
@@ -31,5 +32,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser> {
     (u.app_metadata as Record<string, unknown> | undefined)?.['role'] === 'admin'
       ? 'admin'
       : 'user';
-  return { id: u.id, email: u.email ?? null, role };
+  const fullName = (u.user_metadata as Record<string, unknown> | undefined)?.['full_name'] as string | undefined;
+  
+  return { id: u.id, email: u.email ?? null, role, fullName };
 }

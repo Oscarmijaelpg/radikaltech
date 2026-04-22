@@ -1,7 +1,7 @@
 import { prisma } from '@radikal/db';
 import type { Profile } from '@radikal/db';
 import { NotFound } from '../../lib/errors.js';
-import { supabaseAdmin } from '../../lib/supabase.js';
+import { supabaseAdmin, type AuthUser } from '../../lib/supabase.js';
 
 export interface UpdateProfileInput {
   full_name?: string;
@@ -42,9 +42,22 @@ export const usersService = {
     return serializeProfile(profile);
   },
 
-  async getMe(userId: string) {
-    const profile = await prisma.profile.findUnique({ where: { id: userId } });
-    if (!profile) throw new NotFound('Profile not found');
+  async getMe(user: AuthUser) {
+    let profile = await prisma.profile.findUnique({ where: { id: user.id } });
+    
+    if (!profile) {
+      // Auto-create profile if missing (helps with local dev or failed triggers)
+      // Note: we use email! because Supabase Auth users always have an email in this flow.
+      profile = await prisma.profile.create({
+        data: {
+          id: user.id,
+          email: user.email!,
+          fullName: user.fullName || null,
+          role: user.role === 'admin' ? 'admin' : 'user',
+        },
+      });
+    }
+    
     return serializeProfile(profile);
   },
 

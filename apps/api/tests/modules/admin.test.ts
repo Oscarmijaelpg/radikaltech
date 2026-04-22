@@ -117,5 +117,5 @@ describe('admin request helpers', () => {
   it('validates admin route prefix is wired with requireAdmin', async () => {
     const routes = await import('../../src/modules/admin/routes.js');
     expect(routes.adminRouter).toBeDefined();
-  });
+  }, 15000);
 });

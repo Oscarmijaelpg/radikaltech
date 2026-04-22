@@ -1,18 +1,70 @@
 import type { ReactNode } from 'react';
 import { SOCIAL_ICON_MAP } from './utils';
-import { Icon } from '@radikal/ui';
+import { 
+  Icon, 
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@radikal/ui';
+import { cn } from '../../../../shared/utils';
+
+export function ExpandableContent({ 
+  title, 
+  icon, 
+  children, 
+  maxHeight = "max-h-[120px]" 
+}: { 
+  title: string; 
+  icon?: string; 
+  children: ReactNode; 
+  maxHeight?: string;
+}) {
+  return (
+    <div className="relative group">
+      <div className={cn("overflow-hidden relative transition-all duration-300", maxHeight)}>
+        {children}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+      </div>
+      
+      <div className="mt-2 flex justify-end">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-[hsl(var(--color-primary))] hover:bg-slate-50">
+              <Icon name="maximize" className="mr-1.5 text-[12px]" />
+              Ver detalle
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="p-6 pb-4 border-b bg-slate-50/50">
+              <DialogTitle className="flex items-center gap-3 text-xl font-display font-black">
+                {icon && (
+                  <span className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 grid place-items-center">
+                    <Icon name={icon} className="text-[22px] text-[hsl(var(--color-primary))]" />
+                  </span>
+                )}
+                {title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
+              <div className="prose prose-slate max-w-none">
+                {children}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
 
 export function BulletList({ text }: { text: string | null | undefined }) {
   if (!text) return null;
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  if (lines.length <= 1) {
-    return (
-      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">
-        {text}
-      </p>
-    );
-  }
-  return (
+  
+  const content = (
     <ul className="space-y-2">
       {lines.map((line, i) => (
         <li key={i} className="flex gap-2 text-sm text-slate-700 font-medium leading-relaxed">
@@ -22,6 +74,16 @@ export function BulletList({ text }: { text: string | null | undefined }) {
       ))}
     </ul>
   );
+
+  if (lines.length > 4) {
+    return (
+      <ExpandableContent title="Listado detallado" icon="list">
+        {content}
+      </ExpandableContent>
+    );
+  }
+
+  return content;
 }
 
 export function SectionTitle({
@@ -63,6 +125,30 @@ export function Row({
   } else if (Array.isArray(value) && value.length === 0) {
     emptyText = `Sin ${label.toLowerCase()} registrados`;
   }
+
+  const renderValue = () => {
+    if (emptyText !== null) return <p className="text-xs italic text-slate-400">{emptyText}</p>;
+    
+    const content = typeof value === 'string' ? (
+      <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+        {value}
+      </p>
+    ) : (
+      value
+    );
+
+    // Si el texto es muy largo, lo hacemos expandible
+    if (typeof value === 'string' && value.length > 200) {
+      return (
+        <ExpandableContent title={label} icon={icon}>
+          {content}
+        </ExpandableContent>
+      );
+    }
+
+    return content;
+  };
+
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-1.5">
@@ -71,15 +157,7 @@ export function Row({
         )}
         {label}
       </p>
-      {emptyText !== null ? (
-        <p className="text-xs italic text-slate-400">{emptyText}</p>
-      ) : typeof value === 'string' ? (
-        <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
-          {value}
-        </p>
-      ) : (
-        value
-      )}
+      {renderValue()}
     </div>
   );
 }

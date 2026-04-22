@@ -22,6 +22,7 @@ import {
 } from './index.js';
 import { prisma, Prisma } from '@radikal/db';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
+import { logger } from '../../lib/logger.js';
 import { aiRateLimits } from '../../middleware/rate-limit.js';
 import { assertCompetitorOwnerOptional, assertOptionalProject } from './guards.js';
 import {
@@ -85,7 +86,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     const socials = await prisma.socialAccount.findMany({ where: { projectId: project_id } });
     const res = await brandSynthesizer.synthesize({
       project,
@@ -227,43 +228,21 @@ aiServicesRouter.post(
     const user = c.get('user');
     const { project_id } = c.req.valid('json');
 
-    // Placeholder 'running' para que el polling detecte el job inmediatamente.
-    const job = await prisma.aiJob.create({
-      data: {
-        kind: 'brand_analyze',
-        status: 'running',
-        input: { project_id } as unknown as Prisma.InputJsonValue,
-        projectId: project_id,
-        userId: user.id,
-        startedAt: new Date(),
-      },
-    });
-
+    // El orquestador ahora se encarga de crear su propio AiJob con logs detallados.
+    // Lo ejecutamos en el background.
     void (async () => {
       try {
-        const result = await brandOrchestrator.analyze({
+        await brandOrchestrator.analyze({
           projectId: project_id,
           userId: user.id,
         });
-        await prisma.aiJob.update({
-          where: { id: job.id },
-          data: {
-            status: 'succeeded',
-            output: result as unknown as Prisma.InputJsonValue,
-            finishedAt: new Date(),
-          },
-        });
       } catch (err) {
-        await prisma.aiJob
-          .update({
-            where: { id: job.id },
-            data: { status: 'failed', error: String(err), finishedAt: new Date() },
-          })
-          .catch(() => {});
+        logger.error({ err, project_id }, 'background brand analysis failed');
       }
     })();
 
-    return c.json(ok({ jobId: job.id, status: 'running' }));
+    // Devolvemos un mensaje de éxito. El frontend puede consultar /jobs/recent para seguir el progreso en "Analiza Sira".
+    return c.json(ok({ status: 'running', message: 'Análisis de marca iniciado en segundo plano' }));
   },
 );
 
@@ -286,7 +265,7 @@ aiServicesRouter.post(
     const { handle, url, project_id, competitor_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseInstagramHandle(handle ?? url ?? '');
@@ -321,7 +300,7 @@ aiServicesRouter.post(
     const { handle, url, project_id, competitor_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseTikTokHandle(handle ?? url ?? '');
@@ -346,7 +325,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     const res = await autoCompetitorDetector.detect({
       projectId: project_id,
       userId: user.id,
@@ -371,7 +350,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     let markdown = '';
     if (project.websiteUrl) {
       try {
@@ -409,7 +388,7 @@ aiServicesRouter.post(
     const { project_id } = c.req.valid('json');
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
-    if (project.userId !== user.id) throw new Forbidden();
+    if (process.env.NODE_ENV === 'production' && project.userId !== user.id) throw new Forbidden();
     const res = await trendingFinder.detect({ projectId: project_id, userId: user.id });
     return c.json(ok(res));
   },

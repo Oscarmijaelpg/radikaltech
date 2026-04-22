@@ -19,13 +19,13 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   FIRECRAWL_API_KEY: z.string().optional(),
   TAVILY_API_KEY: z.string().optional(),
-  MOONSHOT_API_KEY: z.string().optional(),
   APIFY_API_KEY: z.string().optional(),
   GOOGLE_PROJECT_ID: z.string().optional(),
   GOOGLE_LOCATION: z.string().optional(),
   GOOGLE_CLIENT_EMAIL: z.string().optional(),
   GOOGLE_ACCESS_TOKEN: z.string().optional(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  SCRAPE_TIMEOUT: z.coerce.number().int().positive().default(30000),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -36,12 +36,12 @@ const OPTIONAL_KEYS: Array<keyof Env> = [
   'GEMINI_API_KEY',
   'FIRECRAWL_API_KEY',
   'TAVILY_API_KEY',
-  'MOONSHOT_API_KEY',
   'APIFY_API_KEY',
   'GOOGLE_PROJECT_ID',
   'GOOGLE_LOCATION',
   'GOOGLE_CLIENT_EMAIL',
   'GOOGLE_ACCESS_TOKEN',
+  'SCRAPE_TIMEOUT',
 ];
 
 function formatIssue(issue: z.ZodIssue): string {

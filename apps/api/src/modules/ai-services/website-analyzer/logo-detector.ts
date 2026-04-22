@@ -2,6 +2,7 @@ import { prisma, Prisma } from '@radikal/db';
 import { logger } from '../../../lib/logger.js';
 import { supabaseAdmin } from '../../../lib/supabase.js';
 import type { FirecrawlScrapeResponse } from './types.js';
+import { JobLogger } from '../../jobs/job-logger.js';
 
 const STORAGE_BUCKET = 'assets';
 const LOGO_DOWNLOAD_TIMEOUT_MS = 15_000;
@@ -139,42 +140,42 @@ async function tryDownloadOne(
   logoUrl: string,
   userId: string,
   projectId: string | undefined,
+  jl?: JobLogger,
 ): Promise<{ publicUrl: string; assetId?: string } | undefined> {
-  const res = await fetch(logoUrl, {
-    signal: AbortSignal.timeout(LOGO_DOWNLOAD_TIMEOUT_MS),
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RadikalBot/1.0)' },
-  });
-  if (!res.ok) {
-    logger.warn({ logoUrl, status: res.status }, 'logo download failed');
-    return undefined;
-  }
-  const ct = res.headers.get('content-type');
-  // Si el content-type no es imagen, saltar (algunos servers devuelven HTML 200 en lugar de 404).
-  if (ct && !ct.startsWith('image/') && !ct.includes('octet-stream')) {
-    logger.warn({ logoUrl, ct }, 'logo url returned non-image content-type');
-    return undefined;
-  }
-  const ext = extFromContentType(ct);
-  const arr = new Uint8Array(await res.arrayBuffer());
-  if (arr.byteLength < MIN_LOGO_SIZE_BYTES) {
-    logger.warn({ logoUrl, size: arr.byteLength }, 'logo file too small, skipping');
-    return undefined;
-  }
-  const path = `${userId}/brand/logo-${Date.now()}.${ext}`;
-  const up = await supabaseAdmin.storage
-    .from(STORAGE_BUCKET)
-    .upload(path, arr, { contentType: ct ?? 'image/png', upsert: false });
-  if (up.error) {
-    logger.warn({ err: up.error.message }, 'logo storage upload failed');
-    return undefined;
-  }
-  const pub = supabaseAdmin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  const publicUrl = pub.data?.publicUrl;
-  if (!publicUrl) return undefined;
+  try {
+    const res = await fetch(logoUrl, {
+      signal: AbortSignal.timeout(LOGO_DOWNLOAD_TIMEOUT_MS),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RadikalBot/1.0)' },
+    });
+    if (!res.ok) {
+      if (jl) await jl.warn(`Fallo descarga de logo (${res.status}): ${logoUrl.split('/').pop()}`);
+      return undefined;
+    }
+    const ct = res.headers.get('content-type');
+    if (ct && !ct.startsWith('image/') && !ct.includes('octet-stream')) {
+      if (jl) await jl.warn(`El recurso no es una imagen (${ct}): ${logoUrl.split('/').pop()}`);
+      return undefined;
+    }
+    const ext = extFromContentType(ct);
+    const arr = new Uint8Array(await res.arrayBuffer());
+    if (arr.byteLength < MIN_LOGO_SIZE_BYTES) {
+      if (jl) await jl.warn(`Logo demasiado pequeño (${arr.byteLength} bytes): ${logoUrl.split('/').pop()}`);
+      return undefined;
+    }
+    const path = `${userId}/brand/logo-${Date.now()}.${ext}`;
+    const up = await supabaseAdmin.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, arr, { contentType: ct ?? 'image/png', upsert: false });
+    if (up.error) {
+      if (jl) await jl.error(`Error al subir a storage: ${up.error.message}`);
+      return undefined;
+    }
+    const pub = supabaseAdmin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const publicUrl = pub.data?.publicUrl;
+    if (!publicUrl) return undefined;
 
-  let assetId: string | undefined;
-  if (projectId) {
-    try {
+    let assetId: string | undefined;
+    if (projectId) {
       const asset = await prisma.contentAsset.create({
         data: {
           projectId,
@@ -191,29 +192,23 @@ async function tryDownloadOne(
         },
       });
       assetId = asset.id;
-    } catch (err) {
-      logger.warn({ err }, 'failed to persist logo ContentAsset');
     }
+    return { publicUrl, assetId };
+  } catch (err: any) {
+    if (jl) await jl.warn(`Error en descarga: ${err.message}`);
+    return undefined;
   }
-  return { publicUrl, assetId };
 }
 
 export async function downloadAndStoreLogo(
   candidates: string[],
   userId: string,
   projectId: string | undefined,
+  jl?: JobLogger,
 ): Promise<{ publicUrl: string; assetId?: string } | undefined> {
   for (const c of candidates) {
-    try {
-      const result = await tryDownloadOne(c, userId, projectId);
-      if (result) {
-        logger.info({ logoUrl: c }, 'logo stored successfully');
-        return result;
-      }
-    } catch (err) {
-      logger.warn({ err, logoUrl: c }, 'logo candidate errored, trying next');
-    }
+    const result = await tryDownloadOne(c, userId, projectId, jl);
+    if (result) return result;
   }
-  logger.warn({ tried: candidates.length }, 'no logo candidate succeeded');
   return undefined;
 }
