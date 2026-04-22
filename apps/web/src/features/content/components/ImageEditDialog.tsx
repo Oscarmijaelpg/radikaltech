@@ -11,6 +11,7 @@ import {
   Spinner,
 } from '@radikal/ui';
 import { useEditImage, type EditImageResult } from '../api/content';
+import { useChargeConfirm } from '@/features/credits/hooks/useChargeConfirm';
 
 const QUICK_CHIPS = [
   'Más brillante',
@@ -40,6 +41,7 @@ export function ImageEditDialog({
   const [instruction, setInstruction] = useState('');
   const [result, setResult] = useState<EditImageResult | null>(null);
   const edit = useEditImage();
+  const confirmCharge = useChargeConfirm();
 
   useEffect(() => {
     if (!open) {
@@ -53,6 +55,8 @@ export function ImageEditDialog({
   const onGenerate = async () => {
     const text = instruction.trim();
     if (text.length < 3) return;
+    const ok = await confirmCharge('image.edit', { detail: 'Vas a generar una iteración de la imagen.' });
+    if (!ok) return;
     try {
       const r = await edit.mutateAsync({
         source_asset_id: sourceAssetId,

@@ -18,6 +18,7 @@ import { useProject } from '@/providers/ProjectProvider';
 import { ReferencePicker } from './ReferencePicker';
 import { useAssets, type ContentAsset } from '../api/content';
 import { useBrand } from '@/features/memory/api/memory';
+import { useChargeConfirm } from '@/features/credits/hooks/useChargeConfirm';
 import { ImageEditDialog } from './ImageEditDialog';
 import { useToast } from '@/shared/ui/Toaster';
 import { AbCompareDialog } from './image-generator/AbCompareDialog';
@@ -110,6 +111,7 @@ export function ImageGenerator() {
 
   const generate = useGenerateImage();
   const history = useImageAssets(activeProject?.id);
+  const confirmCharge = useChargeConfirm();
 
   const onGenerate = async () => {
     const p = prompt.trim();
@@ -119,6 +121,14 @@ export function ImageGenerator() {
     if (useLogo && logo && !refIds.includes(logo.id)) {
       refIds.push(logo.id);
     }
+
+    const ok = await confirmCharge('image.generate', {
+      detail:
+        variationsCount > 1
+          ? `Vas a generar ${variationsCount} variantes de imagen.`
+          : 'Vas a generar una imagen.',
+    });
+    if (!ok) return;
 
     try {
       const res = await generate.mutateAsync({

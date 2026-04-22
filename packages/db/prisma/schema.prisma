@@ -179,6 +179,15 @@ enum ScheduledReportFrequency {
   @@map("scheduled_report_frequency")
 }
 
+enum CreditTransactionKind {
+  grant
+  spend
+  refund
+  adjustment
+
+  @@map("credit_transaction_kind")
+}
+
 // ---------- Models ----------
 
 model Profile {
@@ -211,6 +220,7 @@ model Profile {
   recommendations Recommendation[]
   scheduledReports ScheduledReport[]
   notifications   Notification[]
+  creditAccount   CreditAccount?
 
   @@map("profiles")
 }
@@ -691,4 +701,57 @@ model FeatureFlag {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("feature_flags")
+}
+
+model CreditAccount {
+  userId       String   @id @map("user_id") @db.Uuid
+  balance      Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         Profile              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions CreditTransaction[]
+
+  @@map("credit_accounts")
+}
+
+model CreditTransaction {
+  id           String                @id @default(uuid()) @db.Uuid
+  userId       String                @map("user_id") @db.Uuid
+  kind         CreditTransactionKind
+  amount       Int
+  balanceAfter Int                   @map("balance_after")
+  actionKey    String?               @map("action_key")
+  reason       String?
+  actorId      String?               @map("actor_id") @db.Uuid
+  metadata     Json?
+  createdAt    DateTime              @default(now()) @map("created_at")
+
+  account CreditAccount @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([kind])
+  @@index([actionKey])
+  @@index([createdAt])
+  @@map("credit_transactions")
+}
+
+model ActionPrice {
+  key         String   @id
+  label       String
+  description String?
+  monedas     Int
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("action_prices")
+}
+
+model SystemConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
 }

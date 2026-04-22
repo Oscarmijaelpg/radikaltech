@@ -8,6 +8,7 @@ import { WebsiteSource } from '@radikal/shared';
 import { CompanySchema, type CompanyData } from '../../schemas/steps';
 import { NavButtons } from '../NavButtons';
 import { useAnalyzeWebsite } from '../../hooks/useAnalyzeWebsite';
+import { useChargeConfirm } from '@/features/credits/hooks/useChargeConfirm';
 
 interface WebsiteStepProps {
   defaultValues: Partial<CompanyData> & Pick<CompanyData, 'company_name' | 'industry'>;
@@ -52,6 +53,7 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
     initialMode === 'none' && !defaultValues.business_summary,
   );
   const analyze = useAnalyzeWebsite();
+  const confirmCharge = useChargeConfirm();
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
@@ -80,6 +82,10 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
     const url = urlForm.getValues('website_url');
     const check = urlForm.trigger('website_url');
     if (!(await check)) return;
+    const ok = await confirmCharge('website.analyze', {
+      detail: `Analizaremos ${url} y prerrellenaremos tus datos de empresa.`,
+    });
+    if (!ok) return;
     try {
       const result = await analyze.mutateAsync(url);
       if (result.business_summary) urlForm.setValue('business_summary', result.business_summary);
