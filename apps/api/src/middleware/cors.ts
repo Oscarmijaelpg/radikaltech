@@ -6,7 +6,7 @@ const LOCALHOST_RE = /^http:\/\/localhost:\d+$/;
 
 function resolveOrigin(origin: string): string | null {
   if (origin === env.WEB_URL) return origin;
-  if (isDev && LOCALHOST_RE.test(origin)) return origin;
+  if (LOCALHOST_RE.test(origin)) return origin;
   return null;
 }
 
