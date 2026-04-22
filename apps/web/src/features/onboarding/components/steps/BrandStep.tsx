@@ -105,7 +105,7 @@ export function BrandStep({ defaultValues, onSubmit, onBack, saving }: BrandStep
             name="tone_of_voice"
             render={({ field }) => (
               <Select
-                value={field.value ?? ''}
+                value={field.value || undefined}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger>

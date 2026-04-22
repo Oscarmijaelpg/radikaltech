@@ -38,7 +38,8 @@ export function CompanyStep({ defaultValues, onSubmit, onBack, saving }: Company
   });
 
   const industry = watch('industry');
-  const isCustom = industry && !INDUSTRIES.includes(industry as (typeof INDUSTRIES)[number]);
+  const isCustom =
+    !!industry && !INDUSTRIES.includes(industry as (typeof INDUSTRIES)[number]);
   const isOtro = industry === 'Otro';
 
   const submit = handleSubmit(async (values) => {

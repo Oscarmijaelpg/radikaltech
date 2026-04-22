@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Spinner } from '@radikal/ui';
@@ -50,6 +50,10 @@ export function OnboardingPage() {
     completeOnboarding,
   } = useOnboarding();
 
+  // El paso "company" se divide visualmente en CompanyStep + WebsiteStep. forceBasics permite
+  // volver al primer substep desde el botón "Atrás" del WebsiteStep sin borrar la data ya guardada.
+  const [forceBasics, setForceBasics] = useState(false);
+
   const stepperIndex = useMemo(() => {
     if (state.currentStep === 'company') {
       // company step contains both "company" sub-screen and website. Keep index 0 for company.
@@ -76,14 +80,12 @@ export function OnboardingPage() {
     );
   }
 
-  // The "company" persist step is actually split visually into CompanyStep + WebsiteStep.
-  // We use a sub-state: if company basics (company_name + industry) exist AND we're on "company",
-  // render WebsiteStep. Otherwise render CompanyStep.
   const hasBasics = !!(state.company?.company_name && state.company?.industry);
-  const showWebsiteSubstep = state.currentStep === 'company' && hasBasics;
+  const showWebsiteSubstep = state.currentStep === 'company' && hasBasics && !forceBasics;
 
   const handleCompanyBasics = async (partial: CompanyData) => {
     await submitStep('company', partial);
+    setForceBasics(false);
   };
 
   const handleCompanyFull = async (full: CompanyData) => {
@@ -185,16 +187,7 @@ export function OnboardingPage() {
             additional_context: state.company?.additional_context ?? null,
           }}
           saving={saving}
-          onBack={() => {
-            // go back to CompanyStep: clear website marker by keeping basics but resetting substep indicator.
-            // Simplest: send user back to company basics by clearing website_source so hasBasics stays but
-            // we rely on a flag — instead we actually navigate to welcome? No. Keep basics and go to
-            // previous outer step = welcome only if user really wants. For UX: go back to basics view.
-            // We achieve this by temporarily flagging: setting currentStep to welcome then back.
-            // Cleaner: just call goToStep('welcome') and then user clicks forward. But better: re-render
-            // basics by erasing website_source locally.
-            goToStep('welcome');
-          }}
+          onBack={() => setForceBasics(true)}
           onSubmit={handleCompanyFull}
         />
       )}

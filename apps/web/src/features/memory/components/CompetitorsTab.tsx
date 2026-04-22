@@ -157,7 +157,7 @@ export function CompetitorsTab({ projectId }: Props) {
         onOpenChange={(v) => {
           if (!v) t.onCancelAnalyze();
         }}
-        competitorName={t.pendingAnalyze?.name ?? ''}
+        competitor={t.pendingAnalyze ?? null}
         onConfirm={t.onConfirmAnalyze}
       />
 

@@ -95,28 +95,23 @@ export function useCompetitorsTab(projectId: string) {
   };
 
   const onAnalyze = (c: Competitor) => {
-    console.info('[comp] onAnalyze preview', { id: c.id, name: c.name });
     setPendingAnalyze(c);
   };
 
   const onConfirmAnalyze = () => {
     const c = pendingAnalyze;
     if (!c) return;
-    console.info('[comp] onConfirmAnalyze dispatching', { id: c.id, mode: lastMode });
     setPendingAnalyze(null);
-    // Fire-and-forget: disparamos el analyze pero NO esperamos. El reporte
-    // detecta "aún no analizado" y muestra estado "Analizando...".
+    // Fire-and-forget: el reporte detecta "aún no analizado" y muestra estado "Analizando...".
     analyze.mutate({ id: c.id, project_id: projectId, mode: lastMode });
     navigate(`/competitors/${c.id}/report`);
   };
 
   const onCancelAnalyze = () => {
-    console.info('[comp] analyze cancelled');
     setPendingAnalyze(null);
   };
 
   const onViewAnalysis = (c: Competitor) => {
-    console.info('[comp] onViewAnalysis → navigating', { id: c.id });
     navigate(`/competitors/${c.id}/report`);
   };
 
