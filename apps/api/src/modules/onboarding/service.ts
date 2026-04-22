@@ -4,9 +4,11 @@ import { BadRequest } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
 import {
   instagramScraper,
+  tiktokScraper,
   websiteAnalyzer,
   brandOrchestrator,
   parseInstagramHandle,
+  parseTikTokHandle,
 } from '../ai-services/index.js';
 
 // --- Step schemas (alineados con el frontend @radikal/shared) ---
@@ -261,18 +263,42 @@ export const onboardingService = {
           data: { onboardingStep: mapToPrismaStep('brand') },
         });
 
-        // Fire-and-forget Instagram scrape for any instagram accounts with source=url
+        // Fire-and-forget scrape paralelo para instagram y tiktok con source=url
+        const scrapes: Array<{ platform: string; handle: string; promise: Promise<unknown> }> = [];
         for (const a of body.data.accounts) {
-          if (a.platform === 'instagram' && a.source === 'url' && a.url) {
+          if (a.source !== 'url' || !a.url) continue;
+          if (a.platform === 'instagram') {
             const handle = parseInstagramHandle(a.url);
             if (handle) {
-              void instagramScraper
-                .scrape({ handle, userId, projectId: project.id })
-                .catch((err) =>
-                  logger.warn({ err, handle }, 'onboarding instagram auto-scrape failed'),
-                );
+              scrapes.push({
+                platform: 'instagram',
+                handle,
+                promise: instagramScraper.scrape({ handle, userId, projectId: project.id }),
+              });
+            }
+          } else if (a.platform === 'tiktok') {
+            const handle = parseTikTokHandle(a.url);
+            if (handle) {
+              scrapes.push({
+                platform: 'tiktok',
+                handle,
+                promise: tiktokScraper.scrape({ handle, userId, projectId: project.id }),
+              });
             }
           }
+        }
+        if (scrapes.length > 0) {
+          void Promise.allSettled(scrapes.map((s) => s.promise)).then((results) => {
+            results.forEach((r, i) => {
+              if (r.status === 'rejected') {
+                const s = scrapes[i]!;
+                logger.warn(
+                  { err: r.reason, platform: s.platform, handle: s.handle },
+                  'onboarding social auto-scrape failed',
+                );
+              }
+            });
+          });
         }
 
         return { count: body.data.accounts.length, next_step: 'brand' as const };
