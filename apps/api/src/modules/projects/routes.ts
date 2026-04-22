@@ -61,17 +61,26 @@ projectsRouter.post('/:id/set-default', async (c) => {
 
 projectsRouter.patch(
   '/:id/markets',
-  zValidator('json', z.object({ countries: z.array(z.string().length(2)).max(50) })),
+  zValidator('json', z.object({ 
+    // Acepta texto libre (párrafo narrativo) o array legacy de strings
+    text: z.string().max(5000).optional(),
+    countries: z.array(z.string()).max(200).optional(),
+  })),
   async (c) => {
     const user = c.get('user');
     const id = c.req.param('id');
     const project = await prisma.project.findUnique({ where: { id } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
-    const { countries } = c.req.valid('json');
+    const body = c.req.valid('json');
+    // Soporta tanto texto libre como array legacy
+    const marketText = body.text ?? body.countries?.join('\n') ?? null;
     const updated = await prisma.project.update({
       where: { id },
-      data: { operatingCountries: countries.map((c2) => c2.toUpperCase()) },
+      data: { 
+        operatingCountries: marketText,
+        operatingCountriesSuggested: null,
+      },
     });
     return c.json(
       ok({
@@ -108,7 +117,7 @@ projectsRouter.post('/:id/detect-markets', async (c) => {
   if (res.countries.length > 0) {
     await prisma.project.update({
       where: { id },
-      data: { operatingCountriesSuggested: res.countries },
+      data: { operatingCountriesSuggested: res.countries.join(', ') },
     });
   }
   return c.json(ok(res));

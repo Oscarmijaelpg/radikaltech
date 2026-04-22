@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Button,
   Card,
@@ -13,7 +13,7 @@ import {
 } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useDetectMarkets, useUpdateMarkets } from '../../api/memory';
-import { SectionTitle, BulletList, ExpandableContent } from './shared';
+import { SectionTitle, ExpandableContent } from './shared';
 
 export function MarketsSection({ projectId }: { projectId: string }) {
   const { activeProject } = useProject();
@@ -23,16 +23,21 @@ export function MarketsSection({ projectId }: { projectId: string }) {
   const [draft, setDraft] = useState('');
 
   if (!activeProject) return null;
-  const confirmed = activeProject.operating_countries ?? [];
+
+  // Soporta tanto string (nuevo formato narrativo) como array (formato legacy)
+  const rawMarkets = activeProject.operating_countries;
+  const marketText: string = Array.isArray(rawMarkets)
+    ? rawMarkets.join(', ')
+    : (rawMarkets as string | null | undefined) ?? '';
 
   const openDialog = () => {
-    setDraft(confirmed.join('\n'));
+    setDraft(marketText);
     setDialogOpen(true);
   };
 
   const save = async () => {
-    const lines = draft.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    await updateMarkets.mutateAsync(lines);
+    // Enviamos como array de un solo elemento para mantener compatibilidad con la API
+    await updateMarkets.mutateAsync([draft]);
     setDialogOpen(false);
   };
 
@@ -50,32 +55,37 @@ export function MarketsSection({ projectId }: { projectId: string }) {
             {detect.isPending ? <Spinner /> : 'Detectar con IA'}
           </Button>
           <Button size="sm" variant="outline" onClick={openDialog}>
-            Editar mercados
+            Editar
           </Button>
         </div>
       </div>
 
-      {confirmed.length > 0 ? (
-        <ExpandableContent title="Mercados donde operas" icon="public" maxHeight="max-h-[120px]">
-          <BulletList text={confirmed.join('\n')} />
+      {marketText ? (
+        <ExpandableContent title="Mercados donde operas" icon="public" maxHeight="max-h-[140px]">
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+            {marketText}
+          </p>
         </ExpandableContent>
       ) : (
-        <p className="text-xs italic text-slate-400">Aún no se han detectado mercados</p>
+        <p className="text-xs italic text-slate-400">
+          Aún no se han detectado mercados. Haz clic en "Detectar con IA" para analizarlos.
+        </p>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Editar mercados</DialogTitle>
+            <DialogTitle>Editar análisis de mercados</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
-            <p className="text-sm text-slate-500 font-medium">
-              Escribe cada ubicación en una línea nueva. Puedes incluir países, ciudades o zonas específicas.
+            <p className="text-sm text-slate-500">
+              Describe en qué países, ciudades, barrios o zonas opera tu marca. 
+              Puedes escribirlo como un párrafo o una lista.
             </p>
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ejemplo:&#10;Colombia&#10;Medellín&#10;Barrio El Poblado"
+              placeholder="Ejemplo: La marca opera principalmente en Colombia, con fuerte presencia en Bogotá en los barrios de Chapinero y Usaquén..."
               className="min-h-[200px] font-medium leading-relaxed"
             />
           </div>
@@ -84,7 +94,7 @@ export function MarketsSection({ projectId }: { projectId: string }) {
               Cancelar
             </Button>
             <Button onClick={save} disabled={updateMarkets.isPending}>
-              Guardar cambios
+              {updateMarkets.isPending ? <Spinner /> : 'Guardar cambios'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -57,6 +57,20 @@ export function detectLogoCandidates(
     if (!url) return;
     const abs = absolutize(url, pageUrl);
     if (!abs) return;
+
+    // --- FILTRADO INTELIGENTE DE LOGOS ---
+    const forbiddenPatterns = [
+      /whatsapp/i, /facebook/i, /instagram/i, /twitter/i, /linkedin/i, 
+      /tiktok/i, /youtube/i, /social/i, /share/i, /button/i, /icon/i,
+      /marker/i, /phone/i, /mail/i, /cart/i, /search/i, /menu/i,
+      /google-play/i, /apple-store/i, /app-store/i
+    ];
+    
+    if (forbiddenPatterns.some(p => p.test(abs))) {
+      return; // Descartar iconos de redes sociales y botones genéricos
+    }
+    // -------------------------------------
+
     let s = score;
     if (abs.toLowerCase().endsWith('.svg')) s += BONUS_EXT_SVG;
     else if (abs.toLowerCase().endsWith('.png')) s += BONUS_EXT_PNG;
