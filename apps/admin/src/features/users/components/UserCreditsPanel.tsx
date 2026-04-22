@@ -91,7 +91,7 @@ export function UserCreditsPanel({ userId }: Props) {
       </div>
 
       <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] gap-2">
           <div>
             <Label htmlFor="credit-amount">Monto</Label>
             <Input
@@ -144,24 +144,28 @@ export function UserCreditsPanel({ userId }: Props) {
           </div>
           <div className="max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-200/60">
             {data.history.map((t) => (
-              <div key={t.id} className="py-2 flex items-center gap-2 text-sm">
-                <Badge variant={KIND_VARIANT[t.kind]}>{KIND_LABEL[t.kind]}</Badge>
+              <div key={t.id} className="py-2 flex items-start gap-2 text-sm">
+                <Badge variant={KIND_VARIANT[t.kind]} className="shrink-0 mt-0.5">
+                  {KIND_LABEL[t.kind]}
+                </Badge>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-slate-500 truncate">
-                    {t.reason ?? t.actionKey ?? '—'}
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <div className="text-xs text-slate-600 break-words flex-1 min-w-0">
+                      {t.reason ?? t.actionKey ?? '—'}
+                    </div>
+                    <div
+                      className={clsx(
+                        'font-mono text-sm shrink-0',
+                        t.amount > 0 ? 'text-emerald-600' : 'text-slate-700',
+                      )}
+                    >
+                      {t.amount > 0 ? '+' : ''}
+                      {t.amount.toLocaleString('es-MX')}
+                    </div>
                   </div>
                   <div className="text-[10px] text-slate-400">
                     {format(new Date(t.createdAt), 'dd MMM HH:mm')}
                   </div>
-                </div>
-                <div
-                  className={clsx(
-                    'font-mono text-sm shrink-0',
-                    t.amount > 0 ? 'text-emerald-600' : 'text-slate-700',
-                  )}
-                >
-                  {t.amount > 0 ? '+' : ''}
-                  {t.amount}
                 </div>
               </div>
             ))}

@@ -105,19 +105,19 @@ function PriceRow({ item, onToggle, onSave }: PriceRowProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 py-3 px-2 flex-wrap sm:flex-nowrap">
-      <Switch checked={item.enabled} onCheckedChange={onToggle} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+    <div className="py-3 px-2 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        <Switch checked={item.enabled} onCheckedChange={onToggle} className="mt-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{item.label}</div>
-          <code className="text-xs text-slate-400 font-mono">{item.key}</code>
+          <code className="text-[11px] text-slate-400 font-mono break-all">{item.key}</code>
+          {item.description && (
+            <div className="text-xs text-slate-500 mt-0.5">{item.description}</div>
+          )}
         </div>
-        {item.description && (
-          <div className="text-xs text-slate-500 mt-0.5">{item.description}</div>
-        )}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="relative">
+      <div className="flex items-center gap-2 shrink-0 pl-[52px] sm:pl-0">
+        <div className="relative flex-1 sm:flex-none">
           <Coins
             size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none"
@@ -131,7 +131,7 @@ function PriceRow({ item, onToggle, onSave }: PriceRowProps) {
             onKeyDown={(e) => {
               if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
             }}
-            className="w-[110px] pl-8 text-right"
+            className="w-full sm:w-[120px] pl-8 text-right"
           />
         </div>
         <Button
@@ -139,10 +139,10 @@ function PriceRow({ item, onToggle, onSave }: PriceRowProps) {
           size="sm"
           onClick={handleSave}
           disabled={!dirty || saving}
-          className={clsx(!dirty && 'opacity-0 pointer-events-none')}
+          className={clsx('shrink-0', !dirty && 'opacity-0 pointer-events-none')}
         >
           <Save size={14} />
-          Guardar
+          <span className="hidden sm:inline">Guardar</span>
         </Button>
       </div>
     </div>

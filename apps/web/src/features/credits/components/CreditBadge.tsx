@@ -5,7 +5,7 @@ import { useCreditBalance } from '../api/credits';
 
 interface Props {
   className?: string;
-  compact?: boolean;
+  iconOnly?: boolean;
 }
 
 function format(n: number): string {
@@ -14,7 +14,7 @@ function format(n: number): string {
   return new Intl.NumberFormat('es-MX').format(n);
 }
 
-export function CreditBadge({ className, compact = false }: Props) {
+export function CreditBadge({ className, iconOnly = false }: Props) {
   const { data, isLoading } = useCreditBalance();
   const balance = data?.balance ?? 0;
   const low = !isLoading && balance <= 20;
@@ -24,21 +24,19 @@ export function CreditBadge({ className, compact = false }: Props) {
       to="/settings/credits"
       aria-label={`Saldo: ${balance} monedas`}
       className={cn(
-        'inline-flex items-center gap-1.5 h-9 px-3 rounded-2xl border transition-all',
+        'inline-flex items-center gap-1.5 h-9 rounded-2xl border transition-all',
         'bg-gradient-to-br from-amber-50 to-amber-100/50',
         'border-amber-200 hover:border-amber-300 hover:shadow-md',
         low && 'from-red-50 to-red-100/50 border-red-200',
+        iconOnly ? 'w-9 justify-center' : 'px-3',
         className,
       )}
     >
       <Icon
         name="paid"
-        className={cn(
-          'text-[18px]',
-          low ? 'text-red-600' : 'text-amber-600',
-        )}
+        className={cn('text-[18px]', low ? 'text-red-600' : 'text-amber-600')}
       />
-      {!compact && (
+      {!iconOnly && (
         <span
           className={cn(
             'text-sm font-bold tabular-nums',

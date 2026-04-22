@@ -441,7 +441,7 @@ export function AppShell() {
         </button>
         <img src={radikalLogo} alt="Radikal" className="h-7 w-auto" />
         <div className="flex-1" />
-        <CreditBadge compact />
+        <CreditBadge />
         <NotificationsBell />
         {activeProject && (
           <ProjectBadge

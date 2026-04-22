@@ -70,20 +70,20 @@ export function CreditsPage() {
         {/* Hero con balance */}
         <header
           className={cn(
-            'relative overflow-hidden rounded-[24px] md:rounded-[32px] p-6 md:p-10 text-white shadow-2xl',
+            'relative overflow-hidden rounded-[24px] md:rounded-[32px] p-5 sm:p-6 md:p-10 text-white shadow-2xl',
             low
               ? 'bg-gradient-to-br from-rose-500 to-red-600'
               : 'bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500',
           )}
         >
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-white/20 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
-          <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-white/80 text-xs sm:text-sm font-semibold uppercase tracking-wider">
                 <Icon name="paid" className="text-[18px]" />
                 Tu saldo
               </div>
-              <div className="font-display text-5xl sm:text-6xl font-black mt-1 tabular-nums">
+              <div className="font-display text-4xl sm:text-5xl md:text-6xl font-black mt-1 tabular-nums break-all">
                 {balanceQ.isLoading ? '…' : formatMonedas(balance)}
               </div>
               <div className="text-white/80 text-sm mt-1">monedas Radikal</div>
@@ -92,7 +92,7 @@ export function CreditsPage() {
               type="button"
               disabled
               title="Disponible pronto"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/90 text-slate-900 font-bold text-sm shadow-lg cursor-not-allowed opacity-75"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/90 text-slate-900 font-bold text-sm shadow-lg cursor-not-allowed opacity-75 w-full sm:w-auto shrink-0"
             >
               <Icon name="add_card" className="text-[18px]" />
               Comprar monedas
@@ -127,10 +127,10 @@ export function CreditsPage() {
           ) : (
             <ul className="divide-y divide-slate-200/70">
               {historyQ.data.map((t) => (
-                <li key={t.id} className="py-3 flex items-center gap-3">
+                <li key={t.id} className="py-3 flex items-start gap-3">
                   <div
                     className={cn(
-                      'w-10 h-10 rounded-xl grid place-items-center shrink-0',
+                      'w-9 h-9 sm:w-10 sm:h-10 rounded-xl grid place-items-center shrink-0',
                       t.amount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600',
                     )}
                   >
@@ -148,29 +148,31 @@ export function CreditsPage() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="font-semibold text-sm truncate">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <div className="font-semibold text-sm flex-1 min-w-0 break-words">
                         {t.actionKey ? (ACTION_LABEL[t.actionKey] ?? t.actionKey) : KIND_LABEL[t.kind]}
                       </div>
+                      <div
+                        className={cn(
+                          'font-mono font-bold tabular-nums text-sm shrink-0',
+                          t.amount > 0 ? 'text-emerald-600' : 'text-slate-700',
+                        )}
+                      >
+                        {t.amount > 0 ? '+' : ''}
+                        {formatMonedas(t.amount)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <Badge variant={KIND_BADGE[t.kind]}>{KIND_LABEL[t.kind]}</Badge>
-                    </div>
-                    {t.reason && (
-                      <div className="text-xs text-slate-500 truncate mt-0.5">{t.reason}</div>
-                    )}
-                    <div className="text-[11px] text-slate-400 mt-0.5">{formatDate(t.createdAt)}</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div
-                      className={cn(
-                        'font-mono font-bold tabular-nums',
-                        t.amount > 0 ? 'text-emerald-600' : 'text-slate-700',
+                      {t.reason && (
+                        <span className="text-xs text-slate-500 break-words min-w-0">
+                          {t.reason}
+                        </span>
                       )}
-                    >
-                      {t.amount > 0 ? '+' : ''}
-                      {formatMonedas(t.amount)}
                     </div>
-                    <div className="text-[10px] text-slate-400">
-                      saldo: {formatMonedas(t.balanceAfter)}
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 mt-0.5">
+                      <span>{formatDate(t.createdAt)}</span>
+                      <span>saldo: {formatMonedas(t.balanceAfter)}</span>
                     </div>
                   </div>
                 </li>
