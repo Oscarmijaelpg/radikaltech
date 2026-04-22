@@ -6,14 +6,11 @@ import { notificationService } from '../../notifications/service.js';
 import { extractInfoWithAI } from './ai-extractor.js';
 import { detectLogoCandidates, downloadAndStoreLogo } from './logo-detector.js';
 import { firecrawlScrape } from './scrape.js';
-import { puppeteerScrape } from './puppeteer-scraper.js';
 import { JobLogger } from '../../jobs/job-logger.js';
-import { apifyWebScrape } from './apify-scraper.js';
 import type {
   AnalyzeWebsiteInput,
   FirecrawlScrapeResponse,
   WebsiteAnalysisResult,
-  PuppeteerScrapeResult,
 } from './types.js';
 
 export { detectLogoCandidates } from './logo-detector.js';
@@ -49,40 +46,35 @@ export class WebsiteAnalyzer {
       let metadata: WebsiteAnalysisResult['metadata'] = {};
       let scrape: FirecrawlScrapeResponse | undefined;
 
-      // --- Intento 1: Puppeteer (Local) ---
-      await jl.info('Probando scraping con Puppeteer Stealth...');
-      const pScrape = await puppeteerScrape(input.url);
-      
-      if (pScrape.success) {
-        await jl.success('Puppeteer consiguió el contenido exitosamente.');
-        markdown = pScrape.markdown ?? '';
-        html = pScrape.html ?? '';
-        metadata = {
-          title: pScrape.metadata?.title,
-          description: pScrape.metadata?.description,
-        };
-      } 
-      // --- Intento 2: Apify (Plan Alterno) ---
-      else if (env.APIFY_API_KEY) {
-        await jl.warn('Puppeteer no pudo acceder. Probando con Apify (Plan Alterno)...');
-        const aScrape = await apifyWebScrape(input.url);
-        if (aScrape.success) {
-          await jl.success('Apify recuperó el contenido.');
-          markdown = aScrape.markdown ?? '';
-          html = aScrape.html ?? '';
-          metadata = {
-            title: aScrape.metadata?.title,
-            description: aScrape.metadata?.description,
-          };
-        }
+      if (!env.FIRECRAWL_API_KEY) {
+        throw new BadRequest('El scraping no está configurado: falta FIRECRAWL_API_KEY.');
       }
 
-      if (!markdown) {
-        await jl.error('Todos los métodos de acceso fallaron.');
+      await jl.info('Scrapeando el sitio con Firecrawl...');
+      try {
+        scrape = await firecrawlScrape(input.url);
+      } catch (err) {
+        logger.warn({ url: input.url, err }, 'firecrawl scrape failed');
         throw new BadRequest(
-          `No pudimos acceder al sitio web con Puppeteer, Firecrawl ni Apify. Verifica que la URL sea correcta.`,
+          `No pudimos acceder al sitio web. Verifica que la URL sea correcta y esté accesible.`,
         );
       }
+
+      if (!scrape?.success || !scrape.data) {
+        await jl.error('Firecrawl no devolvió contenido.');
+        throw new BadRequest(
+          `No pudimos extraer contenido del sitio web. Verifica que la URL sea correcta.`,
+        );
+      }
+
+      await jl.success('Firecrawl obtuvo el contenido.');
+      markdown = scrape.data.markdown ?? '';
+      html = scrape.data.html ?? '';
+      metadata = {
+        title: scrape.data.metadata?.title,
+        description: scrape.data.metadata?.description,
+        language: scrape.data.metadata?.language,
+      };
 
       // Si el sitio respondió pero sin contenido útil (SPA sin SSR, 404 con poco contenido,
       // bloqueo anti-bot), avisamos al usuario en vez de devolver un análisis vacío silencioso.

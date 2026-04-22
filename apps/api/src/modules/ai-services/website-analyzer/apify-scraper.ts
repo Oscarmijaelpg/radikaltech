@@ -61,7 +61,7 @@ export async function apifyWebScrape(url: string): Promise<ApifyScrapeResult> {
       }
     };
   } catch (error) {
-    logger.error({ url, error }, 'apify web scrape failed');
+    logger.error({ url, err: error }, 'apify web scrape failed');
     return { success: false, error: String(error) };
   }
 }

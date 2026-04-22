@@ -74,7 +74,7 @@ export async function puppeteerScrape(url: string): Promise<PuppeteerScrapeResul
       }
     };
   } catch (error) {
-    logger.error({ url, error }, 'puppeteer scrape failed');
+    logger.error({ url, err: error }, 'puppeteer scrape failed');
     return {
       success: false,
       error: String(error)
