@@ -9,8 +9,9 @@ interface FeatureHintProps {
   children: ReactNode;
 }
 
+// Sufijo -v1: si cambia el contenido de los hints, bumpea a -v2 para resetear.
 function hintKey(id: string) {
-  return `radikal-hint-${id}`;
+  return `radikal-hint-v1-${id}`;
 }
 
 /**

@@ -14,7 +14,8 @@ import { FIRST_DAY_TASKS } from './tasks';
 import { FTE_HIDDEN_KEY } from './FirstDayCard';
 import onboardingVideo from '@/media/onboarding.mp4';
 
-export const WELCOME_SEEN_KEY = 'radikal-welcome-seen';
+// Sufijo -v1: si cambia la modal de bienvenida, bumpea para re-mostrar.
+export const WELCOME_SEEN_KEY = 'radikal-welcome-seen-v1';
 
 export function WelcomeModal() {
   const navigate = useNavigate();

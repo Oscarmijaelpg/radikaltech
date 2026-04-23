@@ -13,10 +13,12 @@ import { useFirstTimeProgress } from './useFirstTimeProgress';
 import { FIRST_DAY_TASKS, MAX_POINTS, LEVELS } from './tasks';
 import { Confetti } from './Confetti';
 
-export const FTE_HIDDEN_KEY = 'radikal-fte-hidden';
-const FTE_COMPLETED_AT_KEY = 'radikal-fte-completed-at';
-const FTE_LEVEL_SEEN_KEY = 'radikal-fte-level-seen';
-const FTE_CELEBRATED_KEY = 'radikal-fte-celebrated';
+// Las keys incluyen sufijo -v1. Si el flow de FTE cambia (nuevos niveles, otra
+// secuencia), bumpea a -v2 para que usuarios existentes reseteen.
+export const FTE_HIDDEN_KEY = 'radikal-fte-hidden-v1';
+const FTE_COMPLETED_AT_KEY = 'radikal-fte-completed-at-v1';
+const FTE_LEVEL_SEEN_KEY = 'radikal-fte-level-seen-v1';
+const FTE_CELEBRATED_KEY = 'radikal-fte-celebrated-v1';
 
 function isHidden(): boolean {
   try {
