@@ -8,6 +8,7 @@ import { WebsiteSource } from '@radikal/shared';
 import { CompanySchema, type CompanyData } from '../../schemas/steps';
 import { NavButtons } from '../NavButtons';
 import { useAnalyzeWebsite } from '../../hooks/useAnalyzeWebsite';
+import { useAiSuggestions } from '../../hooks/useAiSuggestions';
 import { useChargeConfirm } from '@/features/credits/hooks/useChargeConfirm';
 
 interface WebsiteStepProps {
@@ -77,6 +78,8 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
     },
   });
 
+  const urlSuggestions = useAiSuggestions(urlForm);
+
   const handleAnalyze = async () => {
     setAnalyzeError(null);
     const url = urlForm.getValues('website_url');
@@ -88,10 +91,10 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
     if (!ok) return;
     try {
       const result = await analyze.mutateAsync(url);
-      if (result.business_summary) urlForm.setValue('business_summary', result.business_summary);
-      if (result.main_products) urlForm.setValue('main_products', result.main_products);
-      if (result.ideal_customer) urlForm.setValue('ideal_customer', result.ideal_customer);
-      if (result.unique_value) urlForm.setValue('unique_value', result.unique_value);
+      urlSuggestions.applyIfEmptyOrSuggested('business_summary', result.business_summary ?? '');
+      urlSuggestions.applyIfEmptyOrSuggested('main_products', result.main_products ?? '');
+      urlSuggestions.applyIfEmptyOrSuggested('ideal_customer', result.ideal_customer ?? '');
+      urlSuggestions.applyIfEmptyOrSuggested('unique_value', result.unique_value ?? '');
     } catch (e) {
       setAnalyzeError(
         e instanceof Error ? e.message : 'No pudimos analizar el sitio. Puedes continuar igual.',
@@ -247,21 +250,25 @@ export function WebsiteStep({ defaultValues, onSubmit, onBack, saving }: Website
             label="Resumen del negocio"
             placeholder="Se completará al analizar tu sitio (o escríbelo tú)"
             helperText="Opcional"
+            suggested={urlSuggestions.isSuggested('business_summary')}
             {...urlForm.register('business_summary')}
           />
           <Textarea
             label="Productos o servicios principales"
             helperText="Opcional"
+            suggested={urlSuggestions.isSuggested('main_products')}
             {...urlForm.register('main_products')}
           />
           <Textarea
             label="Cliente ideal"
             helperText="Opcional"
+            suggested={urlSuggestions.isSuggested('ideal_customer')}
             {...urlForm.register('ideal_customer')}
           />
           <Textarea
             label="Propuesta única de valor"
             helperText="Opcional"
+            suggested={urlSuggestions.isSuggested('unique_value')}
             {...urlForm.register('unique_value')}
           />
 

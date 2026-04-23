@@ -8,11 +8,12 @@ export interface TextareaProps
   error?: string;
   helperText?: string;
   containerClassName?: string;
+  suggested?: boolean;
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
-    { className, label, error, helperText, containerClassName, id, ...props },
+    { className, label, error, helperText, containerClassName, id, suggested, ...props },
     ref
   ) => {
     const textareaId = id ?? React.useId();
@@ -27,6 +28,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))] focus:bg-white",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             error && "ring-2 ring-red-500 bg-red-50",
+            suggested && !error && "ring-1 ring-[hsl(var(--color-primary)/0.4)] bg-[hsl(var(--color-primary)/0.04)]",
             className
           )}
           aria-invalid={!!error}
@@ -34,6 +36,11 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         />
         {error ? (
           <p className="text-xs text-red-500 font-medium">{error}</p>
+        ) : suggested ? (
+          <p className="text-xs font-semibold text-[hsl(var(--color-primary))] flex items-center gap-1">
+            <span aria-hidden>✨</span>
+            <span>Sugerido por IA — revísalo y edítalo si hace falta</span>
+          </p>
         ) : helperText ? (
           <p className="text-xs text-[hsl(var(--color-muted))]">{helperText}</p>
         ) : null}

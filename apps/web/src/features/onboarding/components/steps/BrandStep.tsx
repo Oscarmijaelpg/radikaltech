@@ -13,6 +13,7 @@ import {
 import { X } from 'lucide-react';
 import { BrandSchema, type BrandData } from '../../schemas/steps';
 import { NavButtons } from '../NavButtons';
+import { useAiSuggestions } from '../../hooks/useAiSuggestions';
 
 const TONE_OPTIONS = [
   { value: 'profesional', label: 'Profesional' },
@@ -23,21 +24,24 @@ const TONE_OPTIONS = [
   { value: 'lujoso', label: 'Lujoso' },
 ];
 
+type BrandSuggestableField = 'target_audience' | 'brand_story';
+
 interface BrandStepProps {
   defaultValues?: Partial<BrandData>;
+  suggestedFields?: ReadonlyArray<BrandSuggestableField>;
   onSubmit: (data: BrandData) => Promise<void> | void;
   onBack: () => void;
   saving?: boolean;
 }
 
-export function BrandStep({ defaultValues, onSubmit, onBack, saving }: BrandStepProps) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    watch,
-  } = useForm<BrandData>({
+export function BrandStep({
+  defaultValues,
+  suggestedFields,
+  onSubmit,
+  onBack,
+  saving,
+}: BrandStepProps) {
+  const form = useForm<BrandData>({
     resolver: zodResolver(BrandSchema),
     defaultValues: {
       tone_of_voice: defaultValues?.tone_of_voice ?? '',
@@ -52,6 +56,8 @@ export function BrandStep({ defaultValues, onSubmit, onBack, saving }: BrandStep
       logo_url: defaultValues?.logo_url ?? null,
     },
   });
+  const { register, handleSubmit, control, setValue, watch } = form;
+  const suggestions = useAiSuggestions<BrandData>(form, suggestedFields ?? []);
 
   const values = watch('values') ?? [];
   const [valueDraft, setValueDraft] = useState('');
@@ -127,6 +133,7 @@ export function BrandStep({ defaultValues, onSubmit, onBack, saving }: BrandStep
           label="Audiencia objetivo"
           placeholder="¿A quién le hablas? Edad, intereses, necesidades..."
           helperText="Opcional"
+          suggested={suggestions.isSuggested('target_audience')}
           {...register('target_audience')}
         />
 
@@ -134,6 +141,7 @@ export function BrandStep({ defaultValues, onSubmit, onBack, saving }: BrandStep
           label="Ventaja competitiva"
           placeholder="¿Qué hace única a tu marca? ¿Por qué te eligen?"
           helperText="Opcional — se guarda como parte de tu brand story"
+          suggested={suggestions.isSuggested('brand_story')}
           {...register('brand_story')}
         />
 

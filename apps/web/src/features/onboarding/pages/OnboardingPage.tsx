@@ -216,23 +216,33 @@ export function OnboardingPage() {
         />
       )}
 
-      {state.currentStep === 'brand' && (
-        <BrandStep
-          defaultValues={{
-            ...(state.brand ?? {}),
-            target_audience:
-              state.brand?.target_audience || state.company?.ideal_customer || null,
-            brand_story:
-              state.brand?.brand_story || state.company?.unique_value || null,
-          }}
-          saving={saving}
-          onBack={goBack}
-          onSubmit={async (data) => {
-            await submitStep('brand', data);
-            goNext();
-          }}
-        />
-      )}
+      {state.currentStep === 'brand' && (() => {
+        const brandTargetEmpty = !state.brand?.target_audience?.trim();
+        const brandStoryEmpty = !state.brand?.brand_story?.trim();
+        const companyCustomer = state.company?.ideal_customer?.trim();
+        const companyUnique = state.company?.unique_value?.trim();
+        const suggestedFields: Array<'target_audience' | 'brand_story'> = [];
+        if (brandTargetEmpty && companyCustomer) suggestedFields.push('target_audience');
+        if (brandStoryEmpty && companyUnique) suggestedFields.push('brand_story');
+        return (
+          <BrandStep
+            defaultValues={{
+              ...(state.brand ?? {}),
+              target_audience:
+                state.brand?.target_audience || state.company?.ideal_customer || null,
+              brand_story:
+                state.brand?.brand_story || state.company?.unique_value || null,
+            }}
+            suggestedFields={suggestedFields}
+            saving={saving}
+            onBack={goBack}
+            onSubmit={async (data) => {
+              await submitStep('brand', data);
+              goNext();
+            }}
+          />
+        );
+      })()}
 
       {state.currentStep === 'objectives' && (
         <ObjectivesStep

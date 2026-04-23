@@ -8,11 +8,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string;
   containerClassName?: string;
   icon?: string;
+  suggested?: boolean;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, label, error, helperText, containerClassName, id, icon, ...props },
+    { className, label, error, helperText, containerClassName, id, icon, suggested, ...props },
     ref
   ) => {
     const inputId = id ?? React.useId();
@@ -34,6 +35,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))] focus:bg-white",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               error && "ring-2 ring-red-500 bg-red-50",
+              suggested && !error && "ring-1 ring-[hsl(var(--color-primary)/0.4)] bg-[hsl(var(--color-primary)/0.04)]",
               className
             )}
             aria-invalid={!!error}
@@ -42,6 +44,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
         {error ? (
           <p className="text-xs text-red-500 font-medium">{error}</p>
+        ) : suggested ? (
+          <p className="text-xs font-semibold text-[hsl(var(--color-primary))] flex items-center gap-1">
+            <span aria-hidden>✨</span>
+            <span>Sugerido por IA — revísalo y edítalo si hace falta</span>
+          </p>
         ) : helperText ? (
           <p className="text-xs text-[hsl(var(--color-muted))]">{helperText}</p>
         ) : null}
