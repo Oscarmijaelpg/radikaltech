@@ -41,7 +41,16 @@ broadcastAdminRouter.post('/notifications', zValidator('json', broadcastSchema),
   const recipients = await resolveRecipients(body.segment, body.userIds);
 
   if (body.preview) {
-    return c.json(ok({ preview: true, recipientCount: recipients.length }));
+    return c.json(
+      ok({
+        preview: true,
+        recipientCount: recipients.length,
+        warning:
+          recipients.length === 0
+            ? 'No hay destinatarios en el segmento seleccionado.'
+            : undefined,
+      }),
+    );
   }
 
   if (recipients.length === 0) {

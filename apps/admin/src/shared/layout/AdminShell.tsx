@@ -21,9 +21,9 @@ const NAV: NavItem[] = [
   { to: '/scheduled-reports', label: 'Reportes programados', icon: 'event_repeat' },
   { to: '/prices', label: 'Precios', icon: 'paid' },
   { to: '/providers', label: 'Proveedores', icon: 'hub' },
+  { to: '/flags', label: 'Feature flags', icon: 'flag' },
   { to: '/audit', label: 'Historial', icon: 'history' },
   { to: '/config', label: 'Configuración', icon: 'settings' },
-  // '/flags' (Funcionalidades) oculto hasta que se integre con el código
 ];
 
 function getInitials(name?: string | null) {
