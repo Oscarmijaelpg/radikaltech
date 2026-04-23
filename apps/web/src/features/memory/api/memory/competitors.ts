@@ -208,13 +208,11 @@ export function useAnalyzeCompetitor() {
       mode?: AnalysisMode;
       networks?: ScrapeNetwork[];
     }) => {
-      console.info('[comp] POST /:id/analyze (async)', { id, mode, networks });
       // Endpoint ahora responde 202 fire-and-forget; no esperamos el análisis.
       const r = await api.post<{ data: { scheduled: boolean } }>(
         `/competitors/${id}/analyze`,
         mode || networks ? { mode, networks } : undefined,
       );
-      console.info('[comp] analyze scheduled', r.data);
       return r.data;
     },
     onError: (err, vars) => {
@@ -233,19 +231,7 @@ export function useCompetitor(competitorId: string | null | undefined) {
   return useQuery({
     queryKey: ['competitor', competitorId],
     queryFn: async () => {
-      console.debug('[comp] fetching competitor', { competitorId });
       const r = await api.get<{ data: Competitor }>(`/competitors/${competitorId}`);
-      console.debug('[comp] competitor loaded', {
-        competitorId,
-        name: r.data.name,
-        lastAnalyzedAt: r.data.last_analyzed_at,
-        hasNarrative: !!r.data.narrative,
-        narrativeStale: r.data.narrative_stale,
-        summaryLen: r.data.narrative?.summary?.length ?? 0,
-        aestheticLen: r.data.narrative?.aesthetic?.length ?? 0,
-        opportunityLen: r.data.narrative?.opportunity?.length ?? 0,
-        syncStatusKeys: Object.keys(r.data.sync_status ?? {}),
-      });
       return r.data;
     },
     enabled: !!competitorId,
@@ -260,18 +246,7 @@ export function useCompetitor(competitorId: string | null | undefined) {
         !c.last_analyzed_at ||
         c.narrative_stale === true ||
         (!c.narrative && !!c.last_analyzed_at);
-      if (shouldPoll) {
-        console.debug('[comp] polling', {
-          id: c.id,
-          reason: !c.last_analyzed_at
-            ? 'analyzing'
-            : c.narrative_stale
-              ? 'narrative-stale'
-              : 'narrative-missing',
-        });
-        return 3000;
-      }
-      return false;
+      return shouldPoll ? 3000 : false;
     },
   });
 }
@@ -287,12 +262,10 @@ export function useSyncSocial() {
       project_id: string;
       networks?: ScrapeNetwork[];
     }) => {
-      console.info('[comp] POST /:id/sync-social', { id, networks });
       const r = await api.post<{ data: { scheduled: boolean } }>(
         `/competitors/${id}/sync-social`,
         networks ? { networks } : undefined,
       );
-      console.info('[comp] sync-social response', r.data);
       return r.data;
     },
     onError: (err, vars) => {
@@ -311,11 +284,9 @@ export function useRegenerateNarrative() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      console.info('[comp] POST /:id/regenerate-narrative', { id });
       const r = await api.post<{ data: { scheduled: boolean } }>(
         `/competitors/${id}/regenerate-narrative`,
       );
-      console.info('[comp] regenerate-narrative response', r.data);
       return r.data;
     },
     onError: (err, vars) => {

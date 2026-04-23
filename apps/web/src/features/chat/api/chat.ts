@@ -276,25 +276,32 @@ export async function streamMessage(
           if (handlers.onToolCall) {
             try {
               handlers.onToolCall(JSON.parse(dataStr) as StreamToolCallEvent);
-            } catch {}
+            } catch (err) {
+              console.warn('[chat] tool_call parse failed', { err, dataStr });
+            }
           }
         } else if (eventName === 'tool_result') {
           if (handlers.onToolResult) {
             try {
               handlers.onToolResult(JSON.parse(dataStr) as StreamToolResultEvent);
-            } catch {}
+            } catch (err) {
+              console.warn('[chat] tool_result parse failed', { err, dataStr });
+            }
           }
         } else if (eventName === 'agent_turn') {
           if (handlers.onAgentTurn) {
             try {
               handlers.onAgentTurn(JSON.parse(dataStr) as StreamAgentTurnEvent);
-            } catch {}
+            } catch (err) {
+              console.warn('[chat] agent_turn parse failed', { err, dataStr });
+            }
           }
         } else if (eventName === 'done') {
           try {
             const parsed = JSON.parse(dataStr) as StreamDoneEvent;
             handlers.onDone(parsed);
-          } catch {
+          } catch (err) {
+            console.warn('[chat] done parse failed, usando fallback', { err, dataStr });
             handlers.onDone({ messageId: '', tokensUsed: 0 });
           }
         } else if (eventName === 'error') {
@@ -302,7 +309,9 @@ export async function streamMessage(
           try {
             const parsed = JSON.parse(dataStr);
             errMsg = parsed.message ?? errMsg;
-          } catch {}
+          } catch {
+            // dataStr ya tiene el mensaje crudo, lo usamos sin warning
+          }
           handlers.onError(errMsg);
         }
       }

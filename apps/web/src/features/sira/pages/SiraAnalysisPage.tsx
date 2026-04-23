@@ -10,6 +10,14 @@ interface JobLog {
   message: string;
 }
 
+interface AiJobOutput {
+  summary?: {
+    pagesScraped?: number;
+    imagesAnalyzed?: number;
+    providers?: string[];
+  };
+}
+
 interface AiJob {
   id: string;
   kind: string;
@@ -18,6 +26,7 @@ interface AiJob {
   metadata?: {
     logs?: JobLog[];
   };
+  output?: AiJobOutput | null;
   error?: string;
 }
 
@@ -157,25 +166,29 @@ export function SiraAnalysisPage() {
                 )}
             </div>
 
-            {job.status === 'succeeded' && (job as any).output?.summary && (
+            {job.status === 'succeeded' && job.output?.summary && (
               <div className="px-5 py-3 bg-white border-t border-slate-100 flex flex-wrap gap-4 items-center">
-                <div className="flex items-center gap-1.5">
-                  <Icon name="description" className="text-slate-400 text-sm" />
-                  <span className="text-[11px] font-medium text-slate-600">
-                    { (job as any).output.summary.pagesScraped } páginas
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Icon name="image" className="text-slate-400 text-sm" />
-                  <span className="text-[11px] font-medium text-slate-600">
-                    { (job as any).output.summary.imagesAnalyzed } imágenes
-                  </span>
-                </div>
-                { (job as any).output.summary.providers?.length > 0 && (
+                {typeof job.output.summary.pagesScraped === 'number' && (
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="description" className="text-slate-400 text-sm" />
+                    <span className="text-[11px] font-medium text-slate-600">
+                      {job.output.summary.pagesScraped} páginas
+                    </span>
+                  </div>
+                )}
+                {typeof job.output.summary.imagesAnalyzed === 'number' && (
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="image" className="text-slate-400 text-sm" />
+                    <span className="text-[11px] font-medium text-slate-600">
+                      {job.output.summary.imagesAnalyzed} imágenes
+                    </span>
+                  </div>
+                )}
+                {(job.output.summary.providers?.length ?? 0) > 0 && (
                   <div className="flex items-center gap-1.5">
                     <Icon name="dns" className="text-slate-400 text-sm" />
                     <span className="text-[11px] font-medium text-slate-600">
-                      Vía: { (job as any).output.summary.providers.join(', ') }
+                      Vía: {job.output.summary.providers!.join(', ')}
                     </span>
                   </div>
                 )}
