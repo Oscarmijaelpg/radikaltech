@@ -1,12 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
-import { env } from '../../config/env.js';
-import {
-  PROVIDER_URLS,
-  preferredChatEndpoint,
-  preferredChatModel,
-} from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
+import { geminiSearch } from './gemini-search.js';
 
 export interface AutoCompetitorDetectInput {
   projectId: string;
@@ -28,132 +23,73 @@ export interface AutoCompetitorResult {
   competitors: DetectedCompetitor[];
 }
 
-interface TavilyResult {
-  title: string;
-  url: string;
-  content: string;
-  score: number;
+const SYSTEM_PROMPT = `Eres analista estratégico senior en inteligencia competitiva internacional.
+Usa la búsqueda web de Google para identificar competidores reales y vigentes del negocio que te indique el usuario.
+
+Criterios estrictos:
+- Competidor DIRECTO: misma categoría exacta de producto/servicio (no solo misma industria).
+- Mismo mercado geográfico o llegada operativa al país objetivo.
+- Empresa real con website propio y operación comparable.
+
+Descarta de raíz: Wikipedia, LinkedIn, Facebook, Instagram, TikTok, Twitter/X, directorios, agregadores, medios/blogs de noticias, foros, marketplaces genéricos (Amazon, Mercado Libre) salvo que compitan como producto.
+
+Tu única salida es un array JSON válido, sin texto adicional, sin markdown fences, sin comentarios.
+Empieza con [ y termina con ].`;
+
+function stripJsonWrapping(text: string): string {
+  let t = text.trim();
+  t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  const start = t.indexOf('[');
+  const end = t.lastIndexOf(']');
+  if (start >= 0 && end > start) return t.slice(start, end + 1);
+  return t;
 }
 
-async function tavilySearch(query: string): Promise<TavilyResult[]> {
-  if (!env.TAVILY_API_KEY) return [];
-  const res = await fetch(PROVIDER_URLS.tavily.search, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key: env.TAVILY_API_KEY,
-      query,
-      search_depth: 'advanced',
-      include_answer: false,
-      max_results: 12,
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!res.ok) throw new Error(`Tavily ${res.status}`);
-  const body = await res.json();
-  return Array.isArray(body.results) ? body.results : [];
+interface RawCompetitor {
+  name?: unknown;
+  website?: unknown;
+  description?: unknown;
+  country?: unknown;
+  why_competitor?: unknown;
+  social_links?: unknown;
 }
 
-async function synthesize(
-  industry: string,
-  countries: string[],
-  businessSummary: string,
-  results: TavilyResult[],
-): Promise<Array<Omit<DetectedCompetitor, 'id'>>> {
-  if (!env.OPENROUTER_API_KEY && !env.OPENAI_API_KEY) return [];
-  const ctx = results
-    .slice(0, 10)
-    .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content.slice(0, 500)}`)
-    .join('\n\n');
-  const url = preferredChatEndpoint();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY}`,
-  };
-  if (env.OPENROUTER_API_KEY) {
-    headers['HTTP-Referer'] = env.WEB_URL;
-    headers['X-Title'] = 'Radikal';
-  }
-  const res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: preferredChatModel(),
-      response_format: { type: 'json_object' },
-      temperature: 0.3,
-      messages: [
-        {
-          role: 'system',
-          content: `Eres un analista estratégico senior especializado en análisis competitivo. Tu objetivo es identificar competidores DIRECTOS del negocio descrito, NO generales de la industria.
+const EXCLUDED_HOSTS = /(?:wikipedia|linkedin|facebook|instagram|tiktok|twitter|x\.com|youtube|reddit|amazon|mercadolibre)\./i;
 
-Criterios estrictos para considerar "competidor":
-1. Opera en la MISMA categoría exacta de producto/servicio (no solo la misma industria).
-2. Sirve a un público objetivo similar.
-3. Está presente o llega al MISMO mercado geográfico.
-4. Es una empresa real con website propio (no directorios, agregadores, noticias).
-
-Descarta:
-- Medios/blogs ("tripadvisor", "yelp", "revista X")
-- Empresas de otra categoría aunque compartan industria (ej: si es una hamburguesería, NO incluyas pizzerías genéricas)
-- Empresas muy grandes globales si el negocio es local/regional
-- URLs de Wikipedia, LinkedIn, redes sociales
-
-Devuelves SOLO JSON con:
-{
-  competitors: [
-    {
-      name: string (nombre de marca),
-      website: string (URL raíz, ej "https://marca.com"),
-      description: string (10-25 palabras sobre QUÉ vende y a QUIÉN),
-      country: string (ISO alpha-2),
-      why_competitor: string (1 frase concreta: por qué compite con el usuario),
-      social_links: {
-        instagram: string (URL o null),
-        tiktok: string (URL o null),
-        linkedin: string (URL o null)
-      }
-    }
-  ]
-}
-
-3-6 competidores MUY relevantes. Si no hay suficientes certeros, devuelve solo los que sí lo son (mínimo 2).`,
-        },
-        {
-          role: 'user',
-          content: `Negocio a analizar:
-- Industria: ${industry}
-- Países objetivo: ${countries.join(', ') || 'global'}
-- Descripción: ${businessSummary}
-
-Resultados de búsqueda Tavily (evalúa cuáles son realmente competidores directos):
-${ctx}
-
-Filtra y devuelve SOLO los competidores directos reales.`,
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(40_000),
-  });
-  if (!res.ok) throw new Error(`AI ${res.status}`);
-  const body = await res.json();
-  const content = body.choices?.[0]?.message?.content ?? '{}';
+function parseCompetitors(text: string): Array<Omit<DetectedCompetitor, 'id'>> {
+  const clean = stripJsonWrapping(text);
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(content);
-    if (!Array.isArray(parsed.competitors)) return [];
-    return parsed.competitors
-      .filter((c: unknown): c is Record<string, unknown> => !!c && typeof c === 'object')
-      .slice(0, 6)
-      .map((c: Record<string, unknown>) => ({
-        name: String(c.name ?? '').trim() || 'Competidor',
-        website: typeof c.website === 'string' ? c.website : null,
-        description: typeof c.description === 'string' ? c.description : null,
-        country: typeof c.country === 'string' ? c.country.toUpperCase().slice(0, 2) : null,
-        why_competitor: typeof c.why_competitor === 'string' ? c.why_competitor : null,
-        social_links: (c.social_links as Record<string, string>) || {},
-      }));
-  } catch {
+    parsed = JSON.parse(clean);
+  } catch (err) {
+    logger.warn({ err, snippet: clean.slice(0, 200) }, 'failed to parse competitor JSON');
     return [];
   }
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((c): c is RawCompetitor => !!c && typeof c === 'object')
+    .map((c) => {
+      const social =
+        c.social_links && typeof c.social_links === 'object'
+          ? (c.social_links as Record<string, unknown>)
+          : {};
+      const normalized: Record<string, string> = {};
+      for (const [k, v] of Object.entries(social)) {
+        if (typeof v === 'string' && v.trim()) normalized[k] = v.trim();
+      }
+      return {
+        name: typeof c.name === 'string' ? c.name.trim() || 'Competidor' : 'Competidor',
+        website: typeof c.website === 'string' ? c.website.trim() : null,
+        description: typeof c.description === 'string' ? c.description : null,
+        country:
+          typeof c.country === 'string' ? c.country.toUpperCase().slice(0, 2) : null,
+        why_competitor:
+          typeof c.why_competitor === 'string' ? c.why_competitor : null,
+        social_links: normalized,
+      };
+    })
+    .filter((c) => !c.website || !EXCLUDED_HOSTS.test(c.website))
+    .slice(0, 6);
 }
 
 export class AutoCompetitorDetector {
@@ -179,18 +115,53 @@ export class AutoCompetitorDetector {
     });
 
     try {
-      // Query más específica basada en el business_summary (no solo industry genérica)
-      const bizSnippet = (project.businessSummary ?? '').split(/[.!?]/)[0]?.trim().slice(0, 100);
-      const query = bizSnippet
-        ? `competidores directos de "${bizSnippet}" en ${countryText}`
-        : `competidores directos de ${industry} en ${countryText}`;
-      const results = await tavilySearch(query);
-      const synthed = await synthesize(
-        industry,
-        countries,
-        project.businessSummary ?? '',
-        results,
+      const lines = [
+        'Negocio a analizar:',
+        `- Nombre: ${project.companyName ?? 'sin nombre'}`,
+        `- Industria: ${industry}`,
+        `- Países/mercados objetivo: ${countryText}`,
+        `- Descripción: ${project.businessSummary ?? 'sin descripción'}`,
+      ];
+      if (project.mainProducts) {
+        lines.push(`- Productos/servicios: ${project.mainProducts}`);
+      }
+      if (project.uniqueValue) {
+        lines.push(`- Propuesta de valor: ${project.uniqueValue}`);
+      }
+      lines.push(
+        '',
+        'Instrucciones:',
+        '1. Busca competidores DIRECTOS con presencia en al menos uno de los países objetivo.',
+        '2. Valida cada competidor con la web: debe existir, tener website propio y operación comparable.',
+        '3. Si no encuentras suficientes con certeza, devuelve menos (mínimo 2, máximo 6).',
+        '',
+        'Devuelve SOLO un array JSON con esta estructura exacta:',
+        '[',
+        '  {',
+        '    "name": "nombre de marca",',
+        '    "website": "URL raíz (https://marca.com)",',
+        '    "description": "10-25 palabras: qué vende y a quién",',
+        '    "country": "ISO alpha-2 del país principal",',
+        '    "why_competitor": "1 frase concreta",',
+        '    "social_links": { "instagram": "URL o omitir", "tiktok": "URL o omitir", "linkedin": "URL o omitir" }',
+        '  }',
+        ']',
       );
+      const userPrompt = lines.join('\n');
+
+      const search = await geminiSearch(userPrompt, {
+        systemPrompt: SYSTEM_PROMPT,
+        temperature: 0.3,
+        timeoutMs: 60_000,
+      });
+
+      const synthed = parseCompetitors(search.text);
+      if (synthed.length === 0) {
+        logger.warn(
+          { snippet: search.text.slice(0, 300), sourceCount: search.sources.length },
+          'gemini search returned 0 usable competitors',
+        );
+      }
 
       const created: DetectedCompetitor[] = [];
       for (const c of synthed) {
@@ -226,7 +197,11 @@ export class AutoCompetitorDetector {
         where: { id: job.id },
         data: {
           status: 'succeeded',
-          output: { count: created.length } as unknown as Prisma.InputJsonValue,
+          output: {
+            count: created.length,
+            sources: search.sources.slice(0, 20),
+            queries: search.queriesUsed,
+          } as unknown as Prisma.InputJsonValue,
           finishedAt: new Date(),
         },
       });

@@ -4,9 +4,7 @@ vi.mock('../../src/config/env.js', () => ({
   env: {
     NODE_ENV: 'test',
     WEB_URL: 'http://localhost:3000',
-    TAVILY_API_KEY: 'tv',
-    OPENROUTER_API_KEY: 'or',
-    OPENAI_API_KEY: 'oa',
+    GEMINI_API_KEY: 'gem',
     LOG_LEVEL: 'silent',
   },
 }));
@@ -27,53 +25,54 @@ describe('AutoCompetitorDetector', () => {
     mockPrisma.competitor.create.mockReset();
   });
 
-  it('builds a prompt that instructs to discard wikipedia/linkedin/facebook domains', async () => {
+  it('parses JSON from Gemini, drops excluded hosts and persists real competitors', async () => {
     mockPrisma.project.findUnique.mockResolvedValue({
       id: 'p1',
       userId: 'u1',
+      companyName: 'Radikal',
       operatingCountries: ['CO'],
       operatingCountriesSuggested: [],
       industry: 'saas',
       industryCustom: null,
       businessSummary: 'We build CRM for SMB.',
+      mainProducts: [],
+      uniqueValue: null,
     });
     mockPrisma.aiJob.create.mockResolvedValue({ id: 'job-1' });
     mockPrisma.aiJob.update.mockResolvedValue({});
-    mockPrisma.competitor.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
-      id: 'c1',
-      name: data.name,
-      website: data.website ?? null,
-    }));
+    mockPrisma.competitor.create.mockImplementation(
+      async ({ data }: { data: Record<string, unknown> }) => ({
+        id: 'c1',
+        name: data.name,
+        website: data.website ?? null,
+        socialLinks: data.socialLinks ?? {},
+      }),
+    );
 
-    const aiBodies: string[] = [];
+    const geminiBodies: string[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url);
-      if (u.includes('tavily.com')) {
+      if (u.includes('generativelanguage.googleapis.com')) {
+        geminiBodies.push(String(init?.body ?? ''));
         return new Response(
           JSON.stringify({
-            results: [
-              { title: 'Acme CRM', url: 'https://acme.com', content: 'crm', score: 1 },
-            ],
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
-      }
-      if (u.includes('openrouter') || u.includes('openai.com')) {
-        aiBodies.push(String(init?.body ?? ''));
-        return new Response(
-          JSON.stringify({
-            choices: [
+            candidates: [
               {
-                message: {
-                  content: JSON.stringify({
-                    competitors: [
-                      { name: 'Good', website: 'https://good.com', description: 'ok', country: 'CO', why_competitor: 'direct' },
-                      // These simulate "what we DO NOT want in output"; our filter must drop them.
-                      { name: 'Wiki', website: 'https://wikipedia.org/wiki/Acme', description: 'x', country: 'US', why_competitor: 'x' },
-                      { name: 'Ln', website: 'https://linkedin.com/company/acme', description: 'x', country: 'US', why_competitor: 'x' },
-                      { name: 'Fb', website: 'https://facebook.com/acme', description: 'x', country: 'US', why_competitor: 'x' },
-                    ],
-                  }),
+                content: {
+                  parts: [
+                    {
+                      text: JSON.stringify([
+                        { name: 'Good', website: 'https://good.com', description: 'crm para pymes', country: 'CO', why_competitor: 'direct' },
+                        { name: 'Wiki', website: 'https://es.wikipedia.org/wiki/CRM', description: 'x', country: 'US', why_competitor: 'x' },
+                        { name: 'Ln', website: 'https://linkedin.com/company/acme', description: 'x', country: 'US', why_competitor: 'x' },
+                        { name: 'Fb', website: 'https://facebook.com/acme', description: 'x', country: 'US', why_competitor: 'x' },
+                      ]),
+                    },
+                  ],
+                },
+                groundingMetadata: {
+                  groundingChunks: [{ web: { uri: 'https://good.com/about', title: 'Good' } }],
+                  webSearchQueries: ['competidores CRM Colombia'],
                 },
               },
             ],
@@ -89,13 +88,74 @@ describe('AutoCompetitorDetector', () => {
       '../../src/modules/ai-services/auto-competitor-detector.js'
     );
     const det = new AutoCompetitorDetector();
-    await det.detect({ projectId: 'p1', userId: 'u1' });
+    const res = await det.detect({ projectId: 'p1', userId: 'u1' });
 
-    expect(aiBodies.length).toBeGreaterThan(0);
-    const systemMsg = aiBodies.join('\n');
-    // Built prompt must explicitly instruct the model to drop these domains.
-    expect(systemMsg).toMatch(/Wikipedia/i);
-    expect(systemMsg).toMatch(/LinkedIn/i);
-    expect(systemMsg).toMatch(/redes sociales|redes/i);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(geminiBodies[0]).toMatch(/googleSearch/);
+    expect(geminiBodies[0]).toMatch(/CRM|SMB/);
+
+    expect(mockPrisma.competitor.create).toHaveBeenCalledOnce();
+    const createdArg = mockPrisma.competitor.create.mock.calls[0]![0] as { data: Record<string, unknown> };
+    expect(createdArg.data.name).toBe('Good');
+    expect(createdArg.data.website).toBe('https://good.com');
+
+    expect(res.competitors).toHaveLength(1);
+    expect(res.competitors[0]!.name).toBe('Good');
+  });
+
+  it('tolera respuesta envuelta en ```json ... ``` y filtra hosts excluidos', async () => {
+    mockPrisma.project.findUnique.mockResolvedValue({
+      id: 'p2',
+      userId: 'u1',
+      companyName: 'Acme',
+      operatingCountries: [],
+      operatingCountriesSuggested: ['MX'],
+      industry: 'fintech',
+      industryCustom: null,
+      businessSummary: 'Pagos',
+      mainProducts: [],
+      uniqueValue: null,
+    });
+    mockPrisma.aiJob.create.mockResolvedValue({ id: 'job-2' });
+    mockPrisma.aiJob.update.mockResolvedValue({});
+    mockPrisma.competitor.create.mockImplementation(
+      async ({ data }: { data: Record<string, unknown> }) => ({
+        id: 'x',
+        name: data.name,
+        website: data.website ?? null,
+        socialLinks: data.socialLinks ?? {},
+      }),
+    );
+
+    const wrapped =
+      '```json\n' +
+      JSON.stringify([
+        { name: 'Kueski', website: 'https://kueski.com', description: 'préstamos mx', country: 'MX', why_competitor: 'mismo mercado' },
+        { name: 'Twitter-thing', website: 'https://twitter.com/kueski', description: 'x', country: 'MX', why_competitor: 'x' },
+      ]) +
+      '\n```';
+
+    const fetchMock = vi.fn(async (url: string) => {
+      const u = String(url);
+      if (u.includes('generativelanguage.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: wrapped }] } }],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      return new Response('{}', { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { AutoCompetitorDetector } = await import(
+      '../../src/modules/ai-services/auto-competitor-detector.js'
+    );
+    const det = new AutoCompetitorDetector();
+    const res = await det.detect({ projectId: 'p2', userId: 'u1' });
+
+    expect(res.competitors).toHaveLength(1);
+    expect(res.competitors[0]!.name).toBe('Kueski');
   });
 });
