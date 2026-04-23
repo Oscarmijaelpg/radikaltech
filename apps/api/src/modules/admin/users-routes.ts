@@ -1,13 +1,31 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
+import { createClient } from '@supabase/supabase-js';
 import { prisma, Prisma } from '@radikal/db';
 import type { AuthVariables } from '../../middleware/auth.js';
 import { ok, paginated, buildPageMeta } from '../../lib/response.js';
-import { NotFound, BadRequest } from '../../lib/errors.js';
+import { NotFound, BadRequest, Forbidden } from '../../lib/errors.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
+import { env } from '../../config/env.js';
 import { creditService } from '../credits/service.js';
 import { logAudit } from './audit-service.js';
+
+// Cliente Supabase stateless para validar contraseñas sin contaminar la sesión del admin.
+// Lazy: evita inicializar al importar el módulo (rompería los tests que mockean el env).
+let _supabaseAuthOnly: ReturnType<typeof createClient> | null = null;
+function getAuthClient() {
+  if (!_supabaseAuthOnly) {
+    _supabaseAuthOnly = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return _supabaseAuthOnly;
+}
+
+const deleteUserSchema = z.object({
+  password: z.string().min(1, 'La contraseña del admin es requerida'),
+});
 
 export const usersAdminRouter = new Hono<{ Variables: AuthVariables }>();
 
@@ -220,10 +238,22 @@ usersAdminRouter.get('/:id/export', async (c) => {
   );
 });
 
-usersAdminRouter.delete('/:id', async (c) => {
+usersAdminRouter.delete('/:id', zValidator('json', deleteUserSchema), async (c) => {
   const id = c.req.param('id');
   const caller = c.get('user');
   if (caller.id === id) throw new BadRequest('No puedes eliminar tu propia cuenta desde aquí');
+
+  const body = c.req.valid('json');
+
+  // Re-confirmación: el admin debe validar su contraseña antes de una operación
+  // destructiva irreversible. Evita que un token robado dispare deletes sin
+  // segundo factor.
+  if (!caller.email) throw new Forbidden('El admin no tiene email registrado');
+  const { error: authErr } = await getAuthClient().auth.signInWithPassword({
+    email: caller.email,
+    password: body.password,
+  });
+  if (authErr) throw new Forbidden('Contraseña incorrecta');
 
   const before = await prisma.profile.findUnique({ where: { id } });
   if (!before) throw new NotFound('Usuario no encontrado');

@@ -81,5 +81,5 @@ export const api = {
   post: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'POST', json }),
   patch: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PATCH', json }),
   put: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PUT', json }),
-  delete: <T>(path: string) => apiRequest<T>(path, { method: 'DELETE' }),
+  delete: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'DELETE', json }),
 };

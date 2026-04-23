@@ -71,7 +71,8 @@ export function useUpdateUser() {
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete<{ data: { deleted: true } }>(`/admin/users/${id}`),
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      api.delete<{ data: { deleted: true } }>(`/admin/users/${id}`, { password }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'users'] });
       qc.invalidateQueries({ queryKey: ['admin', 'stats'] });

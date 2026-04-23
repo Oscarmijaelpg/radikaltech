@@ -20,7 +20,9 @@ interface Props {
   confirmText: string;
   confirmLabel?: string;
   loading?: boolean;
-  onConfirm: () => void;
+  /** Si se setea a true, pide también la contraseña del admin caller. */
+  requirePassword?: boolean;
+  onConfirm: (password?: string) => void;
 }
 
 export function ConfirmDeleteDialog({
@@ -31,17 +33,23 @@ export function ConfirmDeleteDialog({
   confirmText,
   confirmLabel = 'Eliminar',
   loading,
+  requirePassword = false,
   onConfirm,
 }: Props) {
   const [value, setValue] = useState('');
-  const canConfirm = value === confirmText;
+  const [password, setPassword] = useState('');
+  const canConfirm =
+    value === confirmText && (!requirePassword || password.length > 0);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
         onOpenChange(o);
-        if (!o) setValue('');
+        if (!o) {
+          setValue('');
+          setPassword('');
+        }
       }}
     >
       <DialogContent>
@@ -57,16 +65,34 @@ export function ConfirmDeleteDialog({
           </div>
         </DialogHeader>
 
-        <div className="space-y-2 mt-2">
-          <Label htmlFor="confirm">
-            Para confirmar, escribe: <span className="font-mono text-red-600">{confirmText}</span>
-          </Label>
-          <Input
-            id="confirm"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoComplete="off"
-          />
+        <div className="space-y-4 mt-2">
+          <div className="space-y-2">
+            <Label htmlFor="confirm">
+              Para confirmar, escribe: <span className="font-mono text-red-600">{confirmText}</span>
+            </Label>
+            <Input
+              id="confirm"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+
+          {requirePassword && (
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">
+                Tu contraseña de admin (re-confirmación)
+              </Label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -74,7 +100,7 @@ export function ConfirmDeleteDialog({
             Cancelar
           </Button>
           <Button
-            onClick={onConfirm}
+            onClick={() => onConfirm(requirePassword ? password : undefined)}
             disabled={!canConfirm || loading}
             className="bg-red-600 hover:bg-red-700"
           >

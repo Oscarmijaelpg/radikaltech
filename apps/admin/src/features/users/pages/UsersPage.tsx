@@ -342,9 +342,10 @@ export function UsersPage() {
         description={`Esta acción elimina la cuenta ${quickDelete?.email ?? ''} y TODOS sus datos. No se puede deshacer.`}
         confirmText={quickDelete?.email ?? ''}
         loading={deleteUser.isPending}
-        onConfirm={async () => {
-          if (!quickDelete) return;
-          await deleteUser.mutateAsync(quickDelete.id);
+        requirePassword
+        onConfirm={async (password) => {
+          if (!quickDelete || !password) return;
+          await deleteUser.mutateAsync({ id: quickDelete.id, password });
           setQuickDelete(null);
         }}
       />

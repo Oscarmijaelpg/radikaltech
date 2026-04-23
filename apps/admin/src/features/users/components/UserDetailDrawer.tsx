@@ -132,10 +132,10 @@ export function UserDetailDrawer({ userId, onClose }: Props) {
     }
   };
 
-  const onConfirmDelete = async () => {
-    if (!userId) return;
+  const onConfirmDelete = async (password?: string) => {
+    if (!userId || !password) return;
     try {
-      await deleteUser.mutateAsync(userId);
+      await deleteUser.mutateAsync({ id: userId, password });
       setConfirmDelete(false);
       onClose();
       toast({ variant: 'success', title: 'Usuario eliminado' });
@@ -236,6 +236,7 @@ export function UserDetailDrawer({ userId, onClose }: Props) {
         confirmText={user?.email ?? ''}
         confirmLabel="Eliminar cuenta"
         loading={deleteUser.isPending}
+        requirePassword
         onConfirm={onConfirmDelete}
       />
     </>
