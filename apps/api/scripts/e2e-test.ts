@@ -8,7 +8,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 
-const API_URL = process.env.API_URL ?? 'http://localhost:3002/api/v1';
+const API_URL = process.env.API_URL ?? 'http://localhost:3003/api/v1';
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
@@ -367,6 +367,186 @@ async function scenarioJobsEndpoints(ctx: TestContext): Promise<TestResult[]> {
   return r;
 }
 
+async function scenarioOnboardingFull(ctx: TestContext): Promise<TestResult[]> {
+  const r: TestResult[] = [];
+  log('info', 'Escenario: onboarding completo end-to-end (5 pasos, sin jobs externos)');
+
+  // Step 1: company (con source=none para NO disparar scrape remoto)
+  try {
+    await apiFetch('/onboarding/step', ctx, {
+      method: 'POST',
+      body: JSON.stringify({
+        step: 'company',
+        data: {
+          company_name: 'Radikal E2E SA',
+          industry: 'saas',
+          website_source: 'none',
+          business_summary: 'Plataforma de inteligencia de marca end-to-end.',
+          ideal_customer: 'Equipos de marketing en startups B2B',
+          unique_value: 'IA multimodal integrada al workflow',
+          main_products: 'Dashboard, reportes, agentes IA',
+        },
+      }),
+    });
+    r.push({ name: 'step company', passed: true });
+  } catch (e) {
+    r.push({ name: 'step company', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  // Step 2: socials (vacío para no disparar scrapes)
+  try {
+    await apiFetch('/onboarding/step', ctx, {
+      method: 'POST',
+      body: JSON.stringify({ step: 'socials', data: { accounts: [] } }),
+    });
+    r.push({ name: 'step socials (vacío)', passed: true });
+  } catch (e) {
+    r.push({ name: 'step socials', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  // Step 3: brand
+  try {
+    await apiFetch('/onboarding/step', ctx, {
+      method: 'POST',
+      body: JSON.stringify({
+        step: 'brand',
+        data: {
+          tone_of_voice: 'profesional',
+          target_audience: 'CMOs de startups con 10-200 empleados',
+          brand_story: 'Nacimos para democratizar la inteligencia de marca con IA.',
+          values: ['transparencia', 'velocidad', 'precisión'],
+        },
+      }),
+    });
+    r.push({ name: 'step brand', passed: true });
+  } catch (e) {
+    r.push({ name: 'step brand', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  // Step 4: objectives
+  try {
+    await apiFetch('/onboarding/step', ctx, {
+      method: 'POST',
+      body: JSON.stringify({
+        step: 'objectives',
+        data: {
+          objectives: [
+            { title: 'Publicar 1 reporte semanal', priority: 1 },
+            { title: 'Auditar 3 competidores este mes', priority: 2 },
+          ],
+        },
+      }),
+    });
+    r.push({ name: 'step objectives', passed: true });
+  } catch (e) {
+    r.push({ name: 'step objectives', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  // Step 5: complete
+  try {
+    await apiFetch('/onboarding/complete', ctx, { method: 'POST' });
+    r.push({ name: 'complete', passed: true });
+  } catch (e) {
+    r.push({ name: 'complete', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  // Verificar estado final
+  try {
+    const state = await apiFetch<{
+      data: {
+        currentStep: string;
+        onboarding_completed: boolean;
+        data: {
+          company: { company_name: string; industry: string } | null;
+          brand: { tone_of_voice: string | null; values: string[] } | null;
+          objectives: { objectives: Array<{ title: string }> };
+        };
+      };
+    }>('/onboarding/state', ctx);
+    const d = state.data;
+    r.push({
+      name: 'estado final: currentStep=completed + onboarding_completed=true',
+      passed: d.currentStep === 'completed' && d.onboarding_completed === true,
+      detail: `currentStep=${d.currentStep} completed=${d.onboarding_completed}`,
+    });
+    r.push({
+      name: 'company persistido',
+      passed: d.data.company?.company_name === 'Radikal E2E SA' && d.data.company?.industry === 'saas',
+    });
+    r.push({
+      name: 'brand persistido con values',
+      passed: d.data.brand?.tone_of_voice === 'profesional' && (d.data.brand?.values ?? []).length === 3,
+    });
+    r.push({
+      name: 'objectives persistidos (2)',
+      passed: d.data.objectives.objectives.length === 2,
+    });
+  } catch (e) {
+    r.push({ name: 'GET /onboarding/state final', passed: false, detail: (e as Error).message });
+  }
+
+  return r;
+}
+
+async function scenarioJobsIsolation(ctxA: TestContext): Promise<TestResult[]> {
+  const r: TestResult[] = [];
+  log('info', 'Escenario: aislamiento de jobs por userId (fix de autorización)');
+
+  // Crear un segundo usuario temporal y verificar que NO ve jobs del primero
+  let ctxB: TestContext | null = null;
+  try {
+    ctxB = await createTestUser();
+  } catch (e) {
+    r.push({ name: 'crear segundo usuario', passed: false, detail: (e as Error).message });
+    return r;
+  }
+
+  try {
+    // userA: lista sus jobs recientes (de escenarios anteriores debería tener alguno)
+    const jobsA = await apiFetch<{ data: AiJob[] }>('/jobs/recent?limit=50', ctxA);
+    const hasAnyJobA = jobsA.data.length > 0;
+
+    // userB: mismo endpoint
+    const jobsB = await apiFetch<{ data: AiJob[] }>('/jobs/recent?limit=50', ctxB);
+
+    // userB no debe ver NINGÚN job del project del userA
+    const projectIds = new Set(jobsA.data.map((j) => j.project_id).filter(Boolean) as string[]);
+    const leakedToB = jobsB.data.some((j) => j.project_id && projectIds.has(j.project_id));
+
+    r.push({
+      name: 'userA tiene jobs en /jobs/recent',
+      passed: hasAnyJobA,
+      detail: `userA.n=${jobsA.data.length}`,
+    });
+    r.push({
+      name: 'userB NO ve jobs del project de userA',
+      passed: !leakedToB,
+      detail: `userB.n=${jobsB.data.length} leaked=${leakedToB}`,
+    });
+
+    // Mismo check con /jobs/active
+    const activeA = await apiFetch<{ data: AiJob[] }>('/jobs/active', ctxA);
+    const activeB = await apiFetch<{ data: AiJob[] }>('/jobs/active', ctxB);
+    const leakedActive = activeB.data.some((j) => j.project_id && projectIds.has(j.project_id));
+    r.push({
+      name: 'userB NO ve /jobs/active del userA',
+      passed: !leakedActive,
+      detail: `A.active=${activeA.data.length} B.active=${activeB.data.length}`,
+    });
+  } catch (e) {
+    r.push({ name: 'aislamiento /jobs', passed: false, detail: (e as Error).message });
+  } finally {
+    if (ctxB) await cleanupUser(ctxB);
+  }
+
+  return r;
+}
+
 async function scenarioNotificationsEndpoint(ctx: TestContext): Promise<TestResult[]> {
   const r: TestResult[] = [];
   log('info', 'Escenario: endpoint /notifications');
@@ -399,10 +579,12 @@ async function main() {
   try {
     allResults.push(...(await scenarioJobsEndpoints(ctx)));
     allResults.push(...(await scenarioNotificationsEndpoint(ctx)));
+    allResults.push(...(await scenarioOnboardingFull(ctx)));
     allResults.push(...(await scenarioOnboardingCompany(ctx)));
     allResults.push(...(await scenarioCreateProjectWithWebsite(ctx)));
     allResults.push(...(await scenarioWebsiteFailure(ctx)));
     allResults.push(...(await scenarioInstagramInvalidHandle(ctx)));
+    allResults.push(...(await scenarioJobsIsolation(ctx)));
   } catch (e) {
     log('fail', `Aborted: ${(e as Error).message}`);
   } finally {
