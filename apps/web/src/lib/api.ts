@@ -104,10 +104,46 @@ export class ApiError extends Error {
   }
 }
 
+export async function apiStream(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const token = await resolveToken();
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream',
+  });
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!res.ok || !res.body) {
+    let message = `Error ${res.status}`;
+    let parsed: unknown;
+    try {
+      parsed = await res.json();
+      const b = parsed as { error?: { message?: string }; message?: string };
+      message = b?.error?.message ?? b?.message ?? message;
+    } catch {
+      // body ya se consumió o no es JSON
+    }
+    throw new ApiError(message, res.status, parsed);
+  }
+
+  return res;
+}
+
 export const api = {
   get: <T>(path: string) => apiRequest<T>(path),
   post: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'POST', json }),
   patch: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PATCH', json }),
   put: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PUT', json }),
-  delete: <T>(path: string) => apiRequest<T>(path, { method: 'DELETE' }),
+  delete: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'DELETE', json }),
+  stream: apiStream,
 };

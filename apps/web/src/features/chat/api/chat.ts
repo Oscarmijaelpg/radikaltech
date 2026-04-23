@@ -1,11 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Chat, ChatFolder, Message } from '@radikal/shared';
-import { api } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
+import { api, ApiError } from '@/lib/api';
 
 export type { Chat, ChatFolder, Message };
-
-const API_URL = (import.meta.env.VITE_API_URL as string) || '/api';
 
 export function useChats(projectId?: string | null, archived = false) {
   return useQuery({
@@ -224,31 +221,21 @@ export async function streamMessage(
     targetAgentId?: string;
   },
 ): Promise<void> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-
-  const res = await fetch(`${API_URL}/chats/${chatId}/messages/stream`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      Accept: 'text/event-stream',
-    },
-    body: JSON.stringify({ content, target_agent_id: handlers.targetAgentId }),
-    signal: handlers.signal,
-  });
-
-  if (!res.ok || !res.body) {
-    let msg = `Error ${res.status}`;
-    try {
-      const body = await res.json();
-      msg = body?.error?.message ?? body?.message ?? msg;
-    } catch {}
-    handlers.onError(msg);
+  let res: Response;
+  try {
+    res = await api.stream(
+      `/chats/${chatId}/messages/stream`,
+      { content, target_agent_id: handlers.targetAgentId },
+      handlers.signal,
+    );
+  } catch (err) {
+    if (err instanceof ApiError) handlers.onError(err.message);
+    else if (err instanceof DOMException && err.name === 'AbortError') return;
+    else handlers.onError(err instanceof Error ? err.message : 'Stream error');
     return;
   }
 
-  const reader = res.body.getReader();
+  const reader = res.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
 
