@@ -28,23 +28,18 @@ export function useDetectCompetitors() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { project_id: string }) => {
-      const r = await api.post<{
-        data: {
-          jobId: string;
-          competitors: Array<{
-            id: string;
-            name: string;
-            website: string | null;
-            description: string | null;
-            country: string | null;
-            why_competitor: string | null;
-          }>;
-        };
-      }>('/ai-services/detect-competitors', input);
+      // Fire-and-forget: el backend cobra + spawnea la pipeline (~20-25s) y
+      // responde de inmediato. useActiveJobs polea /jobs/active y refresca
+      // la lista de competidores cuando el job termina.
+      const r = await api.post<{ data: { started: boolean; transactionId: string } }>(
+        '/ai-services/detect-competitors',
+        input,
+      );
       return r.data;
     },
     onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: ['competitors', vars.project_id] });
+      qc.invalidateQueries({ queryKey: ['jobs', 'active', vars.project_id] });
+      qc.invalidateQueries({ queryKey: ['jobs', 'active', 'user'] });
     },
   });
 }

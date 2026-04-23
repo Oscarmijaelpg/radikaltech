@@ -1,7 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
-import { geminiSearch } from './gemini-search.js';
+import { moonshotWebSearch, stripJsonWrapping } from './moonshot.js';
 
 export interface AutoCompetitorDetectInput {
   projectId: string;
@@ -23,73 +23,160 @@ export interface AutoCompetitorResult {
   competitors: DetectedCompetitor[];
 }
 
-const SYSTEM_PROMPT = `Eres analista estratégico senior en inteligencia competitiva internacional.
-Usa la búsqueda web de Google para identificar competidores reales y vigentes del negocio que te indique el usuario.
+const FINAL_COMPETITORS_TARGET = 8;
 
-Criterios estrictos:
+const SYSTEM_PROMPT = `Eres analista estratégico senior especializado en inteligencia competitiva internacional.
+Tienes acceso a la web mediante la herramienta $web_search y DEBES usarla para validar cada competidor que propongas.
+
+Reglas estrictas:
 - Competidor DIRECTO: misma categoría exacta de producto/servicio (no solo misma industria).
 - Mismo mercado geográfico o llegada operativa al país objetivo.
-- Empresa real con website propio y operación comparable.
+- Empresa real con website propio y operación vigente verificable.
+- Si no encuentras evidencia real con $web_search → NO incluyas el competidor.
+- Excluye Wikipedia, LinkedIn, Facebook, Instagram, TikTok, Twitter/X, YouTube, Reddit, agregadores y marketplaces genéricos (Amazon, Mercado Libre) salvo que compitan como producto.
 
-Descarta de raíz: Wikipedia, LinkedIn, Facebook, Instagram, TikTok, Twitter/X, directorios, agregadores, medios/blogs de noticias, foros, marketplaces genéricos (Amazon, Mercado Libre) salvo que compitan como producto.
+Tu única salida es un objeto JSON válido, sin texto adicional, sin markdown fences, sin comentarios.
+Empieza con { y termina con }.`;
 
-Tu única salida es un array JSON válido, sin texto adicional, sin markdown fences, sin comentarios.
-Empieza con [ y termina con ].`;
-
-function stripJsonWrapping(text: string): string {
-  let t = text.trim();
-  t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-  const start = t.indexOf('[');
-  const end = t.lastIndexOf(']');
-  if (start >= 0 && end > start) return t.slice(start, end + 1);
-  return t;
-}
-
-interface RawCompetitor {
+interface KimiCompetitor {
   name?: unknown;
   website?: unknown;
-  description?: unknown;
-  country?: unknown;
-  why_competitor?: unknown;
+  country_hq?: unknown;
+  country_competing?: unknown;
+  business_model?: unknown;
+  evidence_url?: unknown;
+  evidence_summary?: unknown;
   social_links?: unknown;
 }
 
-const EXCLUDED_HOSTS = /(?:wikipedia|linkedin|facebook|instagram|tiktok|twitter|x\.com|youtube|reddit|amazon|mercadolibre)\./i;
+interface KimiCompetitorResponse {
+  competitors?: unknown;
+}
 
-function parseCompetitors(text: string): Array<Omit<DetectedCompetitor, 'id'>> {
+const EXCLUDED_HOSTS =
+  /(?:wikipedia|linkedin|facebook|instagram|tiktok|twitter|x\.com|youtube|reddit|amazon|mercadolibre)\./i;
+
+interface ParsedCompetitor {
+  name: string;
+  website: string | null;
+  description: string | null;
+  country: string | null;
+  why_competitor: string | null;
+  social_links: Record<string, string>;
+}
+
+function asTrimmedString(v: unknown, max = 500): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  if (!s) return null;
+  return s.slice(0, max);
+}
+
+function normalizeSocialLinks(v: unknown): Record<string, string> {
+  if (!v || typeof v !== 'object') return {};
+  const out: Record<string, string> = {};
+  for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+    if (typeof val === 'string' && val.trim()) out[k] = val.trim();
+  }
+  return out;
+}
+
+function parseCompetitorsFromKimi(text: string): ParsedCompetitor[] {
   const clean = stripJsonWrapping(text);
   let parsed: unknown;
   try {
     parsed = JSON.parse(clean);
   } catch (err) {
-    logger.warn({ err, snippet: clean.slice(0, 200) }, 'failed to parse competitor JSON');
+    logger.warn({ err, snippet: clean.slice(0, 300) }, 'failed to parse Kimi competitors JSON');
     return [];
   }
-  if (!Array.isArray(parsed)) return [];
-  return parsed
-    .filter((c): c is RawCompetitor => !!c && typeof c === 'object')
+  const list = Array.isArray(parsed)
+    ? (parsed as unknown[])
+    : Array.isArray((parsed as KimiCompetitorResponse)?.competitors)
+      ? ((parsed as KimiCompetitorResponse).competitors as unknown[])
+      : [];
+
+  return list
+    .filter((c): c is KimiCompetitor => !!c && typeof c === 'object')
     .map((c) => {
-      const social =
-        c.social_links && typeof c.social_links === 'object'
-          ? (c.social_links as Record<string, unknown>)
-          : {};
-      const normalized: Record<string, string> = {};
-      for (const [k, v] of Object.entries(social)) {
-        if (typeof v === 'string' && v.trim()) normalized[k] = v.trim();
-      }
+      const name = asTrimmedString(c.name, 200) ?? 'Competidor';
+      const website = asTrimmedString(c.website, 500);
+      const businessModel = asTrimmedString(c.business_model, 600);
+      const evidenceSummary = asTrimmedString(c.evidence_summary, 400);
+      const description = businessModel ?? evidenceSummary;
+      const country = asTrimmedString(c.country_competing, 2) ?? asTrimmedString(c.country_hq, 2);
+      const why = evidenceSummary ?? businessModel;
       return {
-        name: typeof c.name === 'string' ? c.name.trim() || 'Competidor' : 'Competidor',
-        website: typeof c.website === 'string' ? c.website.trim() : null,
-        description: typeof c.description === 'string' ? c.description : null,
-        country:
-          typeof c.country === 'string' ? c.country.toUpperCase().slice(0, 2) : null,
-        why_competitor:
-          typeof c.why_competitor === 'string' ? c.why_competitor : null,
-        social_links: normalized,
+        name,
+        website,
+        description,
+        country: country ? country.toUpperCase().slice(0, 2) : null,
+        why_competitor: why,
+        social_links: normalizeSocialLinks(c.social_links),
       };
     })
-    .filter((c) => !c.website || !EXCLUDED_HOSTS.test(c.website))
-    .slice(0, 6);
+    .filter((c) => !c.website || !EXCLUDED_HOSTS.test(c.website));
+}
+
+function dedupByWebsite(list: ParsedCompetitor[]): ParsedCompetitor[] {
+  const seen = new Set<string>();
+  const out: ParsedCompetitor[] = [];
+  for (const c of list) {
+    const key = (c.website ?? c.name).toLowerCase().replace(/\/$/, '');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+  }
+  return out;
+}
+
+function buildUserPrompt(project: {
+  companyName: string | null;
+  websiteUrl: string | null;
+  businessSummary: string | null;
+  mainProducts: string | null;
+  uniqueValue: string | null;
+  industry: string;
+  countryText: string;
+}): string {
+  const lines = [
+    'EMPRESA OBJETIVO',
+    `- Nombre: ${project.companyName ?? 'sin nombre'}`,
+    `- Web: ${project.websiteUrl ?? 'sin website'}`,
+    `- Industria: ${project.industry}`,
+    `- Países objetivo: ${project.countryText}`,
+    `- Resumen: ${project.businessSummary ?? 'sin descripción'}`,
+  ];
+  if (project.mainProducts) lines.push(`- Productos: ${project.mainProducts}`);
+  if (project.uniqueValue) lines.push(`- Propuesta de valor: ${project.uniqueValue}`);
+
+  lines.push(
+    '',
+    'TAREA',
+    `Identifica entre 5 y ${FINAL_COMPETITORS_TARGET} competidores REALES y VIGENTES en los países objetivo.`,
+    'Usa $web_search exhaustivamente desde múltiples ángulos:',
+    '1. "alternativas a [producto principal] en [país]"',
+    '2. "competidores de [marca conocida similar] en [industria]"',
+    '3. "[categoría] empresas [país]"',
+    '4. "[producto] para [cliente ideal]"',
+    '',
+    'FORMATO DE SALIDA (JSON estricto, sin markdown fences):',
+    '{',
+    '  "competitors": [',
+    '    {',
+    '      "name": "Nombre de la marca",',
+    '      "website": "https://dominio-raiz.com",',
+    '      "country_hq": "ISO alpha-2 país sede (CO, MX, US...)",',
+    '      "country_competing": "ISO alpha-2 país donde compite con la empresa objetivo",',
+    '      "business_model": "Qué vende y a quién (max 60 palabras)",',
+    '      "evidence_url": "URL real verificada con $web_search",',
+    '      "evidence_summary": "1 frase: por qué compite directamente con la empresa objetivo",',
+    '      "social_links": { "instagram": "URL o omitir", "tiktok": "URL o omitir", "linkedin": "URL o omitir" }',
+    '    }',
+    '  ]',
+    '}',
+  );
+  return lines.join('\n');
 }
 
 export class AutoCompetitorDetector {
@@ -115,56 +202,43 @@ export class AutoCompetitorDetector {
     });
 
     try {
-      const lines = [
-        'Negocio a analizar:',
-        `- Nombre: ${project.companyName ?? 'sin nombre'}`,
-        `- Industria: ${industry}`,
-        `- Países/mercados objetivo: ${countryText}`,
-        `- Descripción: ${project.businessSummary ?? 'sin descripción'}`,
-      ];
-      if (project.mainProducts) {
-        lines.push(`- Productos/servicios: ${project.mainProducts}`);
-      }
-      if (project.uniqueValue) {
-        lines.push(`- Propuesta de valor: ${project.uniqueValue}`);
-      }
-      lines.push(
-        '',
-        'Instrucciones:',
-        '1. Busca competidores DIRECTOS con presencia en al menos uno de los países objetivo.',
-        '2. Valida cada competidor con la web: debe existir, tener website propio y operación comparable.',
-        '3. Si no encuentras suficientes con certeza, devuelve menos (mínimo 2, máximo 6).',
-        '',
-        'Devuelve SOLO un array JSON con esta estructura exacta:',
-        '[',
-        '  {',
-        '    "name": "nombre de marca",',
-        '    "website": "URL raíz (https://marca.com)",',
-        '    "description": "10-25 palabras: qué vende y a quién",',
-        '    "country": "ISO alpha-2 del país principal",',
-        '    "why_competitor": "1 frase concreta",',
-        '    "social_links": { "instagram": "URL o omitir", "tiktok": "URL o omitir", "linkedin": "URL o omitir" }',
-        '  }',
-        ']',
-      );
-      const userPrompt = lines.join('\n');
-
-      const search = await geminiSearch(userPrompt, {
-        systemPrompt: SYSTEM_PROMPT,
-        temperature: 0.3,
-        timeoutMs: 60_000,
+      const userPrompt = buildUserPrompt({
+        companyName: project.companyName,
+        websiteUrl: project.websiteUrl,
+        businessSummary: project.businessSummary,
+        mainProducts: project.mainProducts,
+        uniqueValue: project.uniqueValue,
+        industry,
+        countryText,
       });
 
-      const synthed = parseCompetitors(search.text);
-      if (synthed.length === 0) {
+      const search = await moonshotWebSearch({
+        systemPrompt: SYSTEM_PROMPT,
+        userPrompt,
+      });
+
+      const parsed = parseCompetitorsFromKimi(search.text);
+      const deduped = dedupByWebsite(parsed).slice(0, FINAL_COMPETITORS_TARGET);
+
+      if (deduped.length === 0) {
         logger.warn(
-          { snippet: search.text.slice(0, 300), sourceCount: search.sources.length },
-          'gemini search returned 0 usable competitors',
+          { snippet: search.text.slice(0, 400), iterations: search.iterations },
+          'kimi returned 0 usable competitors',
         );
       }
 
+      logger.info(
+        {
+          parsedCount: parsed.length,
+          finalCount: deduped.length,
+          iterations: search.iterations,
+          toolCalls: search.toolCallsMade,
+        },
+        'auto-competitor-detector pipeline',
+      );
+
       const created: DetectedCompetitor[] = [];
-      for (const c of synthed) {
+      for (const c of deduped) {
         try {
           const rec = await prisma.competitor.create({
             data: {
@@ -173,10 +247,16 @@ export class AutoCompetitorDetector {
               name: c.name,
               website: c.website ?? null,
               notes: c.why_competitor ?? c.description ?? null,
-              socialLinks: c.social_links || {},
+              socialLinks: c.social_links,
               status: 'suggested',
               source: 'auto_detected',
               detectedAt: new Date(),
+              analysisData: {
+                autoDetected: {
+                  pipeline: 'moonshot-kimi-k2',
+                  evidenceUrl: null,
+                },
+              } as unknown as Prisma.InputJsonValue,
             },
           });
           created.push({
@@ -199,8 +279,8 @@ export class AutoCompetitorDetector {
           status: 'succeeded',
           output: {
             count: created.length,
-            sources: search.sources.slice(0, 20),
-            queries: search.queriesUsed,
+            iterations: search.iterations,
+            toolCalls: search.toolCallsMade,
           } as unknown as Prisma.InputJsonValue,
           finishedAt: new Date(),
         },

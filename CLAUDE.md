@@ -121,12 +121,13 @@ NO hardcodees URLs de proveedores (OpenAI, OpenRouter, Tavily, Firecrawl, Gemini
 | Proveedor     | Var requerida                       | Uso                                             |
 | ------------- | ----------------------------------- | ----------------------------------------------- |
 | Supabase      | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | DB/Auth/Storage |
-| OpenAI        | `OPENAI_API_KEY`                    | LLM texto principal (gpt-4o-mini)               |
+| OpenAI        | `OPENAI_API_KEY`                    | LLM texto principal (gpt-4o-mini) + embeddings  |
 | OpenRouter    | `OPENROUTER_API_KEY`                | Fallback LLM + reportes (más barato)            |
 | Gemini        | `GEMINI_API_KEY`                    | Visión (logo/color) + generación imagen         |
+| Moonshot      | `MOONSHOT_API_KEY`, `MOONSHOT_MODEL` | Kimi K2 con builtin `$web_search` para detección de competidores y agregación de noticias. Default model: `kimi-k2-0905-preview`. |
 | Firecrawl     | `FIRECRAWL_API_KEY`                 | Scraping del sitio del usuario                  |
 | Apify         | `APIFY_API_KEY`                     | Scrapers Instagram (`dSCLg0C3YEZ83HzYX`) y TikTok (`OtzYfK1ndEGdwWFKQ`) |
-| Tavily        | `TAVILY_API_KEY`                    | Búsqueda web (noticias, detección competidores) |
+| Tavily        | `TAVILY_API_KEY`                    | Legacy / no usado por defecto. Reemplazado por Moonshot Kimi K2. |
 
 Si un proveedor está vacío, el service debería **degradar con gracia** (no crashear): devolver resultado vacío o throw `BadRequest` claro. Revisar `websiteAnalyzer.ts` línea ~370 como ejemplo.
 

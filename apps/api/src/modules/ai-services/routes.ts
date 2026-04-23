@@ -381,11 +381,36 @@ aiServicesRouter.post(
     const project = await prisma.project.findUnique({ where: { id: project_id } });
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
-    const res = await withCredits(
-      { userId: user.id, actionKey: ACTION_KEYS.autoCompetitorDetect, metadata: { project_id } },
-      () => autoCompetitorDetector.detect({ projectId: project_id, userId: user.id }),
-    );
-    return c.json(ok(res));
+
+    // Cobro al instante; si la pipeline falla después, el void() refunda.
+    // Fire-and-forget: la pipeline tarda 20-25s con Firecrawl + embeddings, así que
+    // el cliente se quedaría esperando. Creamos un AiJob (en detector.detect), el
+    // banner global lo muestra y useActiveJobs refresca /competitors cuando termina.
+    const charge = await creditService.charge({
+      userId: user.id,
+      actionKey: ACTION_KEYS.autoCompetitorDetect,
+      metadata: { project_id },
+    });
+
+    void (async () => {
+      try {
+        await autoCompetitorDetector.detect({ projectId: project_id, userId: user.id });
+      } catch (err) {
+        try {
+          await creditService.refund({
+            transactionId: charge.transactionId,
+            reason: `auto_competitor.detect fallo: ${err instanceof Error ? err.message : 'error'}`,
+          });
+        } catch (refundErr) {
+          logger.warn(
+            { err: refundErr, userId: user.id, project_id },
+            '[credits] auto-refund failed for auto_competitor.detect',
+          );
+        }
+      }
+    })();
+
+    return c.json(ok({ started: true, transactionId: charge.transactionId }));
   },
 );
 

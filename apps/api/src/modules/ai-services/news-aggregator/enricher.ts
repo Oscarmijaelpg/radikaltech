@@ -11,7 +11,10 @@ export function enrichItems(
 ): EnrichedNewsItem[] {
   const clusters = clusterItems(items);
   return items.map((it, idx) => {
-    const host = it.source ?? (it.url ? hostnameOf(it.url) : undefined);
+    // Authority se calcula sobre el hostname real del URL (independiente del
+    // display name que el LLM ponga en `source`, que puede ser "Reuters" o
+    // "El Tiempo" en lugar del dominio).
+    const host = it.url ? hostnameOf(it.url) : undefined;
     const rel = it.url ? perItemRelevance[it.url] : undefined;
     const sent = (it.url ? perItemSentiment[it.url] : undefined) ?? 'neutral';
     return {

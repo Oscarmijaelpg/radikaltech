@@ -17,6 +17,9 @@ export const PROVIDER_URLS = {
   firecrawl: {
     scrape: 'https://api.firecrawl.dev/v1/scrape',
   },
+  moonshot: {
+    chatCompletions: 'https://api.moonshot.ai/v1/chat/completions',
+  },
 } as const;
 
 export const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -45,6 +48,12 @@ export const LLM_MODELS = {
   },
   vision: {
     gemini: 'gemini-2.5-flash',
+  },
+  search: {
+    // Moonshot Kimi K2 con `$web_search` builtin para investigación con grounding.
+    // Verifica los modelos disponibles para tu key con:
+    //   curl -H "Authorization: Bearer $MOONSHOT_API_KEY" https://api.moonshot.ai/v1/models
+    moonshot: 'kimi-k2.6',
   },
   image: {
     dalle3: 'dall-e-3',
