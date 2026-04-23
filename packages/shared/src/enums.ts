@@ -1,17 +1,20 @@
-// Enum values must match the SQL enums exactly.
+// Enum values must match the SQL enums en packages/db/prisma/schema.prisma exactamente.
+// Si cambias aquí, actualiza también el schema y corre pnpm db:generate.
 
 export const UserRole = {
-  OWNER: 'owner',
+  USER: 'user',
   ADMIN: 'admin',
-  MEMBER: 'member',
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const OnboardingStep = {
+  WELCOME: 'welcome',
   COMPANY: 'company',
   SOCIALS: 'socials',
   BRAND: 'brand',
   OBJECTIVES: 'objectives',
+  TEAM_INTRO: 'team_intro',
+  CONTENT: 'content',
   COMPLETED: 'completed',
 } as const;
 export type OnboardingStep = (typeof OnboardingStep)[keyof typeof OnboardingStep];
@@ -43,10 +46,10 @@ export const WebsiteSource = {
 export type WebsiteSource = (typeof WebsiteSource)[keyof typeof WebsiteSource];
 
 export const ObjectiveStatus = {
-  ACTIVE: 'active',
-  PAUSED: 'paused',
+  PENDING: 'pending',
+  IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
-  ARCHIVED: 'archived',
+  CANCELLED: 'cancelled',
 } as const;
 export type ObjectiveStatus = (typeof ObjectiveStatus)[keyof typeof ObjectiveStatus];
 
@@ -66,11 +69,11 @@ export const MessageRole = {
 } as const;
 export type MessageRole = (typeof MessageRole)[keyof typeof MessageRole];
 
+// Alineado con Prisma AiJobStatus.
 export const JobStatus = {
-  PENDING: 'pending',
+  QUEUED: 'queued',
   RUNNING: 'running',
-  COMPLETED: 'completed',
+  SUCCEEDED: 'succeeded',
   FAILED: 'failed',
-  CANCELLED: 'cancelled',
 } as const;
 export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus];
