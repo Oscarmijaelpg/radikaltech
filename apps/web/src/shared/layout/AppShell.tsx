@@ -517,7 +517,7 @@ export function AppShell() {
           'pb-[env(safe-area-inset-bottom)]',
         )}
       >
-        <div className="hidden lg:flex absolute top-4 right-6 z-20 items-center gap-2">
+        <div className="hidden lg:flex absolute top-4 right-6 z-30 items-center gap-2">
           <CreditBadge />
           <NotificationsBell />
         </div>

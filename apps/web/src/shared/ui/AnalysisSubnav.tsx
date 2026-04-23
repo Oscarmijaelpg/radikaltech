@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/shared/utils/cn';
 import { Icon } from '@radikal/ui';
+import { PageStickyHeader } from './PageStickyHeader';
 
 const TABS = [
   { to: '/competitors', label: 'Competencia', icon: 'groups' },
@@ -11,7 +12,7 @@ const TABS = [
 
 export function AnalysisSubnav() {
   return (
-    <div className="sticky top-0 z-20 -mx-6 md:-mx-8 px-6 md:px-8 pt-2 pb-3 bg-[hsl(var(--color-bg))]/80 backdrop-blur-xl border-b border-[hsl(var(--color-border))] mb-6">
+    <PageStickyHeader>
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
         {TABS.map((t) => (
           <NavLink
@@ -37,6 +38,6 @@ export function AnalysisSubnav() {
           </NavLink>
         ))}
       </div>
-    </div>
+    </PageStickyHeader>
   );
 }
