@@ -40,7 +40,8 @@ interface TourContextValue {
 
 const TourContext = createContext<TourContextValue | null>(null);
 
-const TOUR_STORAGE_PREFIX = 'radikal-tour-';
+// Prefijo con versión: si los tours cambian de contenido, bumpea a v2 para re-mostrar.
+const TOUR_STORAGE_PREFIX = 'radikal-tour-v1-';
 
 export function tourStorageKey(id: string): string {
   return `${TOUR_STORAGE_PREFIX}${id}`;
@@ -102,8 +103,8 @@ function Tooltip({ rect, step, tourCharacter, index, total, onNext, onSkip }: To
   const characterKey = step.character ?? tourCharacter ?? null;
   const character = characterKey ? CHARACTERS[characterKey] : null;
 
-  let top = 0;
-  let left = 0;
+  let top: number;
+  let left: number;
   switch (placement) {
     case 'top':
       top = rect.top - TOOLTIP_MIN_H - TOOLTIP_MARGIN;

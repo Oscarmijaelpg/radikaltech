@@ -80,6 +80,7 @@ export function AssetGallery() {
   const { data: assets, isLoading } = useAssets(activeProject?.id, filters);
   const deleteAsset = useDeleteAsset();
   const evaluateAsset = useEvaluateAsset();
+  const confirmDialog = useConfirm();
 
   if (!activeProject) {
     return (
@@ -113,7 +114,6 @@ export function AssetGallery() {
     void evaluateAsset.mutate({ id: asset.id, project_id: asset.project_id });
   };
 
-  const confirmDialog = useConfirm();
   const onDelete = async (asset: ContentAsset) => {
     const ok = await confirmDialog({ title: '¿Eliminar este asset?', variant: 'danger', confirmLabel: 'Eliminar' });
     if (!ok) return;

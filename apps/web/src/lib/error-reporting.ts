@@ -3,7 +3,6 @@
 const DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 
 export function captureException(err: unknown, context?: Record<string, unknown>) {
-  // eslint-disable-next-line no-console
   console.error('[app-error]', err, context);
   if (DSN) {
     // TODO: importar dinámico @sentry/react cuando se active
@@ -16,7 +15,6 @@ export function captureMessage(
   msg: string,
   level: 'info' | 'warn' | 'error' = 'info',
 ) {
-  // eslint-disable-next-line no-console
   const fn =
     level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
   fn(`[app-${level}]`, msg);

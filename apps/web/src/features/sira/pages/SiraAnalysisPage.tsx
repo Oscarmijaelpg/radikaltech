@@ -39,7 +39,7 @@ export function SiraAnalysisPage() {
   const fetchJobs = async () => {
     if (!activeProject) return;
     try {
-      const res = await api.get<any>(`/jobs/recent?project_id=${activeProject.id}&limit=5`);
+      const res = await api.get<{ data: AiJob[] }>(`/jobs/recent?project_id=${activeProject.id}&limit=5`);
       setJobs(res.data || []);
     } catch (err) {
       console.error('Failed to fetch jobs', err);

@@ -93,7 +93,7 @@ function isRouteActive(pathname: string, _search: string, target: string): boole
   return pathname === targetPath || pathname.startsWith(`${targetPath}/`);
 }
 
-function SidebarContent({ onNavigate, compact = false, iconOnly = false }: SidebarContentProps) {
+function SidebarContent({ onNavigate, compact: _compact = false, iconOnly = false }: SidebarContentProps) {
   const { profile, signOut } = useAuth();
   const { activeProject, projects, setActiveProject } = useProject();
   const navigate = useNavigate();

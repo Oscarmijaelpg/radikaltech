@@ -41,9 +41,7 @@ export function useCompetitorsTab(projectId: string) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Competitor | null>(null);
   const [userSocialOpen, setUserSocialOpen] = useState(false);
-  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [pendingAnalyze, setPendingAnalyze] = useState<Competitor | null>(null);
-  const [analysisName, setAnalysisName] = useState('');
   const [lastMode, setLastMode] = useState<CompetitorFormData['analysis_mode']>('combined');
 
   const openCreate = () => {
@@ -146,8 +144,6 @@ export function useCompetitorsTab(projectId: string) {
     editing,
     userSocialOpen,
     setUserSocialOpen,
-    analyzingId,
-    analysisName,
     creating: create.isPending,
     updating: update.isPending,
     detecting: detect.isPending,

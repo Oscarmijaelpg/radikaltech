@@ -11,7 +11,7 @@ interface Props {
 function parseBullets(text: string): string[] {
   return text
     .split(/\n/)
-    .map((l) => l.replace(/^[\s\-*•·\d\.\)]+/, '').trim())
+    .map((l) => l.replace(/^[\s\-*•·\d.)]+/, '').trim())
     .filter((l) => l.length > 0);
 }
 

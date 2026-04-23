@@ -3,7 +3,6 @@ import { api } from '@/lib/api';
 import type {
   AnalysisMode,
   Competitor,
-  CompetitorAnalysisResult,
   CompetitorStats,
   ScrapeNetwork,
   SocialPostItem,

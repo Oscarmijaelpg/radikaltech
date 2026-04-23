@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/shared/ui/Toaster';
 import { getInitials, type ContentAssetLite } from './utils';
-import { useLogoBrightness, logoContainerStyle } from '@/shared/hooks/useProjectLogo';
+import { useLogoBrightness } from '@/shared/hooks/useProjectLogo';
 
 export function LogoBlock({
   logo,

@@ -7,7 +7,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Icon,
   Spinner,
   Textarea,
 } from '@radikal/ui';

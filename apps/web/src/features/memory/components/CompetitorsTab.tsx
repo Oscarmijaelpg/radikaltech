@@ -109,7 +109,7 @@ export function CompetitorsTab({ projectId }: Props) {
             <CompetitorCard
               key={c.id}
               competitor={c}
-              analyzing={t.analyzingId === c.id}
+              analyzing={false}
               onAnalyze={t.onAnalyze}
               onViewAnalysis={t.onViewAnalysis}
               onEdit={t.openEdit}
@@ -127,21 +127,6 @@ export function CompetitorsTab({ projectId }: Props) {
           </div>
           <CompetitionCharts projectId={projectId} competitorIds={analyzedIds} />
         </div>
-      )}
-
-      {t.analyzingId && (
-        <BusyOverlay
-          character="sira"
-          title={`Analizando a ${t.analysisName}`}
-          subtitle="Leemos su sitio, detectamos sus redes y sacamos los insights clave."
-          estimatedSeconds={30}
-          stages={[
-            'Leyendo su sitio web',
-            'Buscando sus redes sociales',
-            'Extrayendo fortalezas y debilidades',
-            'Analizando sus últimas publicaciones',
-          ]}
-        />
       )}
 
       <CompetitorModal

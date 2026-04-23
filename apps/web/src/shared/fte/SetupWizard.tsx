@@ -77,7 +77,7 @@ export function SetupWizard() {
             </h3>
           </div>
           <div className="flex items-center gap-1">
-            {SETUP_STEPS.map((s, i) => (
+            {SETUP_STEPS.map((s) => (
               <div
                 key={s.id}
                 className={cn(

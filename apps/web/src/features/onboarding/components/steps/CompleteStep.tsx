@@ -38,7 +38,6 @@ export function CompleteStep({ state, onFinish }: CompleteStepProps) {
     state.company?.website_source === WebsiteSource.URL ||
     (state.company?.business_summary && state.company.business_summary.length > 0);
   const socialsConfigured = (state.socials?.accounts?.length ?? 0) > 0;
-  const brandConfigured = !!state.brand?.tone_of_voice;
   const objectivesCount = state.objectives?.objectives?.length ?? 0;
 
   const hasWarnings = !websiteConfigured || !socialsConfigured;

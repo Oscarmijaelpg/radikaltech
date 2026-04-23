@@ -36,7 +36,7 @@ const bullets = (text: string | null | undefined): string => {
   if (!text) return '';
   const items = text
     .split(/\n/)
-    .map((l) => l.replace(/^[\s\-*•·\d\.\)]+/, '').trim())
+    .map((l) => l.replace(/^[\s\-*•·\d.)]+/, '').trim())
     .filter(Boolean);
   if (items.length === 0) return '';
   return `<ol class="opp">${items
