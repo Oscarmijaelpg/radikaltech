@@ -11,27 +11,28 @@ import {
 import { AssetGallery } from '../components/AssetGallery';
 import { AssetUploader } from '../components/AssetUploader';
 import { ImageGenerator } from '../components/ImageGenerator';
+import { NexoIdeasSection } from '../components/NexoIdeasSection';
 import { ScheduledPostsTab } from '../components/ScheduledPostsTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { usePageTour } from '@/shared/tour';
 
-type TabId = 'gallery' | 'upload' | 'generate' | 'scheduled';
+type TabId = 'nexo' | 'gallery' | 'upload' | 'generate' | 'scheduled';
+const TAB_IDS: TabId[] = ['nexo', 'gallery', 'upload', 'generate', 'scheduled'];
 
 export function ContentPage() {
   const [searchParams] = useSearchParams();
-  const initial = (searchParams.get('tab') as TabId) || 'gallery';
-  const [tab, setTab] = useState<TabId>(
-    ['gallery', 'upload', 'generate', 'scheduled'].includes(initial) ? initial : 'gallery',
-  );
+  const initial = (searchParams.get('tab') as TabId) || 'nexo';
+  const [tab, setTab] = useState<TabId>(TAB_IDS.includes(initial) ? initial : 'nexo');
   useEffect(() => {
     const t = searchParams.get('tab') as TabId | null;
-    if (t && ['gallery', 'upload', 'generate', 'scheduled'].includes(t)) setTab(t);
+    if (t && TAB_IDS.includes(t)) setTab(t);
   }, [searchParams]);
 
   usePageTour('content');
 
   const TAB_SUB: Record<TabId, string> = {
+    nexo: 'Ideas de Nexo',
     gallery: 'Galería',
     upload: 'Subir archivos',
     generate: 'Generar con IA',
@@ -84,11 +85,16 @@ export function ContentPage() {
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
           <TabsList data-tour="content-tabs">
+            <TabsTrigger value="nexo" data-tour="content-nexo">Ideas de Nexo</TabsTrigger>
             <TabsTrigger value="gallery" data-tour="content-gallery">Galería</TabsTrigger>
             <TabsTrigger value="upload" data-tour="content-upload">Subir</TabsTrigger>
             <TabsTrigger value="generate" data-tour="content-generate">Generar con IA</TabsTrigger>
             <TabsTrigger value="scheduled" data-tour="content-scheduled">Agendados</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="nexo" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <NexoIdeasSection />
+          </TabsContent>
 
           <TabsContent value="gallery" className="animate-in fade-in slide-in-from-right-2 duration-300">
             <AssetGallery />

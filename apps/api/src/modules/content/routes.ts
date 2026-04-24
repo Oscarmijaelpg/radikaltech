@@ -5,6 +5,7 @@ import type { ContentAsset } from '@radikal/db';
 import type { AuthVariables } from '../../middleware/auth.js';
 import { ok } from '../../lib/response.js';
 import { contentService } from './service.js';
+import { ideationService } from './ideation-service.js';
 import { contentEvaluator } from '../ai-services/index.js';
 
 const assetTypeEnum = z.enum(['image', 'video', 'document', 'audio']);
@@ -102,4 +103,22 @@ contentRouter.post('/:id/evaluate', async (c) => {
   const res = await contentEvaluator.evaluate({ assetId: id, userId: user.id });
   const asset = await contentService.getById(id, user.id);
   return c.json(ok({ job_id: res.jobId, result: res.result, asset: serializeAsset(asset) }));
+});
+
+const generateIdeasSchema = z.object({
+  project_id: z.string().uuid(),
+  angle: z.enum(['educativo', 'entretenimiento', 'venta', 'storytelling', 'auto']).optional(),
+  count: z.number().int().min(1).max(8).optional(),
+});
+
+contentRouter.post('/generate-ideas', zValidator('json', generateIdeasSchema), async (c) => {
+  const user = c.get('user');
+  const body = c.req.valid('json');
+  const res = await ideationService.generateIdeas({
+    projectId: body.project_id,
+    userId: user.id,
+    angle: body.angle,
+    count: body.count,
+  });
+  return c.json(ok(res));
 });

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
@@ -108,6 +109,23 @@ export function ImageGenerator() {
   useEffect(() => {
     setUseBrandPalette(palette.length > 0);
   }, [palette.length]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const promptParam = searchParams.get('prompt');
+    const variationsParam = searchParams.get('variations');
+    if (!promptParam && !variationsParam) return;
+    if (promptParam) setPrompt(promptParam);
+    if (variationsParam) {
+      const n = Number(variationsParam);
+      if (Number.isFinite(n) && n > 0) setVariationsCount(Math.min(4, Math.max(1, Math.floor(n))));
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('prompt');
+    next.delete('variations');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const generate = useGenerateImage();
   const history = useImageAssets(activeProject?.id);
