@@ -1,9 +1,11 @@
 export type ImageSize = '1024x1024' | '1792x1024' | '1024x1792';
 export type ImageStyle = 'vivid' | 'natural';
-export type ImageModel = 'gemini-2.5-flash-image' | 'dall-e-3';
+export type ImageMode = 'referential' | 'creative';
+export type ImageModel = string;
 
 export interface GenerateImageInput {
   prompt: string;
+  mode?: ImageMode;
   size?: ImageSize;
   style?: ImageStyle;
   userId: string;

@@ -59,24 +59,29 @@ export class ImageGenerator {
 
     const batchId = randomUUID();
 
-    const job = await prisma.aiJob.create({
-      data: {
-        kind: 'image_generate',
-        status: 'running',
-        input: {
-          prompt: input.prompt,
-          enrichedPrompt,
-          size,
-          style,
-          referenceAssetIds: refIds,
-          variations: requested,
-          batchId,
+    let job: { id: string } | null = null;
+    try {
+      job = await prisma.aiJob.create({
+        data: {
+          kind: 'image_generate',
+          status: 'running',
+          input: {
+            prompt: input.prompt,
+            enrichedPrompt,
+            size,
+            style,
+            referenceAssetIds: refIds,
+            variations: requested,
+            batchId,
+          },
+          projectId: input.projectId,
+          userId: input.userId,
+          startedAt: new Date(),
         },
-        projectId: input.projectId,
-        userId: input.userId,
-        startedAt: new Date(),
-      },
-    });
+      });
+    } catch (err) {
+      logger.warn({ err }, 'failed to create aiJob, continuing without persistence');
+    }
 
     try {
       const refs: Array<{ base64: string; mimeType: string }> = [];
@@ -97,12 +102,22 @@ export class ImageGenerator {
         let buf: Buffer | undefined;
 
         if (refs.length > 0) {
-          buf = await generateWithGemini(variantPrompt, refs);
-          if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
+          const gem = await generateWithGemini(variantPrompt, refs);
+          if (gem.buffer) {
+            buf = gem.buffer;
+            modelUsed = LLM_MODELS.image.geminiDefault;
+          } else {
+            logger.warn({ idx, error: gem.error }, 'gemini generation failed, trying dalle');
+          }
         }
         if (!buf) {
-          buf = await generateWithDalle(variantPrompt, size, style);
-          if (buf) modelUsed = LLM_MODELS.image.dalle3;
+          const dalle = await generateWithDalle(variantPrompt, size, style);
+          if (dalle.buffer) {
+            buf = dalle.buffer;
+            modelUsed = LLM_MODELS.image.dalle3;
+          } else {
+            logger.warn({ idx, error: dalle.error }, 'dalle generation failed');
+          }
         }
         if (!buf || !modelUsed) return null;
 
@@ -175,26 +190,32 @@ export class ImageGenerator {
 
       const first = variations[0]!;
 
-      await prisma.aiJob.update({
-        where: { id: job.id },
-        data: {
-          status: 'succeeded',
-          output: {
-            batchId,
-            variations: variations.map((v) => ({
-              assetId: v.assetId,
-              url: v.url,
-              variant_label: v.variant_label,
-              quality_score: v.quality_score,
-            })),
-            model: first.model,
-          } as unknown as Prisma.InputJsonValue,
-          finishedAt: new Date(),
-        },
-      });
+      if (job) {
+        try {
+          await prisma.aiJob.update({
+            where: { id: job.id },
+            data: {
+              status: 'succeeded',
+              output: {
+                batchId,
+                variations: variations.map((v) => ({
+                  assetId: v.assetId,
+                  url: v.url,
+                  variant_label: v.variant_label,
+                  quality_score: v.quality_score,
+                })),
+                model: first.model,
+              } as unknown as Prisma.InputJsonValue,
+              finishedAt: new Date(),
+            },
+          });
+        } catch (err) {
+          logger.warn({ err }, 'failed to update aiJob to succeeded');
+        }
+      }
 
       return {
-        jobId: job.id,
+        jobId: job?.id ?? batchId,
         batchId,
         variations,
         assetId: first.assetId,
@@ -206,10 +227,16 @@ export class ImageGenerator {
       };
     } catch (err) {
       logger.error({ err }, 'image generator failed');
-      await prisma.aiJob.update({
-        where: { id: job.id },
-        data: { status: 'failed', error: String(err), finishedAt: new Date() },
-      });
+      if (job) {
+        try {
+          await prisma.aiJob.update({
+            where: { id: job.id },
+            data: { status: 'failed', error: String(err), finishedAt: new Date() },
+          });
+        } catch (jErr) {
+          logger.warn({ err: jErr }, 'failed to update aiJob to failed');
+        }
+      }
       await notificationService
         .jobFailed({
           userId: input.userId,
@@ -235,20 +262,25 @@ export class ImageGenerator {
     const projectId = input.projectId ?? source.projectId ?? undefined;
     const enrichedPrompt = await buildBrandContext(projectId, true, prompt);
 
-    const job = await prisma.aiJob.create({
-      data: {
-        kind: 'image_edit',
-        status: 'running',
-        input: {
-          sourceAssetId: input.sourceAssetId,
-          editInstruction: instruction,
-          enrichedPrompt,
+    let job: { id: string } | null = null;
+    try {
+      job = await prisma.aiJob.create({
+        data: {
+          kind: 'image_edit',
+          status: 'running',
+          input: {
+            sourceAssetId: input.sourceAssetId,
+            editInstruction: instruction,
+            enrichedPrompt,
+          },
+          projectId,
+          userId: input.userId,
+          startedAt: new Date(),
         },
-        projectId,
-        userId: input.userId,
-        startedAt: new Date(),
-      },
-    });
+      });
+    } catch (err) {
+      logger.warn({ err }, 'failed to create aiJob for edit, continuing without persistence');
+    }
 
     try {
       const dl = await downloadAsBase64(source.assetUrl);
@@ -258,12 +290,22 @@ export class ImageGenerator {
       let buf: Buffer | undefined;
 
       if (refs.length > 0) {
-        buf = await generateWithGemini(enrichedPrompt, refs);
-        if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
+        const gem = await generateWithGemini(enrichedPrompt, refs);
+        if (gem.buffer) {
+          buf = gem.buffer;
+          modelUsed = LLM_MODELS.image.geminiDefault;
+        } else {
+          logger.warn({ error: gem.error }, 'gemini edit failed, trying dalle');
+        }
       }
       if (!buf) {
-        buf = await generateWithDalle(enrichedPrompt, EDIT_SIZE, EDIT_STYLE);
-        if (buf) modelUsed = LLM_MODELS.image.dalle3;
+        const dalle = await generateWithDalle(enrichedPrompt, EDIT_SIZE, EDIT_STYLE);
+        if (dalle.buffer) {
+          buf = dalle.buffer;
+          modelUsed = LLM_MODELS.image.dalle3;
+        } else {
+          logger.warn({ error: dalle.error }, 'dalle edit failed');
+        }
       }
       if (!buf || !modelUsed) {
         throw new Error('No image editor provider succeeded');
@@ -309,22 +351,28 @@ export class ImageGenerator {
         }
       }
 
-      await prisma.aiJob.update({
-        where: { id: job.id },
-        data: {
-          status: 'succeeded',
-          output: {
-            assetId,
-            url,
-            model: modelUsed,
-            parent_asset_id: source.id,
-          } as unknown as Prisma.InputJsonValue,
-          finishedAt: new Date(),
-        },
-      });
+      if (job) {
+        try {
+          await prisma.aiJob.update({
+            where: { id: job.id },
+            data: {
+              status: 'succeeded',
+              output: {
+                assetId,
+                url,
+                model: modelUsed,
+                parent_asset_id: source.id,
+              } as unknown as Prisma.InputJsonValue,
+              finishedAt: new Date(),
+            },
+          });
+        } catch (err) {
+          logger.warn({ err }, 'failed to update edit aiJob to succeeded');
+        }
+      }
 
       return {
-        jobId: job.id,
+        jobId: job?.id ?? source.id,
         assetId,
         url,
         model: modelUsed,
@@ -332,10 +380,16 @@ export class ImageGenerator {
       };
     } catch (err) {
       logger.error({ err }, 'image editor failed');
-      await prisma.aiJob.update({
-        where: { id: job.id },
-        data: { status: 'failed', error: String(err), finishedAt: new Date() },
-      });
+      if (job) {
+        try {
+          await prisma.aiJob.update({
+            where: { id: job.id },
+            data: { status: 'failed', error: String(err), finishedAt: new Date() },
+          });
+        } catch (jErr) {
+          logger.warn({ err: jErr }, 'failed to update edit aiJob to failed');
+        }
+      }
       await notificationService
         .jobFailed({
           userId: input.userId,
