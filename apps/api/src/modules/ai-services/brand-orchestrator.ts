@@ -257,7 +257,7 @@ export class BrandOrchestrator {
           REGLAS CRÍTICAS:
           1. PRODUCTOS/SERVICIOS: Genera un LISTADO de los productos/servicios. Solo el nombre o una descripción corta por línea.
           2. RESUMEN NEGOCIO: Genera un análisis estratégico de qué hace la empresa.
-          3. MERCADOS: Busca países, CIUDADES, BARRIOS o SECTORES donde operen. Genera un LISTADO de estas ubicaciones geográficas.
+          3. MERCADOS: Analiza en qué países, CIUDADES y ZONAS opera la marca. Identifica cuál es el país principal (prioriza el país del dominio .co, .es, etc.). Genera un ANÁLISIS DETALLADO en un párrafo narrativo (sin viñetas).
           4. IDENTIDAD: Define misión, visión y valores.
 
           CONTENIDO PRINCIPAL (HOME):
@@ -275,7 +275,7 @@ export class BrandOrchestrator {
             "voice_tone": "tono y personalidad",
             "target_audience": "público objetivo",
             "competitive_advantage": "qué los hace únicos",
-            "operating_countries": ["Colombia", "Medellín", "Bogotá", "Barrio El Poblado"],
+            "operating_countries": "ANÁLISIS DETALLADO DE MERCADOS Y UBICACIONES (Países, ciudades, zonas)",
             "detailed_products": ["Producto 1", "Servicio A"],
             "business_summary": "ANÁLISIS ESTRATÉGICO DEL NEGOCIO",
             "visual_direction": "estética visual detectada"

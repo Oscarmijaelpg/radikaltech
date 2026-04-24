@@ -86,7 +86,7 @@ export function MarketsSection({ projectId }: { projectId: string }) {
               Cancelar
             </Button>
             <Button onClick={save} disabled={updateMarkets.isPending}>
-              Guardar cambios
+              {updateMarkets.isPending ? <Spinner /> : 'Guardar cambios'}
             </Button>
           </DialogFooter>
         </DialogContent>
