@@ -68,3 +68,7 @@ packages/db/src/generated/
 openapi_spec.json
 
 .vercel
+
+# --- Locales / Secretos -----------------------------------------------------
+scratch/
+.agents/skills/local-deploy/

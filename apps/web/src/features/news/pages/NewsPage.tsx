@@ -12,6 +12,7 @@ import { useProject } from '@/providers/ProjectProvider';
 import {
   useAggregateNews,
   useSavedNewsReports,
+  type NewsAnalysis,
   type NewsItem,
   type SavedReport,
 } from '../api/news';
@@ -40,6 +41,7 @@ export function NewsPage() {
   const [topic, setTopic] = useState('');
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [items, setItems] = useState<NewsItem[]>([]);
+  const [analysis, setAnalysis] = useState<NewsAnalysis | null>(null);
 
   const aggregate = useAggregateNews();
   const saved = useSavedNewsReports(activeProject?.id);
@@ -58,14 +60,18 @@ export function NewsPage() {
     const query = q.trim();
     if (!query) return;
     setCurrentTopic(query);
+    setItems([]);
+    setAnalysis(null);
     try {
       const res = await aggregate.mutateAsync({
         topic: query,
         project_id: activeProject?.id,
       });
-      setItems(res.result.items);
+      setItems(res.result.items ?? []);
+      setAnalysis(res.result.analysis ?? null);
     } catch {
       setItems([]);
+      setAnalysis(null);
     }
   };
 
@@ -81,7 +87,7 @@ export function NewsPage() {
     void onSearch(t);
   };
 
-  const hasResults = items.length > 0;
+  const hasResults = items.length > 0 || !!analysis?.narrative || !!analysis?.executive_summary;
   const loading = aggregate.isPending;
 
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
@@ -122,7 +128,7 @@ export function NewsPage() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') void onSearch(topic);
                 }}
-                placeholder="¿Qué te interesa monitorear? Ej. Tendencias IA 2026"
+                placeholder="¿Qué te preocupa? Ej: noticias que afecten mi sector en Colombia este mes"
                 className="flex-1 min-w-0 !bg-white/95 !text-slate-900 placeholder:text-slate-400 h-14 text-base"
               />
               <Button
@@ -184,11 +190,42 @@ export function NewsPage() {
             )}
 
             {hasResults && (
-              <NewsResultsGrid
-                items={items}
-                currentTopic={currentTopic}
-                onAskSira={askSiraAbout}
-              />
+              <div className="space-y-4">
+                {(analysis?.narrative || analysis?.executive_summary) && (
+                  <Card className="p-5 bg-gradient-to-br from-cyan-50/60 to-blue-50/60 border-cyan-100">
+                    {analysis.executive_summary && (
+                      <p className="text-sm font-semibold text-cyan-900 mb-3 leading-relaxed">
+                        {analysis.executive_summary}
+                      </p>
+                    )}
+                    {analysis.key_insights && analysis.key_insights.length > 0 && (
+                      <ul className="space-y-1 mb-3">
+                        {analysis.key_insights.map((insight, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                            <Icon name="insights" className="text-cyan-500 text-[16px] mt-0.5 shrink-0" />
+                            {insight}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
+                )}
+                {items.length > 0 && (
+                  <NewsResultsGrid
+                    items={items}
+                    currentTopic={currentTopic}
+                    onAskSira={askSiraAbout}
+                  />
+                )}
+                {items.length === 0 && analysis?.narrative && (
+                  <Card className="p-5">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3">Análisis narrativo</p>
+                    <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-line">
+                      {analysis.narrative}
+                    </div>
+                  </Card>
+                )}
+              </div>
             )}
           </section>
         </div>
