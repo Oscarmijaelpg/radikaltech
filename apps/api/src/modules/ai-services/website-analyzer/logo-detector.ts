@@ -53,10 +53,19 @@ export function detectLogoCandidates(
   const html = scrape.data?.html ?? '';
   const scored: Array<{ url: string; score: number }> = [];
 
-  function push(url: string | undefined, score: number) {
+  const FORBIDDEN_URL_PATTERNS = [
+    /whatsapp/i, /facebook/i, /instagram/i, /twitter/i, /linkedin/i,
+    /tiktok/i, /youtube/i, /social/i, /share/i, /button/i,
+    /[-_/]icon[-_./]/i,
+    /marker/i, /phone/i, /[-_]mail[-_.]/i, /cart/i, /[-_]search[-_.]/i, /menu/i,
+    /google-play/i, /apple-store/i, /app-store/i,
+  ];
+
+  function push(url: string | undefined, score: number, opts?: { trusted?: boolean }) {
     if (!url) return;
     const abs = absolutize(url, pageUrl);
     if (!abs) return;
+    if (!opts?.trusted && FORBIDDEN_URL_PATTERNS.some((p) => p.test(abs))) return;
     let s = score;
     if (abs.toLowerCase().endsWith('.svg')) s += BONUS_EXT_SVG;
     else if (abs.toLowerCase().endsWith('.png')) s += BONUS_EXT_PNG;
@@ -99,16 +108,17 @@ export function detectLogoCandidates(
   push(ogImage, SCORE_OG_IMAGE_META);
   push(twitterImage, SCORE_TWITTER_IMAGE);
 
-  // 6) Fallbacks al final.
+  // 6) Fallbacks al final (URLs construidas por nosotros, no del HTML — trusted).
   try {
     const u = new URL(pageUrl);
-    push(`${u.protocol}//${u.host}/apple-touch-icon.png`, SCORE_FALLBACK_APPLE_PNG);
-    push(`${u.protocol}//${u.host}/logo.png`, SCORE_FALLBACK_LOGO_PNG);
-    push(`${u.protocol}//${u.host}/logo.svg`, SCORE_FALLBACK_LOGO_SVG);
-    push(`${u.protocol}//${u.host}/favicon.png`, SCORE_FALLBACK_FAVICON_PNG);
+    push(`${u.protocol}//${u.host}/apple-touch-icon.png`, SCORE_FALLBACK_APPLE_PNG, { trusted: true });
+    push(`${u.protocol}//${u.host}/logo.png`, SCORE_FALLBACK_LOGO_PNG, { trusted: true });
+    push(`${u.protocol}//${u.host}/logo.svg`, SCORE_FALLBACK_LOGO_SVG, { trusted: true });
+    push(`${u.protocol}//${u.host}/favicon.png`, SCORE_FALLBACK_FAVICON_PNG, { trusted: true });
     push(
       `https://www.google.com/s2/favicons?domain=${u.host}&sz=256`,
       SCORE_FALLBACK_GOOGLE_S2,
+      { trusted: true },
     );
   } catch {
     /* ignore URL parsing failure */

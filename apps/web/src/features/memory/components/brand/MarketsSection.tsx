@@ -12,7 +12,7 @@ import {
 } from '@radikal/ui';
 import { useProject } from '@/providers/ProjectProvider';
 import { useDetectMarkets, useUpdateMarkets } from '../../api/memory';
-import { SectionTitle, BulletList, ExpandableContent } from './shared';
+import { SectionTitle, ExpandableContent } from './shared';
 
 export function MarketsSection({ projectId }: { projectId: string }) {
   const { activeProject } = useProject();
@@ -22,16 +22,15 @@ export function MarketsSection({ projectId }: { projectId: string }) {
   const [draft, setDraft] = useState('');
 
   if (!activeProject) return null;
-  const confirmed = activeProject.operating_countries ?? [];
+  const marketText = activeProject.operating_countries ?? '';
 
   const openDialog = () => {
-    setDraft(confirmed.join('\n'));
+    setDraft(marketText);
     setDialogOpen(true);
   };
 
   const save = async () => {
-    const lines = draft.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    await updateMarkets.mutateAsync(lines);
+    await updateMarkets.mutateAsync(draft.trim());
     setDialogOpen(false);
   };
 
@@ -49,32 +48,36 @@ export function MarketsSection({ projectId }: { projectId: string }) {
             {detect.isPending ? <Spinner /> : 'Detectar con IA'}
           </Button>
           <Button size="sm" variant="outline" onClick={openDialog}>
-            Editar mercados
+            Editar
           </Button>
         </div>
       </div>
 
-      {confirmed.length > 0 ? (
-        <ExpandableContent title="Mercados donde operas" icon="public" maxHeight="max-h-[120px]">
-          <BulletList text={confirmed.join('\n')} />
+      {marketText ? (
+        <ExpandableContent title="Mercados donde operas" icon="public" maxHeight="max-h-[140px]">
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+            {marketText}
+          </p>
         </ExpandableContent>
       ) : (
-        <p className="text-xs italic text-slate-400">Aún no se han detectado mercados</p>
+        <p className="text-xs italic text-slate-400">
+          Aún no se han detectado mercados. Haz clic en "Detectar con IA" para analizarlos.
+        </p>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Editar mercados</DialogTitle>
+            <DialogTitle>Editar análisis de mercados</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
             <p className="text-sm text-slate-500 font-medium">
-              Escribe cada ubicación en una línea nueva. Puedes incluir países, ciudades o zonas específicas.
+              Describe los mercados donde opera la empresa. Puedes usar texto libre: países, regiones, ciudades, zonas específicas o contexto estratégico.
             </p>
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ejemplo:&#10;Colombia&#10;Medellín&#10;Barrio El Poblado"
+              placeholder="Ej.: Operamos principalmente en Colombia (Bogotá, Medellín) y norte de México. Estamos explorando expansión a Chile y Perú durante 2026."
               className="min-h-[200px] font-medium leading-relaxed"
             />
           </div>

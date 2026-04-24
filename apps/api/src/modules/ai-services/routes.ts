@@ -464,7 +464,7 @@ aiServicesRouter.post(
         if (result.countries.length > 0) {
           await prisma.project.update({
             where: { id: project_id },
-            data: { operatingCountriesSuggested: result.countries },
+            data: { operatingCountriesSuggested: result.countries.join(', ') },
           });
         }
         return result;

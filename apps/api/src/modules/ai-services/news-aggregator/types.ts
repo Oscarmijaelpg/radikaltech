@@ -37,7 +37,7 @@ export interface ProjectContext {
   business_summary?: string | null;
   unique_value?: string | null;
   main_products?: string | null;
-  operating_countries?: string[];
+  operating_countries?: string | null;
 }
 
 export interface NewsResult {

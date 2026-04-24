@@ -309,6 +309,7 @@ export class BrandOrchestrator {
                 return String(v);
               })
             : [];
+          const marketText = marketList.length > 0 ? marketList.join(', ') : null;
 
           // Persistencia incremental de texto
           await prisma.brandProfile.upsert({
@@ -344,8 +345,8 @@ export class BrandOrchestrator {
             data: { 
               businessSummary: result.business_summary,
               mainProducts: formatStringList(result.detailed_products),
-              operatingCountries: marketList,
-              operatingCountriesSuggested: [] // Limpiar sugeridos ya que ahora son directos
+              operatingCountries: marketText,
+              operatingCountriesSuggested: null,
             },
           });
           

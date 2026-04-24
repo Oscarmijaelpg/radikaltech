@@ -48,8 +48,8 @@ describe('NewsAggregator (Moonshot Kimi K2)', () => {
       businessSummary: 'CRM para PYMES',
       uniqueValue: null,
       mainProducts: 'CRM',
-      operatingCountries: ['CO'],
-      operatingCountriesSuggested: [],
+      operatingCountries: 'CO',
+      operatingCountriesSuggested: null,
     });
     mockPrisma.aiJob.create.mockResolvedValue({ id: 'job-1' });
     mockPrisma.aiJob.update.mockResolvedValue({});
@@ -131,8 +131,8 @@ describe('NewsAggregator (Moonshot Kimi K2)', () => {
       businessSummary: 'X',
       uniqueValue: null,
       mainProducts: null,
-      operatingCountries: ['MX'],
-      operatingCountriesSuggested: [],
+      operatingCountries: 'MX',
+      operatingCountriesSuggested: null,
     });
     mockPrisma.aiJob.create.mockResolvedValue({ id: 'job-2' });
     mockPrisma.aiJob.update.mockResolvedValue({});
@@ -180,8 +180,8 @@ describe('NewsAggregator (Moonshot Kimi K2)', () => {
       businessSummary: 'Y',
       uniqueValue: null,
       mainProducts: null,
-      operatingCountries: ['CO'],
-      operatingCountriesSuggested: [],
+      operatingCountries: 'CO',
+      operatingCountriesSuggested: null,
     });
     mockPrisma.aiJob.create.mockResolvedValue({ id: 'job-3' });
     mockPrisma.aiJob.update.mockResolvedValue({});

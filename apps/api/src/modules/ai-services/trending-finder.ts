@@ -76,10 +76,10 @@ function buildNewsQueries(project: {
   industryCustom: string | null;
   companyName: string | null;
   mainProducts: string | null;
-  operatingCountries: string[];
+  operatingCountries: string | null;
 }): string[] {
   const industry = project.industry ?? project.industryCustom ?? '';
-  const country = project.operatingCountries?.[0];
+  const country = project.operatingCountries?.split(',')[0]?.trim();
   const qs: string[] = [];
   if (industry) qs.push(`tendencias ${industry} ${country ?? ''}`.trim());
   if (industry) qs.push(`innovación ${industry}`);
@@ -279,8 +279,7 @@ export class TrendingFinder {
         project.businessSummary && `Negocio: ${project.businessSummary.slice(0, 300)}`,
         project.uniqueValue && `Valor único: ${project.uniqueValue.slice(0, 200)}`,
         project.mainProducts && `Productos: ${project.mainProducts.slice(0, 200)}`,
-        project.operatingCountries.length > 0 &&
-          `Opera en: ${project.operatingCountries.join(', ')}`,
+        project.operatingCountries && `Opera en: ${project.operatingCountries}`,
         brand?.voiceTone && `Voz/tono: ${brand.voiceTone}`,
         brand?.essence && `Esencia: ${brand.essence.slice(0, 200)}`,
       ]

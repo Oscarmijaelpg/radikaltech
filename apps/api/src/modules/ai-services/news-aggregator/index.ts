@@ -73,7 +73,7 @@ async function fetchProjectContext(
       unique_value: p.uniqueValue,
       main_products: p.mainProducts,
       operating_countries:
-        p.operatingCountries.length > 0 ? p.operatingCountries : p.operatingCountriesSuggested,
+        p.operatingCountries?.trim() || p.operatingCountriesSuggested?.trim() || null,
     };
   } catch (err) {
     logger.warn({ err }, 'failed to load project context for news');
@@ -87,8 +87,8 @@ function buildUserPrompt(topic: string, ctx: ProjectContext | null): string {
     lines.push('CONTEXTO DE LA EMPRESA');
     if (ctx.company_name) lines.push(`- Nombre: ${ctx.company_name}`);
     if (ctx.industry) lines.push(`- Industria: ${ctx.industry}`);
-    if (ctx.operating_countries && ctx.operating_countries.length > 0) {
-      lines.push(`- Países operativos: ${ctx.operating_countries.join(', ')}`);
+    if (ctx.operating_countries) {
+      lines.push(`- Países operativos: ${ctx.operating_countries}`);
     }
     if (ctx.business_summary) lines.push(`- Resumen: ${ctx.business_summary}`);
     if (ctx.main_products) lines.push(`- Productos: ${ctx.main_products}`);

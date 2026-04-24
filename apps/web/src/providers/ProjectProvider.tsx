@@ -18,8 +18,8 @@ export interface Project {
   unique_value: string | null;
   main_products: string | null;
   additional_context: string | null;
-  operating_countries?: string[];
-  operating_countries_suggested?: string[];
+  operating_countries?: string | null;
+  operating_countries_suggested?: string | null;
   is_default: boolean;
   created_at: string;
   updated_at: string;

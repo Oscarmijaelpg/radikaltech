@@ -9,9 +9,18 @@ export interface NewsItem {
   summary?: string;
 }
 
+export interface NewsAnalysis {
+  narrative?: string;
+  executive_summary?: string;
+  key_insights?: string[];
+  trending_keywords?: string[];
+  overall_sentiment?: 'positive' | 'neutral' | 'negative';
+}
+
 export interface NewsResult {
   topic: string;
   items: NewsItem[];
+  analysis?: NewsAnalysis;
 }
 
 export interface AggregateNewsResponse {

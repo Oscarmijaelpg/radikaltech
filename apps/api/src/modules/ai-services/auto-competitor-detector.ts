@@ -184,18 +184,17 @@ export class AutoCompetitorDetector {
     const project = await prisma.project.findUnique({ where: { id: input.projectId } });
     if (!project) throw new Error('Project not found');
 
-    const countries =
-      project.operatingCountries.length > 0
-        ? project.operatingCountries
-        : project.operatingCountriesSuggested;
+    const countryText =
+      (project.operatingCountries?.trim() ||
+        project.operatingCountriesSuggested?.trim() ||
+        'Latinoamérica');
     const industry = project.industry ?? project.industryCustom ?? 'general';
-    const countryText = countries.length > 0 ? countries.join(', ') : 'Latinoamérica';
 
     const job = await prisma.aiJob.create({
       data: {
         kind: 'auto_competitor_detect',
         status: 'running',
-        input: { industry, countries } as unknown as Prisma.InputJsonValue,
+        input: { industry, countries: countryText } as unknown as Prisma.InputJsonValue,
         projectId: input.projectId,
         userId: input.userId,
       },

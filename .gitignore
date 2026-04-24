@@ -68,3 +68,8 @@ packages/db/src/generated/
 openapi_spec.json
 
 .vercel
+
+# --- Scratch / locales de dev ----------------------------------------------
+scratch/
+.agents/skills/local-deploy/
+openrouter_debug.log
