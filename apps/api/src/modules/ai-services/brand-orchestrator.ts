@@ -300,16 +300,21 @@ export class BrandOrchestrator {
             return String(val ?? '');
           };
 
-          const marketList = Array.isArray(result.operating_countries)
-            ? (result.operating_countries as unknown[]).map((v) => {
-                if (v && typeof v === 'object') {
-                  const o = v as { name?: unknown };
-                  return String(o.name ?? JSON.stringify(v));
-                }
-                return String(v);
-              })
-            : [];
-          const marketText = marketList.length > 0 ? marketList.join(', ') : null;
+          const rawMarkets = result.operating_countries;
+          let marketText: string | null = null;
+          if (typeof rawMarkets === 'string') {
+            const trimmed = rawMarkets.trim();
+            marketText = trimmed.length > 0 ? trimmed : null;
+          } else if (Array.isArray(rawMarkets)) {
+            const list = (rawMarkets as unknown[]).map((v) => {
+              if (v && typeof v === 'object') {
+                const o = v as { name?: unknown };
+                return String(o.name ?? JSON.stringify(v));
+              }
+              return String(v);
+            });
+            marketText = list.length > 0 ? list.join(', ') : null;
+          }
 
           // Persistencia incremental de texto
           await prisma.brandProfile.upsert({
@@ -361,7 +366,7 @@ export class BrandOrchestrator {
             result.voice_tone && 
             result.target_audience && 
             result.competitive_advantage && 
-            result.operating_countries?.length > 0 &&
+            (typeof marketText === 'string' && marketText.length > 0) &&
             result.business_summary;
 
           if (isComplete) {
