@@ -11,7 +11,6 @@ import {
 } from './helpers.js';
 import {
   downloadAsBase64,
-  generateWithDalle,
   generateWithGemini,
 } from './providers.js';
 import {
@@ -111,11 +110,8 @@ export class ImageGenerator {
           if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
         }
         if (!buf) {
-          logger.info({ model: LLM_MODELS.image.dalle3 }, 'attempting dalle generation');
-          const gen = await generateWithDalle(variantPrompt, size, style);
-          buf = gen.buffer;
-          lastError = (lastError ? lastError + ' | ' : '') + (gen.error || '');
-          if (buf) modelUsed = LLM_MODELS.image.dalle3;
+          logger.warn({ idx, refs: refs.length, lastError }, 'runOne failed to generate buffer with Gemini');
+          return null;
         }
         if (!buf || !modelUsed) {
           logger.warn({ idx, refs: refs.length, lastError }, 'runOne failed to generate buffer');
@@ -299,12 +295,8 @@ export class ImageGenerator {
         buf = gen.buffer;
         if (buf) modelUsed = LLM_MODELS.image.geminiDefault;
       }
-      if (!buf) {
-        buf = await generateWithDalle(enrichedPrompt, EDIT_SIZE, EDIT_STYLE);
-        if (buf) modelUsed = LLM_MODELS.image.dalle3;
-      }
       if (!buf || !modelUsed) {
-        throw new Error('No image editor provider succeeded');
+        throw new Error('Google Gemini image generation failed');
       }
 
       const { url, path } = await uploadBuffer(input.userId, buf);
