@@ -6,8 +6,14 @@ const LOCALHOST_RE = /^http:\/\/localhost:\d+$/;
 // para exponer el dev server a testers externos.
 const CLOUDFLARE_TUNNEL_RE = /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/;
 
+// WEB_URL puede ser una lista separada por comas (ej. para permitir web + admin).
+const ALLOWED_ORIGINS = (env.WEB_URL ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 function resolveOrigin(origin: string): string | null {
-  if (origin === env.WEB_URL) return origin;
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
   if (LOCALHOST_RE.test(origin)) return origin;
   if (CLOUDFLARE_TUNNEL_RE.test(origin)) return origin;
   return null;
