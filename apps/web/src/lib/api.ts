@@ -15,7 +15,9 @@ export function getAuthToken(): string | null {
   return cachedToken;
 }
 
-type RequestOptions = RequestInit & { json?: unknown };
+type RequestOptions = RequestInit & { json?: unknown; timeoutMs?: number };
+
+const DEFAULT_TIMEOUT_MS = 60_000;
 
 async function resolveToken(): Promise<string | null> {
   if (cachedToken) return cachedToken;
@@ -42,7 +44,8 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60_000);
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   // Silencia logs para endpoints de polling ruidosos (notificaciones, jobs activos).
   const silent =
@@ -85,7 +88,7 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
     return await res.json();
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new ApiError('La solicitud tardó demasiado (timeout 60s)', 408);
+      throw new ApiError(`La solicitud tardó demasiado (timeout ${Math.round(timeoutMs / 1000)}s)`, 408);
     }
     console.error('[api] ✗', opts.method ?? 'GET', path, err);
     throw err;
@@ -139,11 +142,19 @@ export async function apiStream(
   return res;
 }
 
+export interface ApiCallOptions {
+  timeoutMs?: number;
+}
+
 export const api = {
-  get: <T>(path: string) => apiRequest<T>(path),
-  post: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'POST', json }),
-  patch: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PATCH', json }),
-  put: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'PUT', json }),
-  delete: <T>(path: string, json?: unknown) => apiRequest<T>(path, { method: 'DELETE', json }),
+  get: <T>(path: string, opts?: ApiCallOptions) => apiRequest<T>(path, { ...opts }),
+  post: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'POST', json, ...opts }),
+  patch: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'PATCH', json, ...opts }),
+  put: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'PUT', json, ...opts }),
+  delete: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'DELETE', json, ...opts }),
   stream: apiStream,
 };

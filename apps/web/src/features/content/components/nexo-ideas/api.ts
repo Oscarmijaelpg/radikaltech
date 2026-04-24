@@ -24,11 +24,15 @@ export interface GenerateIdeasResponse {
 export function useGenerateIdeas() {
   return useMutation({
     mutationFn: async (vars: { projectId: string; angle?: IdeaAngle; count?: number }) => {
-      const res = await api.post<{ data: GenerateIdeasResponse }>('/content/generate-ideas', {
-        project_id: vars.projectId,
-        angle: vars.angle,
-        count: vars.count,
-      });
+      const res = await api.post<{ data: GenerateIdeasResponse }>(
+        '/content/generate-ideas',
+        {
+          project_id: vars.projectId,
+          angle: vars.angle,
+          count: vars.count,
+        },
+        { timeoutMs: 150_000 },
+      );
       return res.data;
     },
   });

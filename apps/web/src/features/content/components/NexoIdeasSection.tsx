@@ -138,8 +138,8 @@ export function NexoIdeasSection() {
               Nexo está analizando tu marca y el mercado…
             </p>
             <p className="text-xs text-slate-500 max-w-md">
-              Esto puede tardar hasta 60 segundos mientras la IA verifica tendencias con búsqueda
-              web.
+              Esto puede tardar entre 60 y 90 segundos mientras la IA verifica tendencias con
+              búsqueda web y cruza tu memoria de marca.
             </p>
           </div>
         </Card>

@@ -1,4 +1,6 @@
 import { prisma } from '@radikal/db';
+import { env } from '../../config/env.js';
+import { preferredChatEndpoint, preferredChatModel } from '../../config/providers.js';
 import { BadRequest, NotFound } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
 import { moonshotWebSearch, stripJsonWrapping } from '../ai-services/moonshot.js';
@@ -117,7 +119,10 @@ function buildPrompt(
   const systemPrompt =
     'Eres el "Estratega Nexo" de Radikal, experto en contenido digital con acceso a $web_search para verificar tendencias actuales. ' +
     'Tu misión es transformar datos de marca + inteligencia de mercado en ideas de contenido accionables, sustentadas en datos reales. ' +
-    'Responde SIEMPRE con JSON crudo, sin bloques markdown, sin texto antes o después.';
+    'CRÍTICO: Tu respuesta FINAL DEBE ser ÚNICAMENTE el JSON con las ideas. ' +
+    'No imprimas las queries de búsqueda ni tus razonamientos intermedios en el mensaje final. ' +
+    'Máximo 2 búsquedas con $web_search — ya tienes todo el contexto de marca en el prompt. ' +
+    'El mensaje final DEBE empezar con `{` y terminar con `}`.';
 
   const angleBlock =
     angle === 'auto'
@@ -164,11 +169,13 @@ function buildPrompt(
     angleBlock,
     '',
     `REGLAS:`,
-    `1. Usa $web_search si necesitas verificar una tendencia actual del sector (últimos 30 días).`,
-    `2. Cada idea debe respetar la voz/tono de marca descrita arriba.`,
-    `3. description debe tener formato: "Qué: [idea concreta]. Por qué: [dato o insight que la sustenta]."`,
-    `4. visual_suggestion describe la imagen ideal (estilo, composición, elementos).`,
-    `5. Mezcla ideas tipo "pilar" (1 imagen) y "carrusel" (3-5 imágenes) si ayuda al objetivo.`,
+    `1. MÁXIMO 2 búsquedas con $web_search para verificar 1-2 tendencias actuales del sector (últimos 30 días). Menos es mejor.`,
+    `2. DESPUÉS de las búsquedas (o sin búsquedas si no son necesarias), devuelve INMEDIATAMENTE el JSON final con las ideas.`,
+    `3. Cada idea debe respetar la voz/tono de marca descrita arriba.`,
+    `4. description debe tener formato: "Qué: [idea concreta]. Por qué: [dato o insight que la sustenta]."`,
+    `5. visual_suggestion describe la imagen ideal (estilo, composición, elementos).`,
+    `6. Mezcla ideas tipo "pilar" (1 imagen) y "carrusel" (3-5 imágenes) si ayuda al objetivo.`,
+    `7. Tu mensaje FINAL es SOLO el JSON. No imprimas queries de búsqueda, ni "Voy a buscar...", ni comentarios.`,
     '',
     `FORMATO DE SALIDA (JSON crudo, nada más):`,
     `{`,
@@ -190,6 +197,59 @@ function buildPrompt(
   return { systemPrompt, userPrompt };
 }
 
+function looksLikeToolCallEcho(text: string): boolean {
+  const trimmed = text.trim().slice(0, 50).toLowerCase();
+  return trimmed.startsWith('$web_search') || trimmed.startsWith('{"queries"');
+}
+
+async function fallbackComposeIdeasWithOpenAI(
+  systemPrompt: string,
+  userPrompt: string,
+  count: number,
+): Promise<string> {
+  const apiKey = env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY / OPENROUTER_API_KEY no configurado para fallback');
+  }
+  const endpoint = preferredChatEndpoint();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  };
+  if (env.OPENROUTER_API_KEY) {
+    headers['HTTP-Referer'] = env.WEB_URL;
+    headers['X-Title'] = 'Radikal';
+  }
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: preferredChatModel(),
+      response_format: { type: 'json_object' },
+      temperature: 0.4,
+      messages: [
+        {
+          role: 'system',
+          content:
+            systemPrompt +
+            ' IMPORTANTE: NO uses búsqueda web. Usa solo el contexto que te paso. Devuelve SOLO el JSON.',
+        },
+        {
+          role: 'user',
+          content: `${userPrompt}\n\nRECUERDA: genera ${count} ideas y responde SOLO con el JSON {"ideas":[...]}.`,
+        },
+      ],
+    }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`fallback LLM ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content ?? '';
+}
+
 export const ideationService = {
   async generateIdeas(input: GenerateIdeasInput): Promise<GenerateIdeasOutput> {
     const count = Math.min(MAX_COUNT, Math.max(1, input.count ?? DEFAULT_COUNT));
@@ -198,17 +258,41 @@ export const ideationService = {
     const ctx = await loadProjectContext(input.projectId, input.userId);
     const { systemPrompt, userPrompt } = buildPrompt(ctx, angle, count);
 
-    const result = await moonshotWebSearch({ systemPrompt, userPrompt });
-    if (!result.text.trim()) {
+    const primary = await moonshotWebSearch({
+      systemPrompt,
+      userPrompt,
+      maxIterations: 8,
+    });
+
+    let rawText = primary.text.trim();
+
+    if (!rawText || looksLikeToolCallEcho(rawText)) {
+      logger.warn(
+        { iterations: primary.iterations, toolCalls: primary.toolCallsMade },
+        'ideation primary returned tool-call echo, retrying with JSON-only fallback',
+      );
+      try {
+        rawText = (await fallbackComposeIdeasWithOpenAI(systemPrompt, userPrompt, count)).trim();
+      } catch (err) {
+        logger.warn({ err }, 'ideation fallback LLM failed');
+        throw new BadRequest(
+          'La IA se quedó buscando tendencias y no compuso las ideas a tiempo. Reintenta en unos segundos.',
+        );
+      }
+    }
+
+    if (!rawText) {
       throw new BadRequest('El motor de ideación devolvió respuesta vacía.');
     }
 
     let ideas: ContentIdea[] = [];
     try {
-      ideas = parseIdeas(result.text);
+      ideas = parseIdeas(rawText);
     } catch (err) {
-      logger.warn({ err, preview: result.text.slice(0, 400) }, 'ideation parse failed');
-      throw new BadRequest('No se pudieron interpretar las ideas generadas.');
+      logger.warn({ err, preview: rawText.slice(0, 400) }, 'ideation parse failed');
+      throw new BadRequest(
+        'No se pudieron interpretar las ideas generadas por la IA. Intenta con otro ángulo o de nuevo.',
+      );
     }
 
     if (ideas.length === 0) {

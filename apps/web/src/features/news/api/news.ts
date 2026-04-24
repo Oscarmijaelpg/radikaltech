@@ -53,6 +53,7 @@ export function useAggregateNews() {
       const res = await api.post<{ data: AggregateNewsResponse }>(
         '/ai-services/aggregate-news',
         vars,
+        { timeoutMs: 150_000 },
       );
       return res.data;
     },
