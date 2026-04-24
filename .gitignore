@@ -1,0 +1,70 @@
+# --- Dependencias -----------------------------------------------------------
+node_modules/
+.pnp.*
+
+# --- Variables de entorno ---------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# --- Builds / artefactos ----------------------------------------------------
+dist/
+build/
+.next/
+.turbo/
+.vercel/
+.vite/
+out/
+tsconfig.tsbuildinfo
+
+# --- JS compilados que conviven con .ts/.tsx (no comitear) -----------------
+apps/web/src/**/*.js
+apps/web/src/**/*.jsx
+
+# --- Tests ------------------------------------------------------------------
+coverage/
+playwright-report/
+test-results/
+.nyc_output/
+
+# --- Logs -------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- IDE / editor -----------------------------------------------------------
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.sublime-project
+*.sublime-workspace
+
+# --- OS ---------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Herramientas locales de IA / agentes ----------------------------------
+# .claude/settings.json y CLAUDE.md SÍ se commitean (contexto compartido).
+# Lo local de cada dev NO:
+.claude/settings.local.json
+.claude/*.local.json
+.claude/*.lock
+.claude/skills/
+/memory/
+.cursor/
+.windsurf/
+
+# --- Prisma (cliente generado) ---------------------------------------------
+packages/db/src/generated/
+
+# --- Temporales -------------------------------------------------------------
+*.tmp
+*.swp
+*.bak
+.cache/
+openapi_spec.json
+
+.vercel
