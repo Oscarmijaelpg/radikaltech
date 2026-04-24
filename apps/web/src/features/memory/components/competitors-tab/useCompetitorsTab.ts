@@ -43,6 +43,7 @@ export function useCompetitorsTab(projectId: string) {
   const [userSocialOpen, setUserSocialOpen] = useState(false);
   const [pendingAnalyze, setPendingAnalyze] = useState<Competitor | null>(null);
   const [lastMode, setLastMode] = useState<CompetitorFormData['analysis_mode']>('combined');
+  const [detectModalOpen, setDetectModalOpen] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -113,7 +114,8 @@ export function useCompetitorsTab(projectId: string) {
     navigate(`/competitors/${c.id}/report`);
   };
 
-  const onDetect = async () => {
+  const openDetect = () => setDetectModalOpen(true);
+  const startDetect = async () => {
     await detect.mutateAsync({ project_id: projectId });
   };
   const onApprove = async (id: string) => {
@@ -150,6 +152,8 @@ export function useCompetitorsTab(projectId: string) {
     bulkApproving: bulkApprove.isPending,
     bulkRejecting: bulkReject.isPending,
     pendingAnalyze,
+    detectModalOpen,
+    setDetectModalOpen,
     openCreate,
     openEdit,
     onSubmit,
@@ -158,7 +162,8 @@ export function useCompetitorsTab(projectId: string) {
     onConfirmAnalyze,
     onCancelAnalyze,
     onViewAnalysis,
-    onDetect,
+    openDetect,
+    startDetect,
     onApprove,
     onReject,
     onApproveAll,

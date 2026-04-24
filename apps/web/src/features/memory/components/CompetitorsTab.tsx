@@ -1,4 +1,4 @@
-import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
+import { Button, Card, Icon, Skeleton } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
@@ -6,7 +6,7 @@ import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
 import { CompetitorsBenchmarkTab } from './CompetitorsBenchmarkTab';
 import { AnalyzeCompetitorConfirm } from './competitors-tab/AnalyzeCompetitorConfirm';
-import { BusyOverlay } from '@/shared/ui/BusyOverlay';
+import { DetectCompetitorsModal } from './competitors-tab/DetectCompetitorsModal';
 import { CompetitorCard } from './competitors-tab/CompetitorCard';
 import { SubTabToggle } from './competitors-tab/SubTabToggle';
 import { SuggestedCompetitorsSection } from './competitors-tab/SuggestedCompetitorsSection';
@@ -48,11 +48,11 @@ export function CompetitorsTab({ projectId }: Props) {
           </Button>
           <Button
             variant="outline"
-            onClick={t.onDetect}
+            onClick={t.openDetect}
             disabled={t.detecting}
             data-tour="competitors-detect"
           >
-            {t.detecting ? <Spinner /> : <Icon name="auto_awesome" className="text-[18px]" />}
+            <Icon name="auto_awesome" className="text-[18px]" />
             Detectar competidores con IA
           </Button>
           <Button onClick={t.openCreate} data-tour="competitors-add">
@@ -71,21 +71,6 @@ export function CompetitorsTab({ projectId }: Props) {
           onRejectAll={t.onRejectAll}
           bulkApproving={t.bulkApproving}
           bulkRejecting={t.bulkRejecting}
-        />
-      )}
-
-      {t.detecting && (
-        <BusyOverlay
-          character="sira"
-          title="Sira investiga tu sector"
-          subtitle="Busco las marcas que compiten contigo y te las traigo ordenadas."
-          estimatedSeconds={45}
-          stages={[
-            'Rastreando tu industria en la web',
-            'Identificando marcas similares',
-            'Leyendo sus sitios y redes',
-            'Ordenando por relevancia',
-          ]}
         />
       )}
 
@@ -150,6 +135,13 @@ export function CompetitorsTab({ projectId }: Props) {
         open={t.userSocialOpen}
         onOpenChange={t.setUserSocialOpen}
         projectId={projectId}
+      />
+
+      <DetectCompetitorsModal
+        open={t.detectModalOpen}
+        onOpenChange={t.setDetectModalOpen}
+        projectId={projectId}
+        onStart={t.startDetect}
       />
     </div>
   );
