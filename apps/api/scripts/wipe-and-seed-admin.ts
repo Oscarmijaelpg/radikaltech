@@ -12,7 +12,9 @@
  *   - Todos los usuarios de auth.users
  *   - Todos los registros de todas las tablas public del schema
  *
- * Después crea el admin con rol 'admin' en profiles + app_metadata.
+ * Después crea el admin con rol 'admin' en profiles + app_metadata y
+ * reseedea action_prices con precio default para que cualquier acción
+ * cobrable funcione tras el wipe.
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -97,6 +99,40 @@ async function truncateAllPublicTables() {
   console.log('[db] OK');
 }
 
+const DEFAULT_ACTION_PRICE = 10;
+const ACTIONS: Array<{ key: string; label: string }> = [
+  { key: 'chat.message', label: 'Mensaje al chat IA' },
+  { key: 'embeddings.generate', label: 'Generar embeddings' },
+  { key: 'caption.generate', label: 'Generar caption / copy' },
+  { key: 'brand.synthesize', label: 'Síntesis de marca' },
+  { key: 'recommendations.generate', label: 'Generar recomendaciones' },
+  { key: 'auto_competitor.detect', label: 'Detector automático de competidores' },
+  { key: 'market.detect', label: 'Detectar mercados del proyecto' },
+  { key: 'image.analyze', label: 'Análisis visual de imagen' },
+  { key: 'content.evaluate', label: 'Evaluar contenido' },
+  { key: 'news.aggregate', label: 'Agregador de noticias' },
+  { key: 'trends.detect', label: 'Detector de tendencias' },
+  { key: 'competitor.analyze', label: 'Analizar competidor' },
+  { key: 'website.analyze', label: 'Analizar sitio web' },
+  { key: 'image.generate', label: 'Generar imagen con IA' },
+  { key: 'image.edit', label: 'Editar imagen con IA' },
+  { key: 'brand.analyze', label: 'Analizar marca (pipeline completo)' },
+  { key: 'tiktok.scrape', label: 'Scrape TikTok' },
+  { key: 'instagram.scrape', label: 'Scrape Instagram' },
+];
+
+async function seedActionPrices() {
+  console.log(`[seed] sembrando ${ACTIONS.length} action_prices a ${DEFAULT_ACTION_PRICE} monedas...`);
+  for (const a of ACTIONS) {
+    await prisma.actionPrice.upsert({
+      where: { key: a.key },
+      update: { label: a.label, monedas: DEFAULT_ACTION_PRICE, enabled: true },
+      create: { key: a.key, label: a.label, monedas: DEFAULT_ACTION_PRICE, enabled: true },
+    });
+  }
+  console.log(`[seed] OK`);
+}
+
 async function createAdminUser() {
   console.log(`[seed] creando admin ${ADMIN_EMAIL}...`);
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
@@ -143,6 +179,7 @@ async function main() {
 
   await deleteAllAuthUsers();
   await truncateAllPublicTables();
+  await seedActionPrices();
   const adminId = await createAdminUser();
 
   console.log('');
