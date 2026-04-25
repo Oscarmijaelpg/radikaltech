@@ -1,0 +1,160 @@
+import { supabase } from './supabase';
+
+const API_URL = (import.meta.env.VITE_API_URL as string) || '/api';
+
+// Cache del token: se actualiza desde AuthProvider cada vez que cambia la sesión.
+// Evita llamar a supabase.auth.getSession() en cada request (esa llamada se cuelga
+// intermitentemente cuando hay otra operación de auth en curso).
+let cachedToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  cachedToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return cachedToken;
+}
+
+type RequestOptions = RequestInit & { json?: unknown; timeoutMs?: number };
+
+const DEFAULT_TIMEOUT_MS = 120_000;
+
+async function resolveToken(): Promise<string | null> {
+  if (cachedToken) return cachedToken;
+  // Fallback: si aún no tenemos el token cacheado, intentamos una vez con un timeout corto
+  try {
+    const result = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise<{ data: { session: null } }>((resolve) =>
+        setTimeout(() => resolve({ data: { session: null } }), 1500),
+      ),
+    ]);
+    const token = result.data.session?.access_token ?? null;
+    if (token) cachedToken = token;
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+export async function apiRequest<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const token = await resolveToken();
+  const headers = new Headers(opts.headers);
+  headers.set('Content-Type', 'application/json');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const controller = new AbortController();
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  // Silencia logs para endpoints de polling ruidosos (notificaciones, jobs activos).
+  const silent =
+    path.startsWith('/notifications') ||
+    path.startsWith('/jobs/active') ||
+    path.startsWith('/users/me');
+  if (!silent) {
+    console.log('[api] →', opts.method ?? 'GET', path, { hasToken: !!token });
+  }
+
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      ...opts,
+      headers,
+      signal: controller.signal,
+      body: opts.json !== undefined ? JSON.stringify(opts.json) : opts.body,
+    });
+
+    if (!silent) {
+      console.log('[api] ←', opts.method ?? 'GET', path, res.status);
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      if (res.status === 402 && typeof window !== 'undefined') {
+        const errObj = err as { error?: { message?: string; details?: unknown }; message?: string };
+        window.dispatchEvent(
+          new CustomEvent('radikal:payment-required', {
+            detail: {
+              message: errObj?.error?.message ?? errObj?.message ?? 'Saldo insuficiente',
+              details: errObj?.error?.details,
+            },
+          }),
+        );
+      }
+      throw new ApiError(err.message || 'Error en la solicitud', res.status, err);
+    }
+
+    if (res.status === 204) return undefined as T;
+    return await res.json();
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError(`La solicitud tardó demasiado (timeout ${Math.round(timeoutMs / 1000)}s)`, 408);
+    }
+    console.error('[api] ✗', opts.method ?? 'GET', path, err);
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body?: unknown,
+  ) {
+    super(message);
+  }
+}
+
+export async function apiStream(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const token = await resolveToken();
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream',
+  });
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!res.ok || !res.body) {
+    let message = `Error ${res.status}`;
+    let parsed: unknown;
+    try {
+      parsed = await res.json();
+      const b = parsed as { error?: { message?: string }; message?: string };
+      message = b?.error?.message ?? b?.message ?? message;
+    } catch {
+      // body ya se consumió o no es JSON
+    }
+    throw new ApiError(message, res.status, parsed);
+  }
+
+  return res;
+}
+
+export interface ApiCallOptions {
+  timeoutMs?: number;
+}
+
+export const api = {
+  get: <T>(path: string, opts?: ApiCallOptions) => apiRequest<T>(path, { ...opts }),
+  post: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'POST', json, ...opts }),
+  patch: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'PATCH', json, ...opts }),
+  put: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'PUT', json, ...opts }),
+  delete: <T>(path: string, json?: unknown, opts?: ApiCallOptions) =>
+    apiRequest<T>(path, { method: 'DELETE', json, ...opts }),
+  stream: apiStream,
+};
