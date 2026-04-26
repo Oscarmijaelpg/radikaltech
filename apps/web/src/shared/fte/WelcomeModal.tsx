@@ -80,7 +80,7 @@ export function WelcomeModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-3xl bg-gradient-to-br from-pink-50 via-white to-cyan-50 p-0 sm:p-0 overflow-hidden border border-white/80">
+      <DialogContent className="sm:max-w-3xl bg-gradient-to-br from-pink-50 via-white to-cyan-50 p-0 sm:p-0 overflow-y-auto max-h-[95dvh] border border-white/80">
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-pink-300/30 to-cyan-300/30 blur-3xl pointer-events-none" />
 
         <div className="relative p-6 md:p-10">

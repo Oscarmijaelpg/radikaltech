@@ -51,6 +51,7 @@ export const MessageList = forwardRef<HTMLDivElement, Props>(function MessageLis
                 routerReason={m.routerReason ?? null}
                 routerAgentName={m.routerAgentName ?? null}
                 onOpenReport={onOpenReport}
+                onQuickPrompt={onQuickPrompt}
               />
             );
           })

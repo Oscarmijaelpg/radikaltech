@@ -43,6 +43,7 @@ interface Props {
   routerReason?: string | null;
   routerAgentName?: string | null;
   onOpenReport?: (content: string) => void;
+  onQuickPrompt?: (text: string) => void;
 }
 
 type MemoryCategory = 'note' | 'brand_insight' | 'idea';
@@ -59,6 +60,7 @@ export function MessageBubble({
   routerReason,
   routerAgentName,
   onOpenReport,
+  onQuickPrompt,
 }: Props) {
   const isUser = role === 'user';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -187,6 +189,7 @@ export function MessageBubble({
                     key={`${t.name}-${i}`}
                     tool={t}
                     onOpenReport={onOpenReport}
+                    onQuickPrompt={onQuickPrompt}
                   />
                 ))}
               </div>
