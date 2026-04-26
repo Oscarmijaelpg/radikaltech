@@ -3,7 +3,7 @@
 
   # Radikal
 
-  **Plataforma de inteligencia de marca con IA — análisis competitivo, generación visual y agentes inteligentes orquestados.**
+  **Plataforma de inteligencia de marca con IA  — análisis competitivo, generación visual y agentes inteligentes orquestados.**
 
   ![Node](https://img.shields.io/badge/Node-20-339933?logo=node.js&logoColor=white)
   ![pnpm](https://img.shields.io/badge/pnpm-10.33-F69220?logo=pnpm&logoColor=white)
