@@ -9,6 +9,7 @@ interface Props {
 const OPTIONS: { value: SubTab; label: string }[] = [
   { value: 'list', label: 'Lista' },
   { value: 'benchmark', label: 'Benchmark' },
+  { value: 'diagnostic', label: 'Diagnóstico IA' },
 ];
 
 export function SubTabToggle({ value, onChange }: Props) {

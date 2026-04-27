@@ -11,6 +11,10 @@ import { CompetitorCard } from './competitors-tab/CompetitorCard';
 import { SubTabToggle } from './competitors-tab/SubTabToggle';
 import { SuggestedCompetitorsSection } from './competitors-tab/SuggestedCompetitorsSection';
 import { useCompetitorsTab } from './competitors-tab/useCompetitorsTab';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Props {
   projectId: string;
@@ -19,6 +23,25 @@ interface Props {
 export function CompetitorsTab({ projectId }: Props) {
   const t = useCompetitorsTab(projectId);
   usePageTour('competitors');
+
+  const { data: initialReport } = useQuery({
+    queryKey: ['reports', 'competition', projectId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      // api.get ya devuelve el JSON { ok: true, data: T }
+      const res = await api.get<{ data: Array<{ title: string; content: string; sourceData?: any }> }>(
+        `/reports?project_id=${projectId}&type=competition`,
+      );
+      
+      const reports = res.data || [];
+      const found = reports.find((r) => 
+        r.title === 'Reporte Inicial de Competencia' || 
+        r.sourceData?.pipeline === 'initial-intelligence-comp'
+      );
+
+      return found ?? null;
+    },
+  });
 
   if (t.isLoading) return <Skeleton className="h-48" />;
 
@@ -29,6 +52,64 @@ export function CompetitorsTab({ projectId }: Props) {
           <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
         </div>
         <CompetitorsBenchmarkTab projectId={projectId} />
+      </div>
+    );
+  }
+
+  if (t.subTab === 'diagnostic') {
+    return (
+      <div className="space-y-5">
+        <div className="flex justify-start">
+          <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
+        </div>
+        {initialReport ? (
+          <Card className="p-6 sm:p-10 bg-gradient-to-br from-white to-blue-50/50 shadow-xl border-blue-100/50 rounded-[32px]">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-700 grid place-items-center">
+                  <Icon name="history_edu" className="text-[28px]" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-display font-black text-slate-900">Diagnóstico Estratégico</h3>
+                  <p className="text-sm text-slate-500">Análisis inicial de competencia generado por Sira</p>
+                </div>
+              </div>
+            </div>
+            <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  a: ({ node, ...props }) => (
+                    <a {...props} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline font-semibold" />
+                  ),
+                  code: ({ node, inline, className, children, ...props }: any) => {
+                    if (inline) {
+                      return <code className="bg-slate-100 px-1.5 py-0.5 rounded text-rose-600 text-[0.9em] font-mono" {...props}>{children}</code>;
+                    }
+                    return (
+                      <div className="my-8 overflow-x-auto rounded-3xl border border-slate-200/60 bg-slate-50/50 p-8 shadow-[inner_0_2px_4px_rgba(0,0,0,0.02)]">
+                        <code className="text-sm font-mono text-slate-600 leading-relaxed block whitespace-pre" {...props}>
+                          {children}
+                        </code>
+                      </div>
+                    );
+                  },
+                  pre: ({ children }) => <>{children}</>
+                }}
+              >
+                {initialReport.content || 'Reporte vacío.'}
+              </ReactMarkdown>
+            </div>
+          </Card>
+        ) : (
+          <Card className="p-12 text-center">
+            <CharacterEmpty
+              character="sira"
+              title="Aún no hay diagnóstico"
+              message="Completa el análisis de tu sitio web en Onboarding para que pueda generar este reporte para ti."
+            />
+          </Card>
+        )}
       </div>
     );
   }

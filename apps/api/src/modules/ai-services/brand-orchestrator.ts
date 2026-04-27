@@ -16,6 +16,7 @@ import { MarketDetector } from './market-detector.js';
 import { notificationService } from '../notifications/service.js';
 import { JobLogger } from '../jobs/job-logger.js';
 import { cleanWebContent } from './website-analyzer/content-cleaner.js';
+import { initialIntelligenceOrchestrator } from './index.js';
 
 const STORAGE_BUCKET = 'assets';
 
@@ -414,6 +415,11 @@ export class BrandOrchestrator {
           finishedAt: new Date(),
         },
       });
+
+      // Lanza la búsqueda de noticias y competencia en background
+      void initialIntelligenceOrchestrator.runInitialIntelligence({ projectId: input.projectId, userId: input.userId })
+        .catch(err => logger.error({ err }, 'Failed to run initial intelligence after brand orchestrator'));
+
     } catch (err) {
       logger.error({ err }, 'brand orchestrator failed');
       await prisma.aiJob.update({

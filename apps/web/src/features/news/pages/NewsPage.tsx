@@ -20,8 +20,11 @@ import { useSiraContextual } from '@/features/sira-contextual';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
+import { cn } from '@/shared/utils/cn';
 import { NewsResultsGrid } from '../components/NewsResultsGrid';
 import { SavedSearchesSidebar } from '../components/SavedSearchesSidebar';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function parseReportItems(r: SavedReport): NewsItem[] {
   try {
@@ -42,6 +45,7 @@ export function NewsPage() {
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [items, setItems] = useState<NewsItem[]>([]);
   const [analysis, setAnalysis] = useState<NewsAnalysis | null>(null);
+  const [view, setView] = useState<'search' | 'diagnostic'>('diagnostic');
 
   const aggregate = useAggregateNews();
   const saved = useSavedNewsReports(activeProject?.id);
@@ -76,6 +80,7 @@ export function NewsPage() {
   };
 
   const rerunSaved = (r: SavedReport) => {
+    setView('search');
     const t = r.title.replace(/^Noticias:\s*/i, '').trim() || r.title;
     setTopic(t);
     // Show cached results immediately and also trigger a fresh search
@@ -93,6 +98,7 @@ export function NewsPage() {
   const loading = aggregate.isPending;
 
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
+  const initialReport = useMemo(() => savedList.find(r => r.title === 'Reporte Inicial de Noticias' || r.sourceData?.pipeline === 'initial-intelligence-news'), [savedList]);
 
   return (
     <div className="min-h-full bg-gradient-to-br from-cyan-50/40 via-white to-blue-50/40">
@@ -123,24 +129,49 @@ export function NewsPage() {
               sobre lo que importa a tu marca.
             </p>
 
-            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3">
-              <Input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') void onSearch(topic);
-                }}
-                placeholder="¿Qué te interesa monitorear? Ej. Tendencias IA 2026"
-                className="flex-1 min-w-0 !bg-white/95 !text-slate-900 placeholder:text-slate-400 h-14 text-base"
-              />
-              <Button
-                onClick={() => void onSearch(topic)}
-                disabled={!topic.trim() || loading}
-                className="h-14 px-8 bg-white !text-cyan-700 hover:bg-white/90"
-              >
-                <Icon name="search" className="text-[20px]" />
-                Buscar
-              </Button>
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 items-center">
+              <div className="inline-flex p-1 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                <button
+                  onClick={() => setView('diagnostic')}
+                  className={cn(
+                    'px-6 py-2.5 rounded-xl text-sm font-bold transition-all',
+                    view === 'diagnostic' ? 'bg-white text-cyan-700 shadow-lg' : 'text-white/70 hover:text-white',
+                  )}
+                >
+                  Diagnóstico del Sector
+                </button>
+                <button
+                  onClick={() => setView('search')}
+                  className={cn(
+                    'px-6 py-2.5 rounded-xl text-sm font-bold transition-all',
+                    view === 'search' ? 'bg-white text-cyan-700 shadow-lg' : 'text-white/70 hover:text-white',
+                  )}
+                >
+                  Búsqueda Manual
+                </button>
+              </div>
+
+              {view === 'search' && (
+                <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
+                  <Input
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void onSearch(topic);
+                    }}
+                    placeholder="¿Qué te interesa monitorear? Ej. Tendencias IA 2026"
+                    className="flex-1 min-w-0 !bg-white/95 !text-slate-900 placeholder:text-slate-400 h-14 text-base"
+                  />
+                  <Button
+                    onClick={() => void onSearch(topic)}
+                    disabled={!topic.trim() || loading}
+                    className="h-14 px-8 bg-white !text-cyan-700 hover:bg-white/90"
+                  >
+                    <Icon name="search" className="text-[20px]" />
+                    Buscar
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -149,80 +180,137 @@ export function NewsPage() {
           <aside className="order-2 lg:order-1">
             <SavedSearchesSidebar
               activeProjectId={activeProject?.id}
-              saved={savedList}
+              saved={savedList.filter(r => r.title !== 'Reporte Inicial de Noticias')}
               isLoading={saved.isLoading}
               currentTopic={currentTopic}
               onSelect={rerunSaved}
             />
           </aside>
 
-          <section className="order-1 lg:order-2 relative min-h-[320px]">
-            {loading && (
-              <div className="absolute inset-0 z-20 rounded-3xl bg-white/70 backdrop-blur-sm grid place-items-center">
-                <div className="flex flex-col items-center gap-4 text-center px-6">
-                  <Spinner size="lg" />
-                  <p className="font-display font-semibold text-slate-700">
-                    Sira está buscando las noticias más relevantes...
-                  </p>
-                  {currentTopic && (
-                    <p className="text-xs text-slate-500">Tema: {currentTopic}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {!loading && !hasResults && !currentTopic && (
-              <Card className="p-6">
-                <CharacterEmpty
-                  character="sira"
-                  title="Dime qué tema monitorear"
-                  message="Yo rastreo el mundo por ti. Escribe un tema y te traigo las noticias más recientes de los últimos 14 días."
-                />
-              </Card>
-            )}
-
-            {!loading && currentTopic && !hasResults && (
-              <Card>
-                <EmptyState
-                  icon={<Icon name="search_off" className="text-[32px]" />}
-                  title="Sin resultados"
-                  description={`No encontramos noticias recientes para "${currentTopic}". Prueba con otros términos.`}
-                />
-              </Card>
-            )}
-
-            {hasResults && (
-              <div className="space-y-4">
-                {hasNarrative && (
-                  <Card className="p-5 bg-gradient-to-br from-cyan-50/60 to-blue-50/60 border-cyan-100">
-                    {analysis?.executive_summary && (
-                      <p className="text-sm font-semibold text-cyan-900 mb-3 leading-relaxed">
-                        {analysis.executive_summary}
-                      </p>
-                    )}
-                    {analysis?.key_insights && analysis.key_insights.length > 0 && (
-                      <ul className="space-y-1.5 mb-1">
-                        {analysis.key_insights.map((insight, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                            <Icon
-                              name="insights"
-                              className="text-cyan-500 text-[16px] mt-0.5 shrink-0"
-                            />
-                            <span>{insight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+          <section className="order-1 lg:order-2 relative min-h-[320px] flex flex-col gap-6">
+            {view === 'diagnostic' && (
+              <>
+                {initialReport ? (
+                  <Card className="p-8 sm:p-12 bg-gradient-to-br from-white to-blue-50/50 shadow-xl border-blue-100/50 rounded-[32px]">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-cyan-100 text-cyan-700 grid place-items-center">
+                          <Icon name="history_edu" className="text-[32px]" />
+                        </div>
+                        <div>
+                          <h3 className="text-3xl font-display font-black text-slate-900">Análisis del Sector</h3>
+                          <p className="text-sm text-slate-500">Reporte estratégico generado por la IA al inicio</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a: ({ node, ...props }) => (
+                            <a {...props} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline font-semibold" />
+                          ),
+                          code: ({ node, inline, className, children, ...props }: any) => {
+                            if (inline) {
+                              return <code className="bg-slate-100 px-1.5 py-0.5 rounded text-rose-600 text-[0.9em] font-mono" {...props}>{children}</code>;
+                            }
+                            return (
+                              <div className="my-8 overflow-x-auto rounded-3xl border border-slate-200/60 bg-slate-50/50 p-8 shadow-[inner_0_2px_4px_rgba(0,0,0,0.02)]">
+                                <code className="text-sm font-mono text-slate-600 leading-relaxed block whitespace-pre" {...props}>
+                                  {children}
+                                </code>
+                              </div>
+                            );
+                          },
+                          pre: ({ children }) => <>{children}</>
+                        }}
+                      >
+                        {initialReport.content || 'Reporte vacío.'}
+                      </ReactMarkdown>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="p-12 text-center">
+                    <CharacterEmpty
+                      character="sira"
+                      title="Aún no hay análisis inicial"
+                      message="Completa el escaneo de tu sitio web en el onboarding para que Sira pueda rastrear noticias iniciales del sector."
+                    />
                   </Card>
                 )}
-                {hasItems && (
-                  <NewsResultsGrid
-                    items={items}
-                    currentTopic={currentTopic}
-                    onAskSira={askSiraAbout}
-                  />
+              </>
+            )}
+
+            {view === 'search' && (
+              <>
+                {loading && (
+                  <div className="absolute inset-0 z-20 rounded-3xl bg-white/70 backdrop-blur-sm grid place-items-center">
+                    <div className="flex flex-col items-center gap-4 text-center px-6">
+                      <Spinner size="lg" />
+                      <p className="font-display font-semibold text-slate-700">
+                        Sira está buscando las noticias más relevantes...
+                      </p>
+                      {currentTopic && (
+                        <p className="text-xs text-slate-500">Tema: {currentTopic}</p>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </div>
+
+                {!loading && !hasResults && !currentTopic && (
+                  <Card className="p-6">
+                    <CharacterEmpty
+                      character="sira"
+                      title="Dime qué tema monitorear"
+                      message="Yo rastreo el mundo por ti. Escribe un tema y te traigo las noticias más recientes de los últimos 14 días."
+                    />
+                  </Card>
+                )}
+
+                {!loading && currentTopic && !hasResults && (
+                  <Card>
+                    <EmptyState
+                      icon={<Icon name="search_off" className="text-[32px]" />}
+                      title="Sin resultados"
+                      description={`No encontramos noticias recientes para "${currentTopic}". Prueba con otros términos.`}
+                    />
+                  </Card>
+                )}
+
+                {hasResults && (
+                  <div className="space-y-4">
+                    {hasNarrative && (
+                      <Card className="p-5 bg-gradient-to-br from-cyan-50/60 to-blue-50/60 border-cyan-100">
+                        {analysis?.executive_summary && (
+                          <p className="text-sm font-semibold text-cyan-900 mb-3 leading-relaxed">
+                            {analysis.executive_summary}
+                          </p>
+                        )}
+                        {analysis?.key_insights && analysis.key_insights.length > 0 && (
+                          <ul className="space-y-1.5 mb-1">
+                            {analysis.key_insights.map((insight, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                <Icon
+                                  name="insights"
+                                  className="text-cyan-500 text-[16px] mt-0.5 shrink-0"
+                                />
+                                <span>{insight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </Card>
+                    )}
+                    {hasItems && (
+                      <NewsResultsGrid
+                        items={items}
+                        currentTopic={currentTopic}
+                        onAskSira={askSiraAbout}
+                      />
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </section>
         </div>

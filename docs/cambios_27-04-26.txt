@@ -1,0 +1,40 @@
+RESUMEN DE CAMBIOS - 27/04/2026
+================================
+
+Se han realizado las siguientes mejoras y correcciones en la plataforma Radikal IA para optimizar la visibilidad y precisión de la inteligencia competitiva y sectorial:
+
+1. MEJORAS EN LA INTERFAZ (WEB)
+-------------------------------
+* Noticias (Análisis del Sector):
+    - Se implementó un sistema de pestañas para separar el "Diagnóstico del Sector" (IA) de la "Búsqueda Manual".
+    - El diagnóstico inicial ahora es la vista por defecto al entrar.
+    - Se configuraron todos los enlaces de noticias para abrirse en una PESTAÑA NUEVA, evitando perder la sesión al navegar a fuentes externas.
+    - Corrección de error de navegación: al seleccionar una búsqueda guardada en la barra lateral, la interfaz cambia automáticamente a la vista de resultados.
+
+* Competencia:
+    - Se añadió la pestaña "Diagnóstico IA" que contiene el informe estratégico completo generado al inicio.
+    - Se mejoró la lógica de detección del informe para que sea más robusta y flexible.
+    - Los enlaces del informe ahora se abren en una PESTAÑA NUEVA.
+
+2. DISEÑO Y ESTÉTICA (UI/UX)
+----------------------------
+* Rediseño de bloques de código (Markdown): 
+    - Los mapas de competidores y tablas ASCII que antes se veían en recuadros negros "tipo código" ahora tienen un diseño premium integrado: fondo gris claro suave, bordes redondeados y tipografía profesional que no rompe el estilo del informe.
+
+3. INTELIGENCIA Y BACKEND (API)
+-------------------------------
+* Precisión Temporal (Kimi K2.6):
+    - Se actualizó el orquestador de inteligencia para inyectar la fecha actual (Abril 2026) en todos los prompts de búsqueda.
+    - Se forzó al motor de búsqueda a priorizar eventos y tendencias de 2025 y 2026, evitando datos obsoletos de años anteriores.
+* Extracción de Datos:
+    - Se optimizó el proceso de extracción de competidores desde el reporte de Kimi hacia las tarjetas de la base de datos para asegurar que no se pierda información.
+
+4. CORRECCIÓN DE ERRORES (BUGS)
+-------------------------------
+* Fix: Se resolvió el error "ReferenceError: cn is not defined" que bloqueaba la página de Noticias.
+* Fix: Se resolvió el error "Query data cannot be undefined" en la pestaña de Competencia que impedía ver el Diagnóstico IA.
+* Fix: Se corrigió el acceso a datos en la consulta de reportes para evitar fallos de renderizado.
+
+--------------------------------
+Estado: Completado y Desplegado localmente.
+Próximos pasos: Validar la frescura de los datos en nuevas generaciones de diagnóstico.

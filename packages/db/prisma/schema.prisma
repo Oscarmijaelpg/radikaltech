@@ -4,13 +4,14 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = []
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
 }
 
 // ---------- Enums ----------
@@ -20,6 +21,7 @@ enum UserRole {
   admin
 
   @@map("user_role")
+  @@schema("public")
 }
 
 enum OnboardingStep {
@@ -33,6 +35,7 @@ enum OnboardingStep {
   completed
 
   @@map("onboarding_step")
+  @@schema("public")
 }
 
 enum WebsiteSource {
@@ -41,6 +44,7 @@ enum WebsiteSource {
   none
 
   @@map("website_source")
+  @@schema("public")
 }
 
 enum SocialPlatform {
@@ -55,6 +59,7 @@ enum SocialPlatform {
   other
 
   @@map("social_platform")
+  @@schema("public")
 }
 
 enum SocialSource {
@@ -63,6 +68,7 @@ enum SocialSource {
   none
 
   @@map("social_source")
+  @@schema("public")
 }
 
 enum ObjectiveStatus {
@@ -72,6 +78,7 @@ enum ObjectiveStatus {
   cancelled
 
   @@map("objective_status")
+  @@schema("public")
 }
 
 enum AssetType {
@@ -81,6 +88,7 @@ enum AssetType {
   audio
 
   @@map("asset_type")
+  @@schema("public")
 }
 
 enum ReportType {
@@ -91,6 +99,7 @@ enum ReportType {
   general
 
   @@map("report_type")
+  @@schema("public")
 }
 
 enum MessageRole {
@@ -99,6 +108,7 @@ enum MessageRole {
   system
 
   @@map("message_role")
+  @@schema("public")
 }
 
 enum AiJobStatus {
@@ -108,6 +118,7 @@ enum AiJobStatus {
   failed
 
   @@map("ai_job_status")
+  @@schema("public")
 }
 
 enum ScheduledPostStatus {
@@ -117,6 +128,7 @@ enum ScheduledPostStatus {
   failed
 
   @@map("scheduled_post_status")
+  @@schema("public")
 }
 
 enum ScheduledPostPlatform {
@@ -131,6 +143,7 @@ enum ScheduledPostPlatform {
   other
 
   @@map("scheduled_post_platform")
+  @@schema("public")
 }
 
 enum RecommendationStatus {
@@ -141,6 +154,7 @@ enum RecommendationStatus {
   dismissed
 
   @@map("recommendation_status")
+  @@schema("public")
 }
 
 enum RecommendationKind {
@@ -153,6 +167,7 @@ enum RecommendationKind {
   news_reaction
 
   @@map("recommendation_kind")
+  @@schema("public")
 }
 
 enum RecommendationImpact {
@@ -161,6 +176,7 @@ enum RecommendationImpact {
   low
 
   @@map("recommendation_impact")
+  @@schema("public")
 }
 
 enum ScheduledReportKind {
@@ -170,6 +186,7 @@ enum ScheduledReportKind {
   custom
 
   @@map("scheduled_report_kind")
+  @@schema("public")
 }
 
 enum ScheduledReportFrequency {
@@ -178,6 +195,7 @@ enum ScheduledReportFrequency {
   monthly
 
   @@map("scheduled_report_frequency")
+  @@schema("public")
 }
 
 enum CreditTransactionKind {
@@ -187,9 +205,17 @@ enum CreditTransactionKind {
   adjustment
 
   @@map("credit_transaction_kind")
+  @@schema("public")
 }
 
 // ---------- Models ----------
+model User {
+  id      String   @id @db.Uuid
+  profile Profile?
+
+  @@map("users")
+  @@schema("auth")
+}
 
 model Profile {
   id                   String         @id @db.Uuid
@@ -222,8 +248,10 @@ model Profile {
   scheduledReports ScheduledReport[]
   notifications   Notification[]
   creditAccount   CreditAccount?
+  user            User           @relation(fields: [id], references: [id])
 
   @@map("profiles")
+  @@schema("public")
 }
 
 model Project {
@@ -267,6 +295,7 @@ model Project {
 
   @@index([userId])
   @@map("projects")
+  @@schema("public")
 }
 
 model SocialAccount {
@@ -290,6 +319,7 @@ model SocialAccount {
   @@index([projectId])
   @@index([userId])
   @@map("social_accounts")
+  @@schema("public")
 }
 
 model BrandProfile {
@@ -319,6 +349,7 @@ model BrandProfile {
 
   @@index([userId])
   @@map("brand_profiles")
+  @@schema("public")
 }
 
 model BrandHistory {
@@ -337,6 +368,7 @@ model BrandHistory {
   @@index([projectId])
   @@index([userId])
   @@map("brand_history")
+  @@schema("public")
 }
 
 model Objective {
@@ -359,6 +391,7 @@ model Objective {
   @@index([projectId])
   @@index([userId])
   @@map("objectives")
+  @@schema("public")
 }
 
 model Competitor {
@@ -387,6 +420,7 @@ model Competitor {
   @@index([projectId])
   @@index([userId])
   @@map("competitors")
+  @@schema("public")
 }
 
 model SocialPost {
@@ -415,6 +449,7 @@ model SocialPost {
   @@index([projectId])
   @@index([platform])
   @@map("social_posts")
+  @@schema("public")
 }
 
 model ContentAsset {
@@ -436,6 +471,7 @@ model ContentAsset {
   @@index([projectId])
   @@index([userId])
   @@map("content_assets")
+  @@schema("public")
 }
 
 model Report {
@@ -457,6 +493,7 @@ model Report {
   @@index([projectId])
   @@index([userId])
   @@map("reports")
+  @@schema("public")
 }
 
 model Memory {
@@ -476,6 +513,7 @@ model Memory {
   @@index([projectId])
   @@index([userId])
   @@map("memories")
+  @@schema("public")
 }
 
 model Chat {
@@ -500,6 +538,7 @@ model Chat {
   @@index([projectId])
   @@index([folderId])
   @@map("chats")
+  @@schema("public")
 }
 
 model Message {
@@ -518,6 +557,7 @@ model Message {
   @@index([chatId])
   @@index([userId])
   @@map("messages")
+  @@schema("public")
 }
 
 model ProjectFolder {
@@ -538,6 +578,7 @@ model ProjectFolder {
   @@index([userId])
   @@index([projectId])
   @@map("project_folders")
+  @@schema("public")
 }
 
 model AiJob {
@@ -561,6 +602,7 @@ model AiJob {
   @@index([projectId])
   @@index([status])
   @@map("ai_jobs")
+  @@schema("public")
 }
 
 model ScheduledPost {
@@ -584,6 +626,7 @@ model ScheduledPost {
   @@index([status])
   @@index([scheduledAt])
   @@map("scheduled_posts")
+  @@schema("public")
 }
 
 model TokenUsage {
@@ -604,6 +647,7 @@ model TokenUsage {
   @@index([userId])
   @@index([projectId])
   @@map("token_usage")
+  @@schema("public")
 }
 
 model Recommendation {
@@ -631,6 +675,7 @@ model Recommendation {
   @@index([status])
   @@index([kind])
   @@map("recommendations")
+  @@schema("public")
 }
 
 model ScheduledReport {
@@ -653,6 +698,7 @@ model ScheduledReport {
   @@index([projectId])
   @@index([nextRunAt])
   @@map("scheduled_reports")
+  @@schema("public")
 }
 
 model Notification {
@@ -671,6 +717,7 @@ model Notification {
 
   @@index([userId])
   @@map("notifications")
+  @@schema("public")
 }
 
 model AdminAuditLog {
@@ -690,6 +737,7 @@ model AdminAuditLog {
   @@index([targetType, targetId])
   @@index([createdAt])
   @@map("admin_audit_log")
+  @@schema("public")
 }
 
 model FeatureFlag {
@@ -702,6 +750,7 @@ model FeatureFlag {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("feature_flags")
+  @@schema("public")
 }
 
 model CreditAccount {
@@ -714,6 +763,7 @@ model CreditAccount {
   transactions CreditTransaction[]
 
   @@map("credit_accounts")
+  @@schema("public")
 }
 
 model CreditTransaction {
@@ -735,6 +785,7 @@ model CreditTransaction {
   @@index([actionKey])
   @@index([createdAt])
   @@map("credit_transactions")
+  @@schema("public")
 }
 
 model ActionPrice {
@@ -747,6 +798,7 @@ model ActionPrice {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("action_prices")
+  @@schema("public")
 }
 
 model SystemConfig {
@@ -755,4 +807,5 @@ model SystemConfig {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("system_config")
+  @@schema("public")
 }

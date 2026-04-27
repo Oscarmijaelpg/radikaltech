@@ -16,7 +16,7 @@ import {
 } from '../../api/memory';
 import type { CompetitorFormData } from '../CompetitorModal';
 
-export type SubTab = 'list' | 'benchmark';
+export type SubTab = 'list' | 'benchmark' | 'diagnostic';
 
 export function useCompetitorsTab(projectId: string) {
   const navigate = useNavigate();

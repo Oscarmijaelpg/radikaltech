@@ -13,6 +13,7 @@ import { AutoCompetitorDetector } from './auto-competitor-detector.js';
 import { RecommendationGenerator } from './recommendation-generator.js';
 import { TrendingFinder } from './trending-finder.js';
 import { EmbeddingsService, embeddingsService } from './embeddings.js';
+import { InitialIntelligenceOrchestrator } from './initial-intelligence.js';
 
 export const websiteAnalyzer = new WebsiteAnalyzer();
 export const competitorAnalyzer = new CompetitorAnalyzer();
@@ -28,9 +29,10 @@ export const marketDetector = new MarketDetector();
 export const autoCompetitorDetector = new AutoCompetitorDetector();
 export const recommendationGenerator = new RecommendationGenerator();
 export const trendingFinder = new TrendingFinder();
+export const initialIntelligenceOrchestrator = new InitialIntelligenceOrchestrator();
 export { embeddingsService };
 
-export { WebsiteAnalyzer, CompetitorAnalyzer, NewsAggregator, BrandSynthesizer, ContentEvaluator, ImageGenerator, InstagramScraper, TikTokScraper, ImageAnalyzer, BrandOrchestrator, MarketDetector, AutoCompetitorDetector, RecommendationGenerator, TrendingFinder, EmbeddingsService };
+export { WebsiteAnalyzer, CompetitorAnalyzer, NewsAggregator, BrandSynthesizer, ContentEvaluator, ImageGenerator, InstagramScraper, TikTokScraper, ImageAnalyzer, BrandOrchestrator, MarketDetector, AutoCompetitorDetector, RecommendationGenerator, TrendingFinder, EmbeddingsService, InitialIntelligenceOrchestrator };
 export type { DetectTrendsInput, DetectTrendsResult, DetectedTrend, TrendCategory, TrendMomentum, TrendEvidence } from './trending-finder.js';
 export type { GenerateRecommendationsInput } from './recommendation-generator.js';
 export type { DetectMarketsInput, DetectMarketsResult } from './market-detector.js';
