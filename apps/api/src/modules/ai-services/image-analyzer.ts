@@ -1,7 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
 import {
-  LLM_MODELS,
   PROVIDER_URLS,
   geminiGenerateContentUrl,
 } from '../../config/providers.js';
@@ -14,10 +13,25 @@ export interface ImageVisualAnalysis {
   composition: string;
   style_tags: string[];
   description: string;
+  full_narrative: string;
 }
 
-const PROMPT =
-  'Analiza esta imagen como director de arte experto. Devuelve SOLO JSON con { dominant_colors: array 3-5 hex (formato #RRGGBB), lighting: string (natural, studio, dramatic, flat, etc), mood: string corto, composition: string corto, style_tags: array 3-6 strings, description: 50-100 palabras sobre dirección de arte, paleta, iluminación, ángulo, valores de marca }. No incluyas texto fuera del JSON.';
+// Rich prompt matching previous platform style - returns JSON with a full_narrative field
+const PROMPT = `Actúa como un Director de Arte y Experto en Identidad Visual. Analiza esta imagen y responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:
+
+{
+  "category": "UNA palabra en mayúsculas que categorice la imagen (PRODUCTO, LIFESTYLE, MARCA, ESPACIO, TEXTURA, PERSONA)",
+  "subject": "Nombre explícito y directo del sujeto u objeto principal visible (ej: Lasaña de carne, Fachada de tienda, Logo corporativo)",
+  "dominant_colors": ["array", "de", "3-5", "colores", "hex", "#RRGGBB"],
+  "lighting": "tipo de iluminación en 2-4 palabras (natural, estudio, dramática, suave, etc)",
+  "mood": "atmósfera o emoción principal en 2-4 palabras",
+  "composition": "tipo de encuadre y composición en 2-4 palabras",
+  "style_tags": ["array", "de", "3-6", "etiquetas", "de", "estilo"],
+  "description": "Análisis técnico de 50-100 palabras enfocado en dirección de arte: iluminación, ángulo de cámara, paleta de colores, encuadre, profundidad de campo, y qué valores de marca transmite",
+  "full_narrative": "Texto completo para mostrar en la interfaz. Formato: 'CATEGORÍA: Nombre del sujeto. Análisis técnico de 80-120 palabras sobre la dirección de arte, estilo fotográfico, iluminación, valores de marca y atmósfera que transmite la imagen.'"
+}
+
+No incluyas ningún texto, markdown ni explicación fuera del JSON.`;
 
 function inferMimeFromContentType(ct: string | null): string {
   if (!ct) return 'image/jpeg';
@@ -49,7 +63,6 @@ async function fetchAsBase64(
       logger.warn({ url, size: buf.byteLength }, 'image size out of bounds');
       return null;
     }
-    // Convert to base64 (node Buffer)
     const b64 = Buffer.from(buf).toString('base64');
     return { data: b64, mimeType: inferMimeFromContentType(ct) };
   } catch (err) {
@@ -62,15 +75,34 @@ function safeParse(content: string): ImageVisualAnalysis | null {
   if (!content) return null;
   let txt = content.trim();
   txt = txt.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+  // Strip any text before or after the JSON object
+  const jsonStart = txt.indexOf('{');
+  const jsonEnd = txt.lastIndexOf('}');
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    txt = txt.slice(jsonStart, jsonEnd + 1);
+  }
   try {
     const parsed = JSON.parse(txt);
+    const category = typeof parsed.category === 'string' ? parsed.category : '';
+    const subject = typeof parsed.subject === 'string' ? parsed.subject : '';
+    const description = typeof parsed.description === 'string' ? parsed.description : '';
+    const fullNarrative =
+      typeof parsed.full_narrative === 'string' && parsed.full_narrative
+        ? parsed.full_narrative
+        : category && subject
+          ? `${category}: ${subject}. ${description}`
+          : description;
+
     return {
-      dominant_colors: Array.isArray(parsed.dominant_colors) ? parsed.dominant_colors.slice(0, 5) : [],
+      dominant_colors: Array.isArray(parsed.dominant_colors)
+        ? parsed.dominant_colors.slice(0, 5)
+        : [],
       lighting: typeof parsed.lighting === 'string' ? parsed.lighting : '',
       mood: typeof parsed.mood === 'string' ? parsed.mood : '',
       composition: typeof parsed.composition === 'string' ? parsed.composition : '',
       style_tags: Array.isArray(parsed.style_tags) ? parsed.style_tags.slice(0, 6) : [],
-      description: typeof parsed.description === 'string' ? parsed.description : '',
+      description,
+      full_narrative: fullNarrative,
     };
   } catch (err) {
     logger.warn({ err, snippet: txt.slice(0, 200) }, 'failed to parse image analysis');
@@ -79,9 +111,6 @@ function safeParse(content: string): ImageVisualAnalysis | null {
 }
 
 export class ImageAnalyzer {
-  /**
-   * Busca un ContentAsset existente con metadata.visual_analysis para esa URL.
-   */
   async getCached(imageUrl: string): Promise<ImageVisualAnalysis | null> {
     try {
       const existing = await prisma.contentAsset.findFirst({
@@ -108,10 +137,108 @@ export class ImageAnalyzer {
 
     let parsed: ImageVisualAnalysis | null = null;
 
-    // 1) Gemini 2.5 Flash (modelo estable)
-    if (env.GEMINI_API_KEY) {
+    // 1) PRIMARY: OpenRouter with google/gemini-2.5-flash (multimodal vision)
+    if (!parsed && env.OPENROUTER_API_KEY) {
       try {
-        const endpoint = geminiGenerateContentUrl(LLM_MODELS.vision.gemini, env.GEMINI_API_KEY);
+        const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            'HTTP-Referer': env.WEB_URL ?? 'https://radikal.ai',
+            'X-Title': 'Radikal',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            temperature: 0.2,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: PROMPT },
+                  {
+                    type: 'image_url',
+                    image_url: { url: `data:${fetched.mimeType};base64,${fetched.data}` },
+                  },
+                ],
+              },
+            ],
+          }),
+          signal: AbortSignal.timeout(60_000),
+        });
+        if (res.ok) {
+          const body = (await res.json()) as {
+            choices?: Array<{ message?: { content?: string } }>;
+          };
+          const text = body.choices?.[0]?.message?.content ?? '';
+          parsed = safeParse(text);
+          if (parsed) {
+            logger.info({ imageUrl: imageUrl.slice(0, 80) }, 'vision ok (openrouter gemini-2.5-flash)');
+          }
+        } else {
+          const t = await res.text().catch(() => '');
+          logger.warn(
+            { status: res.status, body: t.slice(0, 300) },
+            'openrouter gemini-2.5-flash vision failed, falling back',
+          );
+        }
+      } catch (err) {
+        logger.warn({ err }, 'openrouter gemini-2.5-flash vision errored, falling back');
+      }
+    }
+
+    // 2) FALLBACK: OpenRouter with gpt-4o-mini
+    if (!parsed && env.OPENROUTER_API_KEY) {
+      try {
+        const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            'HTTP-Referer': env.WEB_URL ?? 'https://radikal.ai',
+            'X-Title': 'Radikal',
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-4o-mini',
+            temperature: 0.2,
+            messages: [
+              { role: 'system', content: 'Responde SOLO con JSON válido.' },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: PROMPT },
+                  {
+                    type: 'image_url',
+                    image_url: { url: `data:${fetched.mimeType};base64,${fetched.data}` },
+                  },
+                ],
+              },
+            ],
+          }),
+          signal: AbortSignal.timeout(45_000),
+        });
+        if (res.ok) {
+          const body = (await res.json()) as {
+            choices?: Array<{ message?: { content?: string } }>;
+          };
+          const text = body.choices?.[0]?.message?.content ?? '';
+          parsed = safeParse(text);
+          if (parsed) {
+            logger.info({ imageUrl: imageUrl.slice(0, 80) }, 'vision ok (openrouter gpt-4o-mini)');
+          }
+        } else {
+          const t = await res.text().catch(() => '');
+          logger.warn({ status: res.status, body: t.slice(0, 200) }, 'openrouter gpt-4o-mini vision failed');
+        }
+      } catch (err) {
+        logger.warn({ err }, 'openrouter gpt-4o-mini vision errored');
+      }
+    }
+
+    // 3) LAST RESORT: Direct Gemini API
+    if (!parsed && env.GEMINI_API_KEY) {
+      try {
+        const endpoint = geminiGenerateContentUrl('gemini-2.0-flash', env.GEMINI_API_KEY);
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -134,87 +261,36 @@ export class ImageAnalyzer {
           };
           const text = body.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
           parsed = safeParse(text);
-          if (parsed) logger.info({ imageUrl: imageUrl.slice(0, 80) }, 'vision ok (gemini)');
-        } else {
-          const t = await res.text().catch(() => '');
-          logger.warn({ status: res.status, body: t.slice(0, 200) }, 'gemini vision failed, falling back');
+          if (parsed) logger.info({ imageUrl: imageUrl.slice(0, 80) }, 'vision ok (direct gemini)');
         }
       } catch (err) {
-        logger.warn({ err }, 'gemini vision errored, falling back');
-      }
-    }
-
-    // 2) Fallback: OpenRouter con GPT-4o (soporta vision)
-    if (!parsed && env.OPENROUTER_API_KEY) {
-      try {
-        const res = await fetch(PROVIDER_URLS.openrouter.chatCompletions, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-            'HTTP-Referer': env.WEB_URL,
-            'X-Title': 'Radikal',
-          },
-          body: JSON.stringify({
-            model: LLM_MODELS.chat.openrouter,
-            response_format: { type: 'json_object' },
-            temperature: 0.3,
-            messages: [
-              { role: 'system', content: 'Responde SOLO con JSON válido.' },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: PROMPT },
-                  {
-                    type: 'image_url',
-                    image_url: { url: `data:${fetched.mimeType};base64,${fetched.data}` },
-                  },
-                ],
-              },
-            ],
-          }),
-          signal: AbortSignal.timeout(45_000),
-        });
-        if (res.ok) {
-          const body = await res.json();
-          const text = body.choices?.[0]?.message?.content ?? '';
-          parsed = safeParse(text);
-          if (parsed) logger.info({ imageUrl: imageUrl.slice(0, 80) }, 'vision ok (openrouter fallback)');
-        } else {
-          const t = await res.text().catch(() => '');
-          logger.warn({ status: res.status, body: t.slice(0, 200) }, 'openrouter vision failed');
-        }
-      } catch (err) {
-        logger.warn({ err }, 'openrouter vision errored');
+        logger.warn({ err }, 'direct gemini vision errored');
       }
     }
 
     if (!parsed) return null;
 
+    // Persist result: metadata.visual_analysis (structured) + ai_description (display text)
     try {
-
-      // Cache: if asset exists for this URL, patch its metadata.visual_analysis
-      try {
-        const existing = await prisma.contentAsset.findFirst({
-          where: { assetUrl: imageUrl },
-          select: { id: true, metadata: true },
+      const existing = await prisma.contentAsset.findFirst({
+        where: { assetUrl: imageUrl },
+        select: { id: true, metadata: true },
+      });
+      if (existing) {
+        const prev = (existing.metadata as Record<string, unknown> | null) ?? {};
+        await prisma.contentAsset.update({
+          where: { id: existing.id },
+          data: {
+            metadata: { ...prev, visual_analysis: parsed } as unknown as Prisma.InputJsonValue,
+            aiDescription: parsed.full_narrative || parsed.description || null,
+          },
         });
-        if (existing) {
-          const prev = (existing.metadata as Record<string, unknown> | null) ?? {};
-          await prisma.contentAsset.update({
-            where: { id: existing.id },
-            data: { metadata: { ...prev, visual_analysis: parsed } as unknown as Prisma.InputJsonValue },
-          });
-        }
-      } catch (err) {
-        logger.warn({ err }, 'failed caching visual_analysis on asset');
       }
-
-      return parsed;
     } catch (err) {
-      logger.warn({ err, imageUrl }, 'image analyzer errored');
-      return null;
+      logger.warn({ err }, 'failed persisting visual_analysis on asset');
     }
+
+    return parsed;
   }
 }
 

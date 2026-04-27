@@ -231,3 +231,20 @@ export function useGenerateImage() {
     },
   });
 }
+
+export function useAnalyzeImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, project_id }: { id: string; project_id: string }) => {
+      const r = await api.post<{ data: { asset_id: string; visual_analysis: unknown } }>(
+        '/ai-services/analyze-image',
+        { asset_id: id },
+      );
+      return r.data;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['content', 'list', vars.project_id] });
+      qc.invalidateQueries({ queryKey: ['content', 'detail', vars.id] });
+    },
+  });
+}

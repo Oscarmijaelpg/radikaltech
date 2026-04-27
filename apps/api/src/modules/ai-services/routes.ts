@@ -237,10 +237,13 @@ aiServicesRouter.post(
     );
     if (result) {
       const prev = (asset.metadata as Record<string, unknown> | null) ?? {};
+      // Save to metadata.visual_analysis (for structured data) AND ai_description (for modal display)
+      const narrative = (result as Record<string, unknown>).full_narrative as string | undefined;
       await prisma.contentAsset.update({
         where: { id: asset.id },
         data: {
           metadata: { ...prev, visual_analysis: result } as unknown as Prisma.InputJsonValue,
+          aiDescription: narrative || result.description || null,
         },
       });
     }

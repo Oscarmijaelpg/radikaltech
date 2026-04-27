@@ -7,6 +7,7 @@ import {
   useCreateAsset,
   useEvaluateAsset,
   useUpdateAsset,
+  useAnalyzeImage,
   type AssetType,
   type ContentAsset,
 } from '../api/content';
@@ -40,6 +41,7 @@ export function AssetUploader({ tags = [], onUploadComplete }: Props = {}) {
   const createAsset = useCreateAsset();
   const evaluateAsset = useEvaluateAsset();
   const updateAsset = useUpdateAsset();
+  const analyzeImage = useAnalyzeImage();
   const completedAssetsRef = useRef<ContentAsset[]>([]);
 
   const updateItem = (id: string, patch: Partial<UploadItem>) =>
@@ -95,11 +97,11 @@ export function AssetUploader({ tags = [], onUploadComplete }: Props = {}) {
       updateItem(id, { status: 'evaluating', progress: 80, asset_id: asset.id });
 
       if (assetType === 'image') {
-        try {
-          await evaluateAsset.mutateAsync({ id: asset.id, project_id: activeProject.id });
-        } catch {
-          // evaluation failure shouldn't prevent upload from being considered successful
-        }
+        // Run evaluate (marketing score) and visual analyze (art direction) in parallel
+        await Promise.allSettled([
+          evaluateAsset.mutateAsync({ id: asset.id, project_id: activeProject.id }),
+          analyzeImage.mutateAsync({ id: asset.id, project_id: activeProject.id }),
+        ]);
       }
 
       updateItem(id, { status: 'done', progress: 100 });
@@ -186,7 +188,7 @@ export function AssetUploader({ tags = [], onUploadComplete }: Props = {}) {
                   )}
                   {it.status === 'evaluating' && (
                     <Badge variant="outline">
-                      <Spinner className="h-3 w-3 mr-1" /> Evaluando IA
+                      <Spinner className="h-3 w-3 mr-1" /> Analizando con IA
                     </Badge>
                   )}
                   {it.status === 'done' && <Badge>Listo</Badge>}
