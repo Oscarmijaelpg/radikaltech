@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 import type { ToolChipState } from './MessageBubble';
 import { Icon } from '@radikal/ui';
+import { ImageAnalysisDialog } from '@/features/content/components/ImageAnalysisDialog';
 
 interface Props {
   tool: ToolChipState;
@@ -10,32 +11,56 @@ interface Props {
 }
 
 export function ToolResultCard({ tool, onOpenReport, onQuickPrompt }: Props) {
+  const [previewAsset, setPreviewAsset] = useState<{ asset_url: string; ai_description?: string } | null>(null);
+
   if (tool.status !== 'done' || !tool.data) return null;
 
+  let content = null;
   switch (tool.name) {
     case 'generate_image':
-      return <ImageResultCard data={tool.data} />;
+      content = <ImageResultCard data={tool.data} onPreview={() => setPreviewAsset({ asset_url: tool.data!.url as string, ai_description: tool.resultSummary })} />;
+      break;
     case 'propose_image':
-      return <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
+      content = <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
+      break;
     case 'search_news':
-      return <NewsResultCard data={tool.data} />;
+      content = <NewsResultCard data={tool.data} />;
+      break;
     case 'find_trends':
-      return <TrendsResultCard data={tool.data} />;
+      content = <TrendsResultCard data={tool.data} />;
+      break;
     case 'get_competitor_data':
-      return <CompetitorDataCard data={tool.data} />;
+      content = <CompetitorDataCard data={tool.data} />;
+      break;
     case 'get_brand_profile':
-      return <BrandProfileCard data={tool.data} />;
+      content = <BrandProfileCard data={tool.data} />;
+      break;
     case 'evaluate_content':
-      return <ContentEvalCard data={tool.data} />;
+      content = <ContentEvalCard data={tool.data} />;
+      break;
     case 'analyze_website':
-      return <WebsiteAnalysisCard data={tool.data} />;
+      content = <WebsiteAnalysisCard data={tool.data} />;
+      break;
     case 'generate_report':
-      return <ReportCreatedCard data={tool.data} onOpenReport={onOpenReport} />;
+      content = <ReportCreatedCard data={tool.data} onOpenReport={onOpenReport} />;
+      break;
     case 'detect_markets':
-      return <MarketsCard data={tool.data} />;
+      content = <MarketsCard data={tool.data} />;
+      break;
     default:
-      return null;
+      content = null;
   }
+
+  return (
+    <>
+      {content}
+      <ImageAnalysisDialog 
+        asset={previewAsset} 
+        open={!!previewAsset} 
+        onOpenChange={(o) => !o && setPreviewAsset(null)} 
+      />
+    </>
+  );
 }
 
 function CardWrapper({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -46,13 +71,19 @@ function CardWrapper({ children, className }: { children: React.ReactNode; class
   );
 }
 
-function ImageResultCard({ data }: { data: Record<string, unknown> }) {
+function ImageResultCard({ data, onPreview }: { data: Record<string, unknown>; onPreview: () => void }) {
   const url = data.url as string | undefined;
   if (!url) return null;
   return (
     <CardWrapper>
-      <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-        <img src={url} alt="Imagen generada" className="w-full max-h-[200px] sm:max-h-[300px] object-cover" />
+      <div 
+        className="rounded-xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow group relative"
+        onClick={onPreview}
+      >
+        <img src={url} alt="Imagen generada" className="w-full max-h-[200px] sm:max-h-[300px] object-cover transition-transform group-hover:scale-105" />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span className="text-white text-[10px] font-black uppercase tracking-widest border border-white/40 px-3 py-1.5 rounded-full backdrop-blur-sm">Ver análisis</span>
+        </div>
       </div>
       <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
         <Icon name="palette" className="text-[14px]" />

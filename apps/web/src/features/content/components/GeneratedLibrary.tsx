@@ -21,6 +21,7 @@ import {
   type ContentAsset,
 } from '../api/content';
 import { ImageEditDialog } from './ImageEditDialog';
+import { ImageAnalysisDialog } from './ImageAnalysisDialog';
 
 function scoreBadgeVariant(score: number | null) {
   if (score === null || score === undefined) return 'muted' as const;
@@ -161,59 +162,18 @@ export function GeneratedLibrary() {
         ))}
       </div>
 
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-3xl rounded-[2.5rem]">
-          {selected && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="rounded-[2rem] overflow-hidden border-4 border-slate-50 shadow-xl">
-                  <img
-                    src={selected.asset_url}
-                    alt=""
-                    className="w-full aspect-square object-cover"
-                  />
-                </div>
-                <div className="flex gap-2">
-                   <Button className="flex-1 rounded-xl" asChild>
-                      <a href={selected.asset_url} target="_blank" rel="noreferrer">Descargar Original</a>
-                   </Button>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Generada el</h4>
-                  <p className="text-sm font-bold text-slate-900">{formatDate(selected.created_at)}</p>
-                </div>
-
-                {selected.marketing_feedback && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Análisis de Marca</h4>
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl">
-                      {selected.marketing_feedback}
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Prompt Utilizado</h4>
-                  <p className="text-xs text-slate-500 italic">"{selected.ai_description}"</p>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                   <Button variant="outline" className="rounded-xl flex-1" onClick={() => setEditTarget(selected)}>
-                      <Icon name="auto_fix_high" className="mr-2" />
-                      Refinar
-                   </Button>
-                   <Button variant="destructive" className="rounded-xl" onClick={() => { onDelete(selected); setSelected(null); }}>
-                      <Icon name="delete" />
-                   </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ImageAnalysisDialog
+        asset={selected ? {
+          id: selected.id,
+          asset_url: selected.asset_url,
+          aesthetic_score: selected.aesthetic_score,
+          ai_description: selected.ai_description,
+          marketing_feedback: selected.marketing_feedback,
+          tags: selected.tags
+        } : null}
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      />
 
       {editTarget && (
         <ImageEditDialog
