@@ -109,7 +109,7 @@ async function* streamChatCompletions(
       for (const raw of line.split('\n')) {
         const trimmed = raw.trim();
         if (!trimmed.startsWith('data:')) continue;
-        const payload = trimmed.slice(5).trim();
+        const payload = raw.startsWith('data: ') ? raw.slice(6) : raw.slice(5);
         if (payload === '[DONE]') {
           if (toolAccum.size > 0) {
             const calls = Array.from(toolAccum.values()).map((c) => ({
