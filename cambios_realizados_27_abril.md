@@ -309,9 +309,18 @@ El campo `mode` existía en los tipos del backend pero **nunca se pasaba correct
 - **Componente Único**: Creación de `ImageAnalysisDialog.tsx` para centralizar la visualización de análisis de IA.
 - **Eliminación de Links Directos**: Se corrigió el comportamiento donde algunas imágenes abrían la URL de Supabase al hacer clic. Ahora todas abren el modal enriquecido.
 - **Secciones Actualizadas**:
-    - **Chat**: Las imágenes enviadas tanto por herramientas como por Markdown/Links ahora son clicables y muestran su análisis. Se ha corregido el comportamiento donde solo aparecía el link de texto; ahora se muestra una previsualización interactiva.
+    - **Chat (Visualización)**: Se implementó una lógica de "desduplicación" para evitar que se muestren dos imágenes en el mismo mensaje. Si hay un resultado de herramienta, se oculta el Markdown redundante.
+    - **Chat (Interactividad)**: Las imágenes ahora son previsualizaciones compactas (180px) que abren el modal premium al hacer clic.
     - **Biblioteca**: Unificación del modal de detalles con el estilo de "Nexo Ideas".
     - **Mi Marca**: El Moodboard y las subidas de usuario ahora comparten la misma experiencia visual premium.
+
+### 🧠 CAMBIO 3: Lógica de Identidad y Flujo Creativo
+- **Regla Estricta del Logo**: Se configuró el backend para que la IA tenga prohibido inventar logos. Solo se incluirá un logo si el usuario lo selecciona explícitamente como referencia.
+- **Flujo de Propuesta Obligatorio**: Se ajustaron los agentes para que siempre deban usar `propose_image` antes de generar, permitiendo al usuario elegir sus referencias visuales y logos oficiales.
+- **Rediseño de Propuestas**: La interfaz de selección de activos en el chat ahora etiqueta claramente los "LOGOS" y permite una selección más intuitiva y profesional.
+
+### 🐞 FIXES ADICIONALES
+- **Prisma Syntax**: Se corrigió un error de sintaxis en `image-tools.ts` que impedía el arranque del servidor API.
 
 ---
 *Última actualización: 27 de abril de 2026*

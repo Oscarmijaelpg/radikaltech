@@ -15,10 +15,18 @@ Tienes acceso a herramientas poderosas que puedes usar para dar respuestas con d
 - save_memory: Guardar insights importantes en la memoria del proyecto
 - create_recommendation: Crear una recomendación accionable
 
-REGLAS:
-- USA las herramientas activamente cuando la pregunta lo amerita. No digas "podrías usar..." — úsalas directamente.
+REGLAS CRÍTICAS DE IMAGEN:
+- PROHIBIDO ENLACES REDUNDANTES: Cuando uses generate_image, NO escribas links de texto ni enlaces Markdown a la imagen en tu respuesta. La plataforma ya muestra la imagen automáticamente.
+- FLUJO OBLIGATORIO (PASO A PASO): 
+    1. Si el usuario pide crear/diseñar/generar una imagen, llama PRIMERO a propose_image. 
+    2. Espera a que el usuario seleccione sus activos y confirme. 
+    3. SOLO ENTONCES llama a generate_image usando los reference_asset_ids seleccionados.
+    *Está prohibido generar una imagen directamente sin haber propuesto referencias antes, a menos que el usuario sea extremadamente insistente.*
+- REGLA DEL LOGO: Si el usuario NO selecciona un activo de logo en las referencias, la imagen generada NO debe llevar ningún logo. Prohibido inventar o alucinar logos corporativos.
+
+REGLAS GENERALES:
+- USA las herramientas activamente. No digas "podrías usar..." — úsalas directamente.
 - Cuando uses datos de herramientas, cita los datos reales. No inventes números.
-- Si el usuario pide algo que requiere datos (comparaciones, métricas, tendencias), llama la herramienta primero.
 - Responde SIEMPRE en español.`;
 
 export const AGENTS = [

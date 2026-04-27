@@ -86,16 +86,29 @@ export const proposeImageTool: ToolDefinition = {
     if (!ctx.projectId)
       return { summary: 'Este chat no tiene proyecto activo', error: 'no_project' };
     
-    // Fetch project brand assets (logos, references, user uploaded)
-    const assets = await prisma.contentAsset.findMany({
+    // Fetch logo specifically to ensure it is always proposed if it exists
+    const logos = await prisma.contentAsset.findMany({
       where: {
         projectId: ctx.projectId,
-        tags: { hasSome: ['logo', 'reference', 'user_uploaded'] },
+        tags: { has: 'logo' },
       },
-      orderBy: { createdAt: 'desc' },
-      take: 8,
+      take: 2,
       select: { id: true, url: true, tags: true, aiDescription: true },
     });
+
+    // Fetch other references
+    const otherAssets = await prisma.contentAsset.findMany({
+      where: {
+        projectId: ctx.projectId,
+        tags: { hasSome: ['reference', 'user_uploaded'] },
+        id: { notIn: logos.map(l => l.id) },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      select: { id: true, url: true, tags: true, aiDescription: true },
+    });
+
+    const assets = [...logos, ...otherAssets];
 
     return {
       summary: `Se encontraron ${assets.length} activos visuales para proponer.`,

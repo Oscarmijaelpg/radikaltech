@@ -200,18 +200,24 @@ export function MessageBubble({
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  img: ({ node, ...props }) => (
-                    <img 
-                      {...props} 
-                      className="rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-all max-w-full h-auto mt-2 mb-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (props.src) {
-                          setPreviewAsset({ asset_url: props.src, ai_description: props.alt || 'Imagen del chat' });
-                        }
-                      }}
-                    />
-                  ),
+                  img: ({ node, ...props }) => {
+                    // Avoid duplicate images if a tool already generated one
+                    const hasGeneratedImage = tools?.some(t => t.name === 'generate_image' && t.status === 'done');
+                    if (hasGeneratedImage) return null;
+
+                    return (
+                      <img 
+                        {...props} 
+                        className="rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-all max-w-full h-auto mt-2 mb-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (props.src) {
+                            setPreviewAsset({ asset_url: props.src, ai_description: props.alt || 'Imagen del chat' });
+                          }
+                        }}
+                      />
+                    );
+                  },
                   a: ({ node, ...props }) => {
                     const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)/i.test(props.href || '');
                     if (isImageUrl && props.href) {

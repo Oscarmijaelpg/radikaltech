@@ -69,18 +69,38 @@ export async function buildBrandContext(
     if (referenceAssetIds.length > 0) {
       const assets = await prisma.contentAsset.findMany({
         where: { id: { in: referenceAssetIds } },
-        select: { aiDescription: true, marketingFeedback: true, tags: true },
+        select: { id: true, aiDescription: true, marketingFeedback: true, tags: true },
       });
+      
+      const hasLogoInRefs = assets.some(a => a.tags?.includes('logo'));
+      
       const assetCtx = assets
         .map((a, i) => {
           const desc = a.aiDescription || a.marketingFeedback;
           if (!desc) return null;
-          return `Ref #${i + 1}: ${desc.slice(0, 300)}${a.tags?.length ? ` (Tags: ${a.tags.join(', ')})` : ''}`;
+          const isLogo = a.tags?.includes('logo');
+          return `Ref #${i + 1}${isLogo ? ' (LOGO OFICIAL)' : ''}: ${desc.slice(0, 300)}${a.tags?.length ? ` (Tags: ${a.tags.join(', ')})` : ''}`;
         })
         .filter(Boolean);
+
       if (assetCtx.length > 0) {
         brandCtx.push(`\nRECUERDA ESTAS REFERENCIAS VISUALES:\n${assetCtx.join('\n')}`);
       }
+
+      if (!hasLogoInRefs) {
+        brandCtx.push(`
+### CRITICAL LOGO RULE ###
+- NO HAS SELECCIONADO UN LOGO EN LAS REFERENCIAS.
+- POR LO TANTO: **ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR O DIBUJAR UN LOGO**.
+- La imagen NO debe contener ningún logo, marca de agua o texto corporativo inventado. Solo enfócate en la escena/producto sin branding si el logo no está en las Refs.`);
+      }
+    } else {
+      // No references at all
+      brandCtx.push(`
+### CRITICAL BRANDING RULE ###
+- NO HAY REFERENCIAS VISUALES.
+- **PROHIBIDO INVENTAR LOGOS O TEXTOS**: La IA no debe intentar crear un logo de la marca por su cuenta. 
+- Crea una escena genérica que respete los colores de la marca pero SIN incluir logos inventados.`);
     }
 
     // Mode-specific composition protocol (mirrors previous platform ContentIdeation.tsx)
@@ -90,16 +110,16 @@ export async function buildBrandContext(
 ### MANDATORY ASPECT RATIO: Respect the requested size ###
 STRICT ROLE: You are an expert art director and compositor.
 - TASK: Do NOT just paste the images together like a basic collage. Create a cohesive, realistic, and professional scene or editorial composition using all provided visual elements.
-- SUBJECT LOCK: You may change the perspective, angle, lighting, or setting to make the composition dynamic and logical, BUT you MUST strictly maintain the exact identity, textures, and label details of the main product/subject.
+- SUBJECT LOCK: You may maintain the exact identity, textures, and label details of the main product/subject.
 - AUTHORIZED: Better lighting, high-end studio or lifestyle background, sharp focus, dynamic angles.
-- COLORS & LOGO: Extract and use ONLY the exact colors from the reference images. The logo must be placed elegantly and naturally without deforming its typography, shape, or original color.
+- COLORS & LOGO: Extract and use ONLY the exact colors from the reference images. The logo (IF SELECTED) must be placed elegantly and naturally without deforming its typography, shape, or original color.
 - NEGATIVE: Do NOT make a flat collage, do NOT distort the product shape or label, do NOT add unrelated elements.`);
     } else {
       brandCtx.push(`
 ### BRAND-CENTRIC CREATIVE MODE ###
 CORE RULE: Even in creative mode, you MUST respect the brand DNA strictly.
 - COLOR PALETTE: Extract and use ONLY the exact hex codes/colors present in the reference images and brand palette.
-- LOGO INTEGRITY: Place the brand logo clearly and legibly. NEVER alter its shape, font, or color.
+- LOGO INTEGRITY: IF (and only if) a logo is selected as reference, place it clearly and legibly. NEVER alter its shape, font, or color.
 - SCENE: Create a compelling, new lifestyle or studio setting, but keep the brand identity clean and professional.
 - QUALITY: Professional photography quality, 4K, editorial-grade composition.
 - NEGATIVE: No chaotic elements, no distorted logos, no neon colors unless present in the brand.`);
