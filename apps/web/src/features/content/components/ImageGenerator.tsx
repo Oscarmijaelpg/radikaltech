@@ -43,6 +43,7 @@ function useGenerateImage() {
       prompt: string;
       size: ImageSize;
       style: ImageStyle;
+      mode?: 'creative' | 'referential';
       project_id?: string;
       reference_asset_ids?: string[];
       use_brand_palette?: boolean;
@@ -82,6 +83,7 @@ export function ImageGenerator() {
   const [references, setReferences] = useState<ContentAsset[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [variationsCount, setVariationsCount] = useState<number>(1);
+  const [mode, setMode] = useState<'creative' | 'referential'>('creative');
   const [selectedVariantIdx, setSelectedVariantIdx] = useState<number | null>(null);
   const [editTarget, setEditTarget] = useState<{ assetId: string; url: string } | null>(null);
   const [abOpen, setAbOpen] = useState(false);
@@ -152,7 +154,8 @@ export function ImageGenerator() {
       const res = await generate.mutateAsync({
         prompt: p,
         size,
-        style,
+        style: mode === 'creative' ? 'vivid' : 'natural',
+        mode,
         project_id: activeProject?.id,
         reference_asset_ids: refIds.length ? refIds : undefined,
         use_brand_palette: useBrandPalette,
@@ -348,6 +351,33 @@ export function ImageGenerator() {
               <span className="text-xs text-slate-500">Necesitas un proyecto activo</span>
             )}
           </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-[10px] font-black uppercase tracking-tighter opacity-60 mb-2">
+            Modo de generación
+          </p>
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setMode('creative')}
+              className={`py-2.5 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode === 'creative' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              ✦ Creativo
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('referential')}
+              className={`py-2.5 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode === 'referential' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              ◎ Apegado al referente
+            </button>
+          </div>
+          {mode === 'referential' && (
+            <p className="text-[10px] text-amber-600 font-bold mt-2 italic">
+              La IA respetará estrictamente la composición, colores y elementos de tus referencias.
+            </p>
+          )}
         </div>
 
         <Textarea

@@ -49,4 +49,11 @@ select:focus-visible {
     transform: scale(0.95);
     transition: transform 80ms ease-out;
   }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

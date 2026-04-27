@@ -9,6 +9,7 @@ import {
   TabsTrigger,
 } from '@radikal/ui';
 import { AssetGallery } from '../components/AssetGallery';
+import { GeneratedLibrary } from '../components/GeneratedLibrary';
 import { AssetUploader } from '../components/AssetUploader';
 import { ImageGenerator } from '../components/ImageGenerator';
 import { NexoIdeasSection } from '../components/NexoIdeasSection';
@@ -17,8 +18,8 @@ import { HelpButton } from '@/shared/ui/HelpButton';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { usePageTour } from '@/shared/tour';
 
-type TabId = 'nexo' | 'gallery' | 'upload' | 'generate' | 'scheduled';
-const TAB_IDS: TabId[] = ['nexo', 'gallery', 'upload', 'generate', 'scheduled'];
+type TabId = 'nexo' | 'gallery' | 'generated_library' | 'upload' | 'generate' | 'scheduled';
+const TAB_IDS: TabId[] = ['nexo', 'gallery', 'generated_library', 'upload', 'generate', 'scheduled'];
 
 export function ContentPage() {
   const [searchParams] = useSearchParams();
@@ -34,6 +35,7 @@ export function ContentPage() {
   const TAB_SUB: Record<TabId, string> = {
     nexo: 'Ideas de Nexo',
     gallery: 'Galería',
+    generated_library: 'Biblioteca de imágenes',
     upload: 'Subir archivos',
     generate: 'Generar con IA',
     scheduled: 'Agendados',
@@ -87,6 +89,7 @@ export function ContentPage() {
           <TabsList data-tour="content-tabs">
             <TabsTrigger value="nexo" data-tour="content-nexo">Ideas de Nexo</TabsTrigger>
             <TabsTrigger value="gallery" data-tour="content-gallery">Galería</TabsTrigger>
+            <TabsTrigger value="generated_library">Biblioteca de imágenes</TabsTrigger>
             <TabsTrigger value="upload" data-tour="content-upload">Subir</TabsTrigger>
             <TabsTrigger value="generate" data-tour="content-generate">Generar con IA</TabsTrigger>
             <TabsTrigger value="scheduled" data-tour="content-scheduled">Agendados</TabsTrigger>
@@ -98,6 +101,10 @@ export function ContentPage() {
 
           <TabsContent value="gallery" className="animate-in fade-in slide-in-from-right-2 duration-300">
             <AssetGallery />
+          </TabsContent>
+
+          <TabsContent value="generated_library" className="animate-in fade-in slide-in-from-right-2 duration-300">
+            <GeneratedLibrary />
           </TabsContent>
 
           <TabsContent value="upload" className="animate-in fade-in slide-in-from-right-2 duration-300">

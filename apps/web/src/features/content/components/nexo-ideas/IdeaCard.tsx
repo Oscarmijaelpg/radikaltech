@@ -23,7 +23,7 @@ export function IdeaCard({ idea, onOpen, onGenerateImage }: Props) {
           {idea.platform}
         </span>
         <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-          {idea.type === 'carrusel' ? `Carrusel · ${idea.image_count} img` : 'Pilar · 1 img'}
+          {idea.type === 'carrusel' ? `Carrusel · ${idea.image_count} img` : idea.type === 'historia' ? 'Historia · 1 img' : 'Post · 1 img'}
         </span>
       </div>
 

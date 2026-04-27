@@ -55,7 +55,7 @@ export class ImageGenerator {
       Math.min(MAX_VARIATIONS, input.variations ?? 1),
     );
 
-    const enrichedPrompt = await buildBrandContext(input.projectId, useBrandPalette, input.prompt);
+    const enrichedPrompt = await buildBrandContext(input.projectId, useBrandPalette, input.prompt, refIds, input.mode ?? 'creative');
 
     const batchId = randomUUID();
 
@@ -86,13 +86,25 @@ export class ImageGenerator {
     try {
       const refs: Array<{ base64: string; mimeType: string }> = [];
       if (refIds.length) {
+        // Cap at 3 reference images max
+        const cappedRefIds = refIds.slice(0, 3);
         const assets = await prisma.contentAsset.findMany({
-          where: { id: { in: refIds }, userId: input.userId },
+          where: { id: { in: cappedRefIds }, userId: input.userId },
         });
+        let skipped = 0;
         for (const a of assets) {
           const dl = await downloadAsBase64(a.assetUrl);
-          if (dl) refs.push(dl);
+          if (dl) {
+            refs.push(dl);
+          } else {
+            skipped++;
+            logger.warn({ assetId: a.id, assetUrl: a.assetUrl }, 'reference image skipped (unsupported/inaccessible), continuing without it');
+          }
         }
+        if (skipped > 0) {
+          logger.info({ requested: cappedRefIds.length, loaded: refs.length, skipped }, 'some reference images were skipped, generation continues');
+        }
+        // Don't block generation even if ALL refs failed
       }
 
       const runOne = async (idx: number): Promise<GeneratedVariation | null> => {
@@ -101,14 +113,12 @@ export class ImageGenerator {
         let modelUsed: ImageModel | undefined;
         let buf: Buffer | undefined;
 
-        if (refs.length > 0) {
-          const gem = await generateWithGemini(variantPrompt, refs);
-          if (gem.buffer) {
-            buf = gem.buffer;
-            modelUsed = LLM_MODELS.image.geminiDefault;
-          } else {
-            logger.warn({ idx, error: gem.error }, 'gemini generation failed, trying dalle');
-          }
+        const gem = await generateWithGemini(variantPrompt, refs);
+        if (gem.buffer) {
+          buf = gem.buffer;
+          modelUsed = LLM_MODELS.image.geminiDefault;
+        } else {
+          logger.warn({ idx, error: gem.error }, 'gemini generation failed, trying dalle');
         }
         if (!buf) {
           const dalle = await generateWithDalle(variantPrompt, size, style);

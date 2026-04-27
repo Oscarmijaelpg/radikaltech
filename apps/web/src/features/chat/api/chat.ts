@@ -252,7 +252,12 @@ export async function streamMessage(
         const dataLines: string[] = [];
         for (const line of lines) {
           if (line.startsWith('event:')) eventName = line.slice(6).trim();
-          else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+          // SSE spec: strip exactly one space after "data:" (the protocol separator),
+          // but preserve any additional leading spaces which are part of the token content.
+          // Using .trim() was stripping leading spaces from LLM tokens, causing words to merge.
+          else if (line.startsWith('data:')) {
+            dataLines.push(line.startsWith('data: ') ? line.slice(6) : line.slice(5));
+          }
         }
         const dataStr = dataLines.join('\n');
         if (!dataStr && eventName === 'message') continue;

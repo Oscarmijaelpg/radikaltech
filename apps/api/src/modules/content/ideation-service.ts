@@ -12,6 +12,7 @@ export interface GenerateIdeasInput {
   userId: string;
   angle?: IdeaAngle;
   count?: number;
+  source?: 'competition' | 'news';
 }
 
 export interface ContentIdea {
@@ -19,7 +20,7 @@ export interface ContentIdea {
   description: string;
   platform: 'Instagram' | 'LinkedIn' | 'Twitter' | 'TikTok';
   visual_suggestion: string;
-  type: 'pilar' | 'carrusel';
+  type: 'post' | 'carrusel' | 'historia';
   image_count: number;
 }
 
@@ -48,7 +49,8 @@ function normalizePlatform(v: unknown): ContentIdea['platform'] {
 }
 
 function normalizeType(v: unknown): ContentIdea['type'] {
-  return String(v ?? '').toLowerCase() === 'carrusel' ? 'carrusel' : 'pilar';
+  const t = String(v ?? '').toLowerCase();
+  return ['carrusel', 'historia'].includes(t) ? (t as 'carrusel' | 'historia') : 'post';
 }
 
 function parseIdeas(raw: string): ContentIdea[] {
@@ -87,17 +89,20 @@ function parseIdeas(raw: string): ContentIdea[] {
     .filter((x): x is ContentIdea => x !== null);
 }
 
-async function loadProjectContext(projectId: string, userId: string) {
+async function loadProjectContext(projectId: string, userId: string, source?: 'competition' | 'news') {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new NotFound('Project not found');
   if (project.userId !== userId) throw new NotFound('Project not found');
 
-  const [brand, competitors, recentMemories] = await Promise.all([
+  const [brand, reports, recentMemories] = await Promise.all([
     prisma.brandProfile.findUnique({ where: { projectId } }),
-    prisma.competitor.findMany({
-      where: { projectId, status: { in: ['confirmed', 'suggested'] } },
+    prisma.report.findMany({
+      where: { 
+        projectId, 
+        ...(source === 'competition' ? { reportType: { in: ['competition', 'monthly_audit'] } } : source === 'news' ? { reportType: 'news' } : {})
+      },
       orderBy: { createdAt: 'desc' },
-      take: 8,
+      take: 5,
     }),
     prisma.memory.findMany({
       where: { projectId },
@@ -106,15 +111,16 @@ async function loadProjectContext(projectId: string, userId: string) {
     }),
   ]);
 
-  return { project, brand, competitors, recentMemories };
+  return { project, brand, reports, recentMemories };
 }
 
 function buildPrompt(
   ctx: Awaited<ReturnType<typeof loadProjectContext>>,
   angle: IdeaAngle,
   count: number,
+  source?: 'competition' | 'news'
 ): { systemPrompt: string; userPrompt: string } {
-  const { project, brand, competitors, recentMemories } = ctx;
+  const { project, brand, reports, recentMemories } = ctx;
 
   const systemPrompt =
     'Eres el "Estratega Nexo" de Radikal, experto en contenido digital con acceso a $web_search para verificar tendencias actuales. ' +
@@ -136,9 +142,8 @@ function buildPrompt(
   if (brand?.competitiveAdvantage) brandLines.push(`- Ventaja: ${brand.competitiveAdvantage}`);
   if (brand?.brandValues?.length) brandLines.push(`- Valores: ${brand.brandValues.join(', ')}`);
 
-  const competitorLines = competitors
-    .slice(0, 5)
-    .map((c) => `- ${c.name}${c.website ? ` (${c.website})` : ''}`);
+  const reportLines = reports
+    .map((r) => `- [${r.title}] ${r.summary ? r.summary.slice(0, 500) : ''} \n${r.keyInsights?.slice(0, 3).map((ki: string) => `  * ${ki}`).join('\n')}`);
 
   const memoryLines = recentMemories
     .slice(0, 5)
@@ -158,12 +163,12 @@ function buildPrompt(
     brandLines.length ? `IDENTIDAD DE MARCA` : null,
     ...brandLines,
     brandLines.length ? '' : null,
-    competitorLines.length ? `COMPETENCIA DETECTADA` : null,
-    ...competitorLines,
-    competitorLines.length ? '' : null,
-    memoryLines.length ? `MEMORIAS RECIENTES` : null,
-    ...memoryLines,
-    memoryLines.length ? '' : null,
+    reportLines.length ? `REPORTES DE ANÁLISIS ${source ? `(${source === 'competition' ? 'COMPETENCIA' : 'NOTICIAS'})` : 'ESTRATÉGICOS'}` : null,
+    ...reportLines,
+    reportLines.length ? '' : null,
+    !source && memoryLines.length ? `MEMORIAS RECIENTES` : null,
+    ...(!source ? memoryLines : []),
+    !source && memoryLines.length ? '' : null,
     `TAREA`,
     `Genera EXACTAMENTE ${count} ideas de contenido para las próximas 2 semanas.`,
     angleBlock,
@@ -174,22 +179,21 @@ function buildPrompt(
     `3. Cada idea debe respetar la voz/tono de marca descrita arriba.`,
     `4. description debe tener formato: "Qué: [idea concreta]. Por qué: [dato o insight que la sustenta]."`,
     `5. visual_suggestion describe la imagen ideal (estilo, composición, elementos).`,
-    `6. Mezcla ideas tipo "pilar" (1 imagen) y "carrusel" (3-5 imágenes) si ayuda al objetivo.`,
-    `7. Tu mensaje FINAL es SOLO el JSON. No imprimas queries de búsqueda, ni "Voy a buscar...", ni comentarios.`,
+    `6. Mezcla ideas tipo "post" (formato cuadrado 1:1), "carrusel" (3-5 imágenes) y "historia" (formato vertical 9:16).`,
     '',
     `FORMATO DE SALIDA (JSON crudo, nada más):`,
     `{`,
     `  "ideas": [`,
     `    {`,
-    `      "title": "Título accionable",`,
-    `      "description": "Qué: ... Por qué: ...",`,
-    `      "platform": "Instagram|LinkedIn|Twitter|TikTok",`,
-    `      "visual_suggestion": "Descripción visual",`,
-    `      "type": "pilar|carrusel",`,
+    `      "title": "Un título gancho de máx 50 caracteres",`,
+    `      "description": "Qué mostrar y por qué, detallado y persuasivo (máx 200 caracteres)",`,
+    `      "visual_suggestion": "Instrucción exacta para el fotógrafo / IA de qué debe verse en la imagen",`,
+    `      "platform": "Instagram|LinkedIn|TikTok",`,
+    `      "type": "post|carrusel|historia",`,
     `      "image_count": 1`,
     `    }`,
     `  ]`,
-    `}`,
+    `}`
   ]
     .filter((l) => l !== null)
     .join('\n');
@@ -255,8 +259,8 @@ export const ideationService = {
     const count = Math.min(MAX_COUNT, Math.max(1, input.count ?? DEFAULT_COUNT));
     const angle: IdeaAngle = input.angle ?? 'auto';
 
-    const ctx = await loadProjectContext(input.projectId, input.userId);
-    const { systemPrompt, userPrompt } = buildPrompt(ctx, angle, count);
+    const ctx = await loadProjectContext(input.projectId, input.userId, input.source);
+    const { systemPrompt, userPrompt } = buildPrompt(ctx, angle, count, input.source);
 
     const primary = await moonshotWebSearch({
       systemPrompt,
@@ -297,6 +301,35 @@ export const ideationService = {
 
     if (ideas.length === 0) {
       throw new BadRequest('El motor no produjo ideas válidas.');
+    }
+
+    // Persistir las ideas en la memoria del proyecto
+    try {
+      const memoryKey = 'latest_ideas';
+      const memoryCategory = 'ideation';
+      const existing = await prisma.memory.findFirst({
+        where: { projectId: input.projectId, category: memoryCategory, key: memoryKey },
+      });
+
+      if (existing) {
+        await prisma.memory.update({
+          where: { id: existing.id },
+          data: { value: JSON.stringify(ideas) },
+        });
+      } else {
+        await prisma.memory.create({
+          data: {
+            projectId: input.projectId,
+            userId: input.userId,
+            category: memoryCategory,
+            key: memoryKey,
+            value: JSON.stringify(ideas),
+          },
+        });
+      }
+    } catch (err) {
+      logger.error({ err }, 'failed to save latest ideas to memory');
+      // No bloqueamos el retorno si falla la persistencia
     }
 
     return { ideas };

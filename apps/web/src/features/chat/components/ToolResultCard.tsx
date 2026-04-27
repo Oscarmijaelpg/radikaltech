@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 import type { ToolChipState } from './MessageBubble';
 import { Icon } from '@radikal/ui';
@@ -5,14 +6,17 @@ import { Icon } from '@radikal/ui';
 interface Props {
   tool: ToolChipState;
   onOpenReport?: (content: string) => void;
+  onQuickPrompt?: (text: string) => void;
 }
 
-export function ToolResultCard({ tool, onOpenReport }: Props) {
+export function ToolResultCard({ tool, onOpenReport, onQuickPrompt }: Props) {
   if (tool.status !== 'done' || !tool.data) return null;
 
   switch (tool.name) {
     case 'generate_image':
       return <ImageResultCard data={tool.data} />;
+    case 'propose_image':
+      return <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
     case 'search_news':
       return <NewsResultCard data={tool.data} />;
     case 'find_trends':
@@ -388,18 +392,123 @@ function MarketsCard({ data }: { data: Record<string, unknown> }) {
           <Icon name="public" className="text-[16px]" />
         </div>
         <p className="text-xs font-bold text-slate-700">Mercados detectados</p>
+        <p className="text-xs font-bold text-slate-700">{regions.length} mercados clave detectados</p>
       </div>
-      <div className="flex flex-wrap gap-1.5">
-        {countries.map((c, i) => (
-          <span key={i} className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-            {c}
-          </span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {regions.map((r, i) => (
+          <div key={i} className="p-3 rounded-xl bg-white border border-slate-100 flex flex-col h-full">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className="text-xs font-bold text-slate-800">{r.name}</p>
+              <span className={cn('px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider', 
+                r.demandLevel === 'High' ? 'bg-emerald-100 text-emerald-700' :
+                r.demandLevel === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+              )}>
+                {r.demandLevel} Demand
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">{r.type}</p>
+            <div className="flex flex-wrap gap-1 mb-2">
+              {r.keyCharacteristics.slice(0, 2).map((c, j) => (
+                <span key={j} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-medium truncate max-w-full">
+                  {c}
+                </span>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-600 mt-auto pt-2 border-t border-slate-50 line-clamp-2">
+              {r.recommendedApproach}
+            </p>
+          </div>
         ))}
-        {regions?.map((r, i) => (
-          <span key={`r-${i}`} className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
-            {r}
-          </span>
-        ))}
+      </div>
+    </CardWrapper>
+  );
+}
+
+function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unknown>, onQuickPrompt?: (text: string) => void }) {
+  const assets = data.assets as Array<{ id: string; url: string; tags: string[]; aiDescription?: string }> | undefined;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else {
+        if (next.size < 3) next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleGenerate = (mode: 'creative' | 'referential') => {
+    if (!onQuickPrompt) return;
+    const modeName = mode === 'creative' ? 'Modo Creativo' : 'Apegado al Referente';
+    let prompt = `Genérala en ${modeName}`;
+    if (selectedIds.size > 0) {
+      const idsStr = Array.from(selectedIds).join(',');
+      prompt += ` [ASSETS: ${idsStr}]`;
+    }
+    onQuickPrompt(prompt);
+  };
+
+  return (
+    <CardWrapper className="border-amber-200 from-amber-50 to-white">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 grid place-items-center text-white shadow-sm">
+          <Icon name="auto_awesome" className="text-[18px]" />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-slate-800">Propuesta de Generación Visual</p>
+          <p className="text-[10px] text-slate-500">Selecciona hasta 3 referencias para usar.</p>
+        </div>
+      </div>
+      
+      {assets && assets.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {assets.map((a) => {
+            const isSelected = selectedIds.has(a.id);
+            return (
+              <div 
+                key={a.id} 
+                onClick={() => toggleSelection(a.id)}
+                className={cn(
+                  "relative overflow-hidden rounded-xl border-2 transition-all duration-300 shadow-sm cursor-pointer w-24 h-24 sm:w-28 sm:h-28 group",
+                  isSelected 
+                      ? "border-[hsl(var(--color-primary))] ring-4 ring-[hsl(var(--color-primary)/0.1)] scale-105 z-10" 
+                      : "border-slate-200 bg-slate-50 grayscale-[0.3] opacity-80 hover:opacity-100 hover:grayscale-0 hover:border-[hsl(var(--color-primary)/0.3)]"
+                )}
+              >
+                <img src={a.url} alt="Referencia" className="w-full h-full object-cover" />
+                {isSelected && (
+                  <div className="absolute top-1 right-1 bg-[hsl(var(--color-primary))] text-white p-0.5 rounded-full shadow-lg scale-75">
+                      <Icon name="check" className="text-[16px] font-black" />
+                  </div>
+                )}
+                {!isSelected && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 flex items-center justify-center transition-all">
+                        <Icon name="add_circle" className="text-[20px] text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
+                    </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={() => handleGenerate('referential')}
+          className="flex-1 px-4 py-3 bg-[hsl(var(--color-primary))] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+        >
+          <Icon name="filter_center_focus" className="text-[16px]" />
+          Apegado al Referente
+        </button>
+        <button
+          onClick={() => handleGenerate('creative')}
+          className="flex-1 px-4 py-3 bg-white border-2 border-[hsl(var(--color-primary))] text-[hsl(var(--color-primary))] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[hsl(var(--color-primary)/0.05)] transition-all flex items-center justify-center gap-2"
+        >
+          <Icon name="auto_awesome" className="text-[16px]" />
+          Modo Creativo
+        </button>
       </div>
     </CardWrapper>
   );

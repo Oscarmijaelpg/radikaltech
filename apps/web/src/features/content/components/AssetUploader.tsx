@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { FileUpload, Card, Spinner, Badge, Button } from '@radikal/ui';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -6,7 +6,10 @@ import { useProject } from '@/providers/ProjectProvider';
 import {
   useCreateAsset,
   useEvaluateAsset,
+  useUpdateAsset,
+  useAnalyzeImage,
   type AssetType,
+  type ContentAsset,
 } from '../api/content';
 
 interface UploadItem {
@@ -26,18 +29,26 @@ function mimeToAssetType(mime: string): AssetType | null {
   return null;
 }
 
-export function AssetUploader() {
+interface Props {
+  tags?: string[];
+  onUploadComplete?: (assets: ContentAsset[]) => void;
+}
+
+export function AssetUploader({ tags = [], onUploadComplete }: Props = {}) {
   const { user } = useAuth();
   const { activeProject } = useProject();
   const [items, setItems] = useState<UploadItem[]>([]);
   const createAsset = useCreateAsset();
   const evaluateAsset = useEvaluateAsset();
+  const updateAsset = useUpdateAsset();
+  const analyzeImage = useAnalyzeImage();
+  const completedAssetsRef = useRef<ContentAsset[]>([]);
 
   const updateItem = (id: string, patch: Partial<UploadItem>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
-  async function handleOneFile(file: File): Promise<void> {
-    if (!user || !activeProject) return;
+  async function handleOneFile(file: File): Promise<ContentAsset | null> {
+    if (!user || !activeProject) return null;
     const id = crypto.randomUUID();
     setItems((prev) => [
       ...prev,
@@ -48,7 +59,7 @@ export function AssetUploader() {
       const assetType = mimeToAssetType(file.type);
       if (!assetType) {
         updateItem(id, { status: 'error', error: 'Tipo de archivo no soportado' });
-        return;
+        return null;
       }
 
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -60,7 +71,7 @@ export function AssetUploader() {
 
       if (upErr) {
         updateItem(id, { status: 'error', error: upErr.message });
-        return;
+        return null;
       }
 
       const { data: pub } = supabase.storage.from('assets').getPublicUrl(path);
@@ -78,30 +89,39 @@ export function AssetUploader() {
           original_name: file.name,
         },
       });
+      
+      if (tags.length > 0) {
+         await updateAsset.mutateAsync({ id: asset.id, project_id: activeProject.id, tags });
+      }
 
       updateItem(id, { status: 'evaluating', progress: 80, asset_id: asset.id });
 
       if (assetType === 'image') {
-        try {
-          await evaluateAsset.mutateAsync({ id: asset.id, project_id: activeProject.id });
-        } catch {
-          // evaluation failure shouldn't prevent upload from being considered successful
-        }
+        // Run evaluate (marketing score) and visual analyze (art direction) in parallel
+        await Promise.allSettled([
+          evaluateAsset.mutateAsync({ id: asset.id, project_id: activeProject.id }),
+          analyzeImage.mutateAsync({ id: asset.id, project_id: activeProject.id }),
+        ]);
       }
 
       updateItem(id, { status: 'done', progress: 100 });
+      return asset;
     } catch (err) {
       updateItem(id, {
         status: 'error',
         error: err instanceof Error ? err.message : 'Error desconocido',
       });
+      return null;
     }
   }
 
-  const onFiles = (files: File[]) => {
-    files.forEach((f) => {
-      void handleOneFile(f);
-    });
+  const onFiles = async (files: File[]) => {
+    completedAssetsRef.current = [];
+    const results = await Promise.all(files.map(handleOneFile));
+    const successfulAssets = results.filter((r): r is ContentAsset => r !== null);
+    if (successfulAssets.length > 0 && onUploadComplete) {
+      onUploadComplete(successfulAssets);
+    }
   };
 
   const clearCompleted = () =>
@@ -168,7 +188,7 @@ export function AssetUploader() {
                   )}
                   {it.status === 'evaluating' && (
                     <Badge variant="outline">
-                      <Spinner className="h-3 w-3 mr-1" /> Evaluando IA
+                      <Spinner className="h-3 w-3 mr-1" /> Analizando con IA
                     </Badge>
                   )}
                   {it.status === 'done' && <Badge>Listo</Badge>}

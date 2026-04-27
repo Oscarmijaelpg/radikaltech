@@ -188,3 +188,63 @@ export function useEvaluateAsset() {
     },
   });
 }
+export interface GenerateImageResult {
+  jobId: string;
+  batchId?: string;
+  variations?: Array<{
+    assetId?: string;
+    url: string;
+    variant_label: string;
+    model: string;
+    quality_score?: number;
+  }>;
+  assetId?: string;
+  url: string;
+  prompt: string;
+  size: string;
+  style: string;
+  model: string;
+}
+
+export function useGenerateImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: {
+      prompt: string;
+      size: string;
+      style: string;
+      project_id?: string;
+      reference_asset_ids?: string[];
+      use_brand_palette?: boolean;
+      variations?: number;
+    }) => {
+      const res = await api.post<{ data: GenerateImageResult }>(
+        '/ai-services/generate-image',
+        vars,
+      );
+      return res.data;
+    },
+    onSuccess: (_d, vars) => {
+      if (vars.project_id) {
+        qc.invalidateQueries({ queryKey: ['content', 'list', vars.project_id] });
+      }
+    },
+  });
+}
+
+export function useAnalyzeImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, project_id }: { id: string; project_id: string }) => {
+      const r = await api.post<{ data: { asset_id: string; visual_analysis: unknown } }>(
+        '/ai-services/analyze-image',
+        { asset_id: id },
+      );
+      return r.data;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['content', 'list', vars.project_id] });
+      qc.invalidateQueries({ queryKey: ['content', 'detail', vars.id] });
+    },
+  });
+}

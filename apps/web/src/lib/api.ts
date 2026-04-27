@@ -17,7 +17,7 @@ export function getAuthToken(): string | null {
 
 type RequestOptions = RequestInit & { json?: unknown; timeoutMs?: number };
 
-const DEFAULT_TIMEOUT_MS = 60_000;
+const DEFAULT_TIMEOUT_MS = 120_000;
 
 async function resolveToken(): Promise<string | null> {
   if (cachedToken) return cachedToken;

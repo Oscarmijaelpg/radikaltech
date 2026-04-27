@@ -109,6 +109,7 @@ const generateIdeasSchema = z.object({
   project_id: z.string().uuid(),
   angle: z.enum(['educativo', 'entretenimiento', 'venta', 'storytelling', 'auto']).optional(),
   count: z.number().int().min(1).max(8).optional(),
+  source: z.enum(['competition', 'news']).optional(),
 });
 
 contentRouter.post('/generate-ideas', zValidator('json', generateIdeasSchema), async (c) => {
@@ -119,6 +120,7 @@ contentRouter.post('/generate-ideas', zValidator('json', generateIdeasSchema), a
     userId: user.id,
     angle: body.angle,
     count: body.count,
+    source: body.source,
   });
   return c.json(ok(res));
 });

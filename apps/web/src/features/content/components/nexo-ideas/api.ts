@@ -13,7 +13,7 @@ export interface ContentIdea {
   description: string;
   platform: 'Instagram' | 'LinkedIn' | 'Twitter' | 'TikTok';
   visual_suggestion: string;
-  type: 'pilar' | 'carrusel';
+  type: 'post' | 'carrusel' | 'historia';
   image_count: number;
 }
 
@@ -23,13 +23,14 @@ export interface GenerateIdeasResponse {
 
 export function useGenerateIdeas() {
   return useMutation({
-    mutationFn: async (vars: { projectId: string; angle?: IdeaAngle; count?: number }) => {
+    mutationFn: async (vars: { projectId: string; angle?: IdeaAngle; count?: number; source?: 'competition' | 'news' }) => {
       const res = await api.post<{ data: GenerateIdeasResponse }>(
         '/content/generate-ideas',
         {
           project_id: vars.projectId,
           angle: vars.angle,
           count: vars.count,
+          source: vars.source,
         },
         { timeoutMs: 150_000 },
       );

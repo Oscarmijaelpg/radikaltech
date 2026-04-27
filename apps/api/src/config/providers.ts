@@ -47,7 +47,7 @@ export const LLM_MODELS = {
     openrouter: 'openai/text-embedding-3-small',
   },
   vision: {
-    gemini: 'gemini-2.5-flash',
+    gemini: 'gemini-1.5-flash',
   },
   search: {
     // Moonshot Kimi K2 con `$web_search` builtin para investigación con grounding.
@@ -56,13 +56,13 @@ export const LLM_MODELS = {
     moonshot: 'kimi-k2.6',
   },
   image: {
-    dalle3: 'dall-e-3',
+    dalle3: 'openai/gpt-5.4-image-2',
     geminiCandidates: [
-      'gemini-2.5-flash-image',
-      'gemini-2.0-flash-preview-image-generation',
-      'gemini-2.5-flash-image-preview',
+      'google/gemini-3.1-flash-image-preview',
+      'google/gemini-3-pro-image-preview',
+      'google/gemini-2.5-flash-image',
     ] as const,
-    geminiDefault: 'gemini-2.5-flash-image',
+    geminiDefault: 'google/gemini-3.1-flash-image-preview',
   },
 } as const;
 

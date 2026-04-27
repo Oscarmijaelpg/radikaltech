@@ -150,6 +150,7 @@ aiServicesRouter.post(
       prompt: z.string().min(3).max(4000),
       size: z.enum(['1024x1024', '1792x1024', '1024x1792']).optional(),
       style: z.enum(['vivid', 'natural']).optional(),
+      mode: z.enum(['creative', 'referential']).optional().default('creative'),
       project_id: z.string().uuid().optional(),
       reference_asset_ids: z.array(z.string().uuid()).max(6).optional(),
       use_brand_palette: z.boolean().optional().default(true),
@@ -158,7 +159,7 @@ aiServicesRouter.post(
   ),
   async (c) => {
     const user = c.get('user');
-    const { prompt, size, style, project_id, reference_asset_ids, use_brand_palette, variations } =
+    const { prompt, size, style, mode, project_id, reference_asset_ids, use_brand_palette, variations } =
       c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
     const res = await withCredits(
@@ -172,6 +173,7 @@ aiServicesRouter.post(
           prompt,
           size,
           style,
+          mode: mode as 'creative' | 'referential' | undefined,
           userId: user.id,
           projectId: project_id,
           referenceAssetIds: reference_asset_ids,
@@ -235,10 +237,13 @@ aiServicesRouter.post(
     );
     if (result) {
       const prev = (asset.metadata as Record<string, unknown> | null) ?? {};
+      // Save to metadata.visual_analysis (for structured data) AND ai_description (for modal display)
+      const narrative = (result as Record<string, unknown>).full_narrative as string | undefined;
       await prisma.contentAsset.update({
         where: { id: asset.id },
         data: {
           metadata: { ...prev, visual_analysis: result } as unknown as Prisma.InputJsonValue,
+          aiDescription: narrative || result.description || null,
         },
       });
     }
