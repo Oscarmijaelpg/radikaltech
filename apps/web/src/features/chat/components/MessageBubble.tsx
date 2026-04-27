@@ -22,6 +22,7 @@ import { useCreateMemory } from '@/features/memory/api/memory';
 import { exportToPDF, exportToWord } from '@/shared/utils/exportUtils';
 import type { AgentMeta } from '../agents';
 import { ToolResultCard } from './ToolResultCard';
+import { ImageAnalysisDialog } from '@/features/content/components/ImageAnalysisDialog';
 
 export interface ToolChipState {
   name: string;
@@ -68,6 +69,7 @@ export function MessageBubble({
   const [category, setCategory] = useState<MemoryCategory>('note');
   const [value, setValue] = useState(content);
   const [saved, setSaved] = useState(false);
+  const [previewAsset, setPreviewAsset] = useState<{ asset_url: string; ai_description?: string } | null>(null);
 
   const { activeProject } = useProject();
   const createMemory = useCreateMemory();
@@ -195,7 +197,42 @@ export function MessageBubble({
               </div>
             )}
             <div className="break-words overflow-x-auto">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content || ' '}</ReactMarkdown>
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  img: ({ node, ...props }) => (
+                    <img 
+                      {...props} 
+                      className="rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-all max-w-full h-auto mt-2 mb-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (props.src) {
+                          setPreviewAsset({ asset_url: props.src, ai_description: props.alt || 'Imagen del chat' });
+                        }
+                      }}
+                    />
+                  ),
+                  a: ({ node, ...props }) => {
+                    const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)/i.test(props.href || '');
+                    if (isImageUrl && props.href) {
+                      return (
+                        <span 
+                          className="text-[hsl(var(--color-primary))] font-bold underline cursor-pointer hover:text-[hsl(var(--color-primary)/0.8)]"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPreviewAsset({ asset_url: props.href!, ai_description: props.children?.toString() || 'Imagen del chat' });
+                          }}
+                        >
+                          {props.children}
+                        </span>
+                      );
+                    }
+                    return <a {...props} target="_blank" rel="noreferrer">{props.children}</a>;
+                  }
+                }}
+              >
+                {content || ' '}
+              </ReactMarkdown>
             </div>
             {streaming && (
               <span className="inline-flex items-center gap-2 text-slate-400 text-xs mt-2 not-prose">
@@ -270,6 +307,13 @@ export function MessageBubble({
           </>
         )}
       </div>
+      
+      <ImageAnalysisDialog 
+        asset={previewAsset}
+        open={!!previewAsset}
+        onOpenChange={(o) => !o && setPreviewAsset(null)}
+      />
+
       {isUser && (
         <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl shrink-0 bg-slate-900 text-white grid place-items-center text-[10px] sm:text-xs font-bold">
           {userInitials ?? 'TÚ'}

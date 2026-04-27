@@ -309,7 +309,7 @@ El campo `mode` existía en los tipos del backend pero **nunca se pasaba correct
 - **Componente Único**: Creación de `ImageAnalysisDialog.tsx` para centralizar la visualización de análisis de IA.
 - **Eliminación de Links Directos**: Se corrigió el comportamiento donde algunas imágenes abrían la URL de Supabase al hacer clic. Ahora todas abren el modal enriquecido.
 - **Secciones Actualizadas**:
-    - **Chat**: Las imágenes generadas por la IA ahora son clicables y muestran su análisis.
+    - **Chat**: Las imágenes enviadas tanto por herramientas como por Markdown/Links ahora son clicables y muestran su análisis. Se ha corregido el comportamiento donde solo aparecía el link de texto; ahora se muestra una previsualización interactiva.
     - **Biblioteca**: Unificación del modal de detalles con el estilo de "Nexo Ideas".
     - **Mi Marca**: El Moodboard y las subidas de usuario ahora comparten la misma experiencia visual premium.
 
