@@ -20,7 +20,7 @@ export function ToolResultCard({ tool, onOpenReport, onQuickPrompt }: Props) {
     case 'generate_image':
       content = <ImageResultCard data={tool.data} onPreview={() => setPreviewAsset({ asset_url: tool.data!.url as string, ai_description: tool.resultSummary })} />;
       break;
-    case 'propose_image':
+    case 'get_library_assets':
       content = <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
       break;
     case 'search_news':
@@ -461,8 +461,14 @@ function MarketsCard({ data }: { data: Record<string, unknown> }) {
 }
 
 function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unknown>, onQuickPrompt?: (text: string) => void }) {
-  const assets = data.assets as Array<{ id: string; url: string; tags: string[]; aiDescription?: string }> | undefined;
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const assets = data.assets as Array<{ id: string; url: string; tags: string[]; aiDescription?: string; suggested?: boolean }> | undefined;
+  
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    const suggested = assets?.filter(a => a.suggested).slice(0, 3);
+    suggested?.forEach(a => initial.add(a.id));
+    return initial;
+  });
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => {
@@ -478,10 +484,10 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
   const handleGenerate = (mode: 'creative' | 'referential') => {
     if (!onQuickPrompt) return;
     const modeName = mode === 'creative' ? 'Modo Creativo' : 'Apegado al Referente';
-    let prompt = `Genérala en ${modeName}`;
+    let prompt = `Con tus imágenes seleccionadas estamos generando tu imagen. (${modeName})`;
     if (selectedIds.size > 0) {
       const idsStr = Array.from(selectedIds).join(',');
-      prompt += ` [ASSETS: ${idsStr}]`;
+      prompt += `\n\n[ASSETS: ${idsStr}]`;
     }
     onQuickPrompt(prompt);
   };
@@ -499,10 +505,12 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
       </div>
       
       {assets && assets.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5 max-h-[320px] overflow-y-auto pr-2 scrollbar-hide hover:scrollbar-default transition-all">
           {assets.map((a) => {
             const isSelected = selectedIds.has(a.id);
             const isLogo = a.tags?.includes('logo');
+            const isSuggested = a.suggested && !isLogo;
+
             return (
               <div 
                 key={a.id} 
@@ -519,6 +527,13 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
                 {isLogo && (
                   <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">
                     Logo
+                  </div>
+                )}
+
+                {isSuggested && (
+                  <div className="absolute top-2 right-2 bg-amber-500/90 backdrop-blur-md text-white text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                    <Icon name="star" className="text-[10px]" />
+                    Sugerido
                   </div>
                 )}
 
@@ -547,7 +562,7 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
           className="flex-1 px-4 py-3.5 bg-[hsl(var(--color-primary))] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.1em] hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:grayscale disabled:pointer-events-none"
         >
           <Icon name="auto_fix_high" className="text-[18px]" />
-          Generar con Referencias
+          Generar Apegado al Referente
         </button>
         <button
           onClick={() => handleGenerate('creative')}

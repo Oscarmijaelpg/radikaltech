@@ -133,14 +133,7 @@ export class ImageGenerator {
 
         const { url, path } = await uploadBuffer(input.userId, buf);
 
-        let qualityScore: number | undefined;
-        let visualAnalysis: ImageVisualAnalysis | null = null;
-        try {
-          visualAnalysis = await imageAnalyzer.analyze(url);
-          qualityScore = computeQualityScore(visualAnalysis);
-        } catch (err) {
-          logger.warn({ err }, 'quality scoring failed');
-        }
+
 
         let assetId: string | undefined;
         if (input.projectId) {
@@ -151,10 +144,14 @@ export class ImageGenerator {
                 userId: input.userId,
                 assetUrl: url,
                 assetType: 'image',
-                aiDescription: input.prompt,
-                aestheticScore:
-                  qualityScore !== undefined ? new Prisma.Decimal(qualityScore) : null,
-                tags: ['generated', 'ai', `variation_batch:${batchId}`],
+                aiDescription: 'Imagen generada',
+                aestheticScore: null,
+                tags: [
+                  'generated',
+                  'ai',
+                  `variation_batch:${batchId}`,
+                  ...(input.sourceSection ? [`section:${input.sourceSection}`] : []),
+                ],
                 metadata: {
                   model: modelUsed,
                   references: refIds,
@@ -164,8 +161,8 @@ export class ImageGenerator {
                   batch_id: batchId,
                   variant_index: idx + 1,
                   variant_label: `Variante ${idx + 1}`,
-                  quality_score: qualityScore,
-                  visual_analysis: visualAnalysis ?? undefined,
+                  quality_score: undefined,
+                  visual_analysis: undefined,
                 } as unknown as Prisma.InputJsonValue,
               },
             });
@@ -180,7 +177,7 @@ export class ImageGenerator {
           url,
           variant_label: `Variante ${idx + 1}`,
           model: modelUsed,
-          quality_score: qualityScore,
+          quality_score: undefined,
         };
       };
 
@@ -323,14 +320,7 @@ export class ImageGenerator {
 
       const { url, path } = await uploadBuffer(input.userId, buf);
 
-      let qualityScore: number | undefined;
-      let visualAnalysis: ImageVisualAnalysis | null = null;
-      try {
-        visualAnalysis = await imageAnalyzer.analyze(url);
-        qualityScore = computeQualityScore(visualAnalysis);
-      } catch (err) {
-        logger.warn({ err }, 'quality scoring failed (edit)');
-      }
+
 
       let assetId: string | undefined;
       if (projectId) {
@@ -341,17 +331,21 @@ export class ImageGenerator {
               userId: input.userId,
               assetUrl: url,
               assetType: 'image',
-              aiDescription: `Edición: ${instruction}`,
-              aestheticScore:
-                qualityScore !== undefined ? new Prisma.Decimal(qualityScore) : null,
-              tags: ['generated', 'ai', 'edited'],
+              aiDescription: 'Imagen editada',
+              aestheticScore: null,
+              tags: [
+                'generated',
+                'ai',
+                'edited',
+                ...(input.sourceSection ? [`section:${input.sourceSection}`] : []),
+              ],
               metadata: {
                 model: modelUsed,
                 parent_asset_id: source.id,
                 edit_instruction: instruction,
                 storage_path: path,
-                quality_score: qualityScore,
-                visual_analysis: visualAnalysis ?? undefined,
+                quality_score: undefined,
+                visual_analysis: undefined,
               } as unknown as Prisma.InputJsonValue,
             },
           });

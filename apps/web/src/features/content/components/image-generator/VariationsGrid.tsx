@@ -94,7 +94,6 @@ export function VariationsGrid({
           );
         })}
       </div>
-      <p className="text-sm text-slate-600 mt-4 italic">&ldquo;{current.prompt}&rdquo;</p>
     </Card>
   );
 }

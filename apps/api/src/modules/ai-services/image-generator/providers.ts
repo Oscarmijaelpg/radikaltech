@@ -77,9 +77,10 @@ async function tryViaOpenRouterChat(
 ): Promise<ProviderResult> {
   if (!env.OPENROUTER_API_KEY) return { error: 'No OPENROUTER_API_KEY' };
 
+  const finalPrompt = `[MANDATORY ASPECT RATIO: 1:1 SQUARE] ${prompt}`;
   const userContent: string | Array<Record<string, unknown>> = refs.length === 0 
-    ? prompt 
-    : [{ type: 'text', text: prompt }];
+    ? finalPrompt 
+    : [{ type: 'text', text: finalPrompt }];
   
   if (Array.isArray(userContent)) {
     for (const r of refs) {

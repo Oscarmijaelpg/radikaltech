@@ -1,6 +1,6 @@
 import { getBrandProfileTool } from './brand-tools.js';
 import { analyzeCompetitorTool, getCompetitorDataTool } from './competitor-tools.js';
-import { evaluateContentTool, generateImageTool } from './image-tools.js';
+import { evaluateContentTool, generateImageTool, getLibraryAssetsTool } from './image-tools.js';
 import { createRecommendationTool, saveMemoryTool } from './memory-tools.js';
 import { findTrendsTool, searchNewsTool } from './news-tools.js';
 import { generateReportTool } from './report-tools.js';
@@ -20,6 +20,7 @@ const TOOLS: ToolDefinition[] = [
   generateReportTool,
   getCompetitorDataTool,
   getBrandProfileTool,
+  getLibraryAssetsTool,
 ];
 
 const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.schema.function.name, t]));

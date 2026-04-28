@@ -8,7 +8,7 @@ export const generateImageTool: ToolDefinition = {
     function: {
       name: 'generate_image',
       description:
-        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Úsalo SÓLO cuando el usuario ya ha confirmado el modo de generación y/o ha seleccionado referencias. Para proponer generación, usa primero propose_image.',
+        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Solo úsalo DESPUÉS de que el usuario haya seleccionado activos de la galería de get_library_assets.',
       parameters: {
         type: 'object',
         properties: {
@@ -19,7 +19,7 @@ export const generateImageTool: ToolDefinition = {
           size: { 
             type: 'string', 
             enum: ['1024x1024', '1792x1024', '1024x1792'],
-            description: 'Tamaño de la imagen: 1024x1024 para posts cuadrados, 1024x1792 para historias verticales, 1792x1024 para banners horizontales.',
+            description: 'Tamaño de la imagen. DEBE ser 1024x1024 por defecto (cuadrado). Solo usa 1024x1792 para historias/vertical o 1792x1024 para banners/horizontal si el usuario lo pide.',
           },
           mode: {
             type: 'string',
@@ -54,6 +54,7 @@ export const generateImageTool: ToolDefinition = {
       referenceAssetIds,
       useBrandPalette: true,
       variations: 1,
+      sourceSection: 'chat',
     });
     const first = out.variations[0];
     return {
@@ -63,13 +64,13 @@ export const generateImageTool: ToolDefinition = {
   },
 };
 
-export const proposeImageTool: ToolDefinition = {
+export const getLibraryAssetsTool: ToolDefinition = {
   schema: {
     type: 'function',
     function: {
-      name: 'propose_image',
+      name: 'get_library_assets',
       description:
-        'Propone la creación de una imagen al usuario mostrando los activos visuales de la marca (logos, referencias, productos) para que el usuario pueda seleccionarlos antes de generar. Úsalo SIEMPRE como primer paso cuando el usuario pida diseñar, crear o generar una imagen.',
+        'Obtener y MOSTRAR la biblioteca visual de la marca (logos, fotos, referencias). Úsalo para que el usuario elija. Si el usuario envía "[ASSETS: id1,id2]", pásalos en el parámetro reference_asset_ids de generate_image.',
       parameters: {
         type: 'object',
         properties: {
@@ -93,22 +94,37 @@ export const proposeImageTool: ToolDefinition = {
         tags: { has: 'logo' },
       },
       take: 2,
-      select: { id: true, url: true, tags: true, aiDescription: true },
+      select: { id: true, assetUrl: true, tags: true, aiDescription: true },
     });
 
-    // Fetch other references
+    // Fetch other references (Increased limit to 50 as requested, scrollable in UI)
     const otherAssets = await prisma.contentAsset.findMany({
       where: {
         projectId: ctx.projectId,
-        tags: { hasSome: ['reference', 'user_uploaded'] },
+        tags: { hasSome: ['reference', 'user_uploaded', 'website', 'social_media', 'product', 'moodboard', 'instagram', 'facebook'] },
         id: { notIn: logos.map(l => l.id) },
       },
       orderBy: { createdAt: 'desc' },
-      take: 6,
-      select: { id: true, url: true, tags: true, aiDescription: true },
+      take: 50,
+      select: { id: true, assetUrl: true, tags: true, aiDescription: true },
     });
 
-    const assets = [...logos, ...otherAssets];
+    const conceptTerms = args.concept?.toLowerCase().split(' ').filter(t => t.length > 3) || [];
+
+    const assets = [...logos, ...otherAssets].map(a => {
+      const isSuggested = conceptTerms.length > 0 && (
+        a.aiDescription?.toLowerCase().includes(conceptTerms[0]) || 
+        a.tags.some(t => conceptTerms.includes(t.toLowerCase()))
+      );
+      
+      return {
+        id: a.id,
+        url: a.assetUrl,
+        tags: a.tags,
+        aiDescription: a.aiDescription,
+        suggested: isSuggested || a.tags.includes('logo') // Logos are always suggested
+      };
+    });
 
     return {
       summary: `Se encontraron ${assets.length} activos visuales para proponer.`,

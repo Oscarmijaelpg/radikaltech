@@ -16,6 +16,7 @@ const listQuery = z.object({
   sort: z.enum(['recent', 'score']).optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
+  tags: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 const createSchema = z.object({
@@ -58,6 +59,7 @@ contentRouter.get('/', zValidator('query', listQuery), async (c) => {
     sort: q.sort,
     limit: q.limit,
     offset: q.offset,
+    tags: q.tags,
   });
   return c.json({
     ok: true,

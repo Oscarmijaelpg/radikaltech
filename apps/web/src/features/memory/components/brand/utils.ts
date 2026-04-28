@@ -4,6 +4,8 @@ export interface ContentAssetLite {
   asset_type: string;
   tags: string[] | null;
   ai_description: string | null;
+  aesthetic_score?: number | null;
+  marketing_feedback?: string | null;
   created_at: string;
 }
 

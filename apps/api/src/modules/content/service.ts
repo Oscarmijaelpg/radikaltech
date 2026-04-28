@@ -15,6 +15,7 @@ export interface ListFilter {
   limit?: number;
   offset?: number;
   sort?: 'recent' | 'score';
+  tags?: string | string[];
 }
 
 async function assertProjectOwner(projectId: string, userId: string) {
@@ -28,6 +29,10 @@ export const contentService = {
     await assertProjectOwner(projectId, userId);
     const where: Prisma.ContentAssetWhereInput = { projectId, userId };
     if (filter.type) where.assetType = filter.type;
+    if (filter.tags) {
+      const tagList = Array.isArray(filter.tags) ? filter.tags : [filter.tags];
+      where.tags = { hasEvery: tagList };
+    }
 
     const orderBy: Prisma.ContentAssetOrderByWithRelationInput =
       filter.sort === 'score'
@@ -53,16 +58,24 @@ export const contentService = {
 
   async create(input: CreateAssetInput) {
     await assertProjectOwner(input.projectId, input.userId);
-    return prisma.contentAsset.create({
+    const asset = await prisma.contentAsset.create({
       data: {
         projectId: input.projectId,
         userId: input.userId,
         assetUrl: input.asset_url,
         assetType: input.asset_type,
         metadata: (input.metadata ?? {}) as Prisma.InputJsonValue,
-        tags: [],
+        tags: (input.metadata?.tags as string[]) ?? [],
       },
     });
+    
+    if (input.asset_type === 'image' && !input.metadata?.tags?.includes('generated')) {
+      import('../ai-services/image-analyzer.js').then((m) => {
+        m.imageAnalyzer.analyze(input.asset_url).catch(() => null);
+      }).catch(() => null);
+    }
+    
+    return asset;
   },
 
   async remove(id: string, userId: string) {

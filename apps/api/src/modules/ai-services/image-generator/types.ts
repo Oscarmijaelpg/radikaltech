@@ -13,6 +13,7 @@ export interface GenerateImageInput {
   referenceAssetIds?: string[];
   useBrandPalette?: boolean;
   variations?: number;
+  sourceSection?: string;
 }
 
 export interface GeneratedVariation {
@@ -40,6 +41,7 @@ export interface EditImageInput {
   editInstruction: string;
   userId: string;
   projectId?: string;
+  sourceSection?: string;
 }
 
 export interface EditImageOutput {

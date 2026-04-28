@@ -129,7 +129,11 @@ export function BrandTab({ projectId }: Props) {
         <BrandBusinessSection project={project} brand={brand} />
       </div>
 
-      <VisualDirectionSection brand={brand} instagramRefs={instagramRefs} />
+      <VisualDirectionSection 
+        brand={brand} 
+        instagramRefs={instagramRefs} 
+        onImageClick={(asset) => setPreviewAsset(asset)}
+      />
 
       {socialAccounts && socialAccounts.length > 0 && (
         <SocialAccountsSection accounts={socialAccounts} />
@@ -175,7 +179,12 @@ export function BrandTab({ projectId }: Props) {
         </Card>
       )}
 
-      {moodboardAssets.length > 0 && <MoodboardSection assets={moodboardAssets} />}
+      {moodboardAssets.length > 0 && (
+        <MoodboardSection 
+          assets={moodboardAssets} 
+          onImageClick={(asset) => setPreviewAsset(asset)}
+        />
+      )}
 
       <BrandHistory projectId={projectId} />
 

@@ -78,6 +78,10 @@ export function VisualContract({ idea, open, onOpenChange, onSuccess }: Props) {
       VISUAL CONCEPT: ${idea.visual_suggestion}.
       PLATFORM: ${idea.platform}.
       ${modeInstructions}
+      ### TEXT & CONTENT RULE ###
+      - USE REAL TEXT: If the image includes typography, use the actual title: "${idea.title}" and the brand name if available.
+      - NO PLACEHOLDERS: Strictly PROHIBITED to include text like "[TEXT OVERLAY]", "[Insert Title Here]", "Your Text Here", or any brackets/placeholders.
+      - If you cannot place the real text perfectly, prefer a clean image with NO text at all rather than using placeholders.
       STYLE: Professional photography, clean, premium, 4k, marketing quality.
     `.trim();
 
@@ -89,6 +93,7 @@ export function VisualContract({ idea, open, onOpenChange, onSuccess }: Props) {
         project_id: activeProject.id,
         reference_asset_ids: refIds.length > 0 ? refIds : undefined,
         variations: 1,
+        source_section: 'nexo_ideas',
       });
       setResult(res);
       onSuccess?.(res);
