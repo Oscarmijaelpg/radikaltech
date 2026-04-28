@@ -8,9 +8,8 @@ import { CompetitorsBenchmarkTab } from './CompetitorsBenchmarkTab';
 import { AnalyzeCompetitorConfirm } from './competitors-tab/AnalyzeCompetitorConfirm';
 import { DetectCompetitorsModal } from './competitors-tab/DetectCompetitorsModal';
 import { CompetitorCard } from './competitors-tab/CompetitorCard';
-import { SubTabToggle } from './competitors-tab/SubTabToggle';
 import { SuggestedCompetitorsSection } from './competitors-tab/SuggestedCompetitorsSection';
-import { useCompetitorsTab } from './competitors-tab/useCompetitorsTab';
+import { useCompetitorsTab, type SubTab } from './competitors-tab/useCompetitorsTab';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
@@ -18,9 +17,10 @@ import remarkGfm from 'remark-gfm';
 
 interface Props {
   projectId: string;
+  subTab: SubTab;
 }
 
-export function CompetitorsTab({ projectId }: Props) {
+export function CompetitorsTab({ projectId, subTab }: Props) {
   const t = useCompetitorsTab(projectId);
   usePageTour('competitors');
 
@@ -45,23 +45,17 @@ export function CompetitorsTab({ projectId }: Props) {
 
   if (t.isLoading) return <Skeleton className="h-48" />;
 
-  if (t.subTab === 'benchmark') {
+  if (subTab === 'benchmark') {
     return (
       <div className="space-y-5">
-        <div className="flex justify-start">
-          <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
-        </div>
         <CompetitorsBenchmarkTab projectId={projectId} />
       </div>
     );
   }
 
-  if (t.subTab === 'diagnostic') {
+  if (subTab === 'diagnostic') {
     return (
       <div className="space-y-5">
-        <div className="flex justify-start">
-          <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
-        </div>
         {initialReport ? (
           <Card className="p-6 sm:p-10 bg-gradient-to-br from-white to-blue-50/50 shadow-xl border-blue-100/50 rounded-[32px]">
             <div className="flex items-center justify-between mb-8">
@@ -118,10 +112,7 @@ export function CompetitorsTab({ projectId }: Props) {
 
   return (
     <div className="space-y-5 relative">
-      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 sm:gap-2">
-        <div data-tour="competitors-subtabs">
-          <SubTabToggle value={t.subTab} onChange={t.setSubTab} />
-        </div>
+      <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2">
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={() => t.setUserSocialOpen(true)}>
             <Icon name="hub" className="text-[18px]" />
