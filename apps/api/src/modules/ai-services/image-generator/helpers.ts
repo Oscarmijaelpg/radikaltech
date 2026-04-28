@@ -69,60 +69,40 @@ export async function buildBrandContext(
     if (referenceAssetIds.length > 0) {
       const assets = await prisma.contentAsset.findMany({
         where: { id: { in: referenceAssetIds } },
-        select: { id: true, aiDescription: true, marketingFeedback: true, tags: true },
+        select: { aiDescription: true, marketingFeedback: true, tags: true },
       });
-      
-      const hasLogoInRefs = assets.some(a => a.tags?.includes('logo'));
-      
       const assetCtx = assets
         .map((a, i) => {
           const desc = a.aiDescription || a.marketingFeedback;
           if (!desc) return null;
-          const isLogo = a.tags?.includes('logo');
-          return `Ref #${i + 1}${isLogo ? ' (LOGO OFICIAL)' : ''}: ${desc.slice(0, 300)}${a.tags?.length ? ` (Tags: ${a.tags.join(', ')})` : ''}`;
+          return `Ref #${i + 1}: ${desc.slice(0, 300)}${a.tags?.length ? ` (Tags: ${a.tags.join(', ')})` : ''}`;
         })
         .filter(Boolean);
-
       if (assetCtx.length > 0) {
         brandCtx.push(`\nRECUERDA ESTAS REFERENCIAS VISUALES:\n${assetCtx.join('\n')}`);
       }
-
-      if (!hasLogoInRefs) {
-        brandCtx.push(`
-### CRITICAL LOGO RULE ###
-- NO HAS SELECCIONADO UN LOGO EN LAS REFERENCIAS.
-- POR LO TANTO: **ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR O DIBUJAR UN LOGO**.
-- La imagen NO debe contener ningún logo, marca de agua o texto corporativo inventado. Solo enfócate en la escena/producto sin branding si el logo no está en las Refs.`);
-      }
-    } else {
-      // No references at all
-      brandCtx.push(`
-### CRITICAL BRANDING & TEXT RULE ###
-- NO HAY REFERENCIAS VISUALES.
-- **PROHIBIDO INVENTAR LOGOS**: La IA no debe intentar crear un logo de la marca por su cuenta. 
-- **NO PLACEHOLDERS DE TEXTO**: Está TERMINANTEMENTE PROHIBIDO incluir textos técnicos como "[TEXT OVERLAY SPACE]", "[Insert Title]", "Your text here" o corchetes de posición. Si vas a incluir texto, debe ser contenido real y final.
-- Crea una escena genérica que respete los colores de la marca pero SIN incluir logos o placeholders inventados.`);
     }
 
     // Mode-specific composition protocol (mirrors previous platform ContentIdeation.tsx)
     if (mode === 'referential') {
       brandCtx.push(`
-### MODO: APEGADO AL REFERENTE (STRICT FIDELITY) ###
-### ASPECT RATIO: MANDATORY 1:1 SQUARE ###
-STRICT ROLE: You are a high-end product photographer and expert compositor.
-- TASK: Your goal is EXACT REPLICATION. The main subject (product, cake, place) from the reference images MUST be identical in the final result.
-- SUBJECT LOCK: Maintain the EXACT identity, shape, textures, and label details of the reference product. Do not "re-interpret" the subject; clone its appearance perfectly.
-- AUTHORIZED: Professional studio lighting, premium background replacement, ultra-sharp focus.
-- COLORS & LOGO: Use the EXACT color hexes from the brand and references. If a logo is present in refs, it must be pixel-perfect and naturally integrated.
-- NEGATIVE: NO re-interpretation of the subject. NO distortions. NO horizontal or vertical stretching. MUST BE SQUARE.`);
+### IMAGE-COMPOSITION PROTOCOL: COHESIVE INTEGRATION ###
+### MANDATORY ASPECT RATIO: Respect the requested size ###
+STRICT ROLE: You are an expert art director and compositor.
+- TASK: Do NOT just paste the images together like a basic collage. Create a cohesive, realistic, and professional scene or editorial composition using all provided visual elements.
+- SUBJECT LOCK: You may change the perspective, angle, lighting, or setting to make the composition dynamic and logical, BUT you MUST strictly maintain the exact identity, textures, and label details of the main product/subject.
+- AUTHORIZED: Better lighting, high-end studio or lifestyle background, sharp focus, dynamic angles.
+- COLORS & LOGO: Extract and use ONLY the exact colors from the reference images. The logo must be placed elegantly and naturally without deforming its typography, shape, or original color.
+- NEGATIVE: Do NOT make a flat collage, do NOT distort the product shape or label, do NOT add unrelated elements.`);
     } else {
       brandCtx.push(`
-### MODO: EXPLORACIÓN CREATIVA ###
-### ASPECT RATIO: MANDATORY 1:1 SQUARE ###
-CORE RULE: Maintain brand essence but allow creative scene interpretation.
-- COLOR PALETTE: Respect brand colors strictly.
-- SCENE: Creative and high-impact environment.
-- NEGATIVE: Do not distort logos. MUST BE SQUARE.`);
+### BRAND-CENTRIC CREATIVE MODE ###
+CORE RULE: Even in creative mode, you MUST respect the brand DNA strictly.
+- COLOR PALETTE: Extract and use ONLY the exact hex codes/colors present in the reference images and brand palette.
+- LOGO INTEGRITY: Place the brand logo clearly and legibly. NEVER alter its shape, font, or color.
+- SCENE: Create a compelling, new lifestyle or studio setting, but keep the brand identity clean and professional.
+- QUALITY: Professional photography quality, 4K, editorial-grade composition.
+- NEGATIVE: No chaotic elements, no distorted logos, no neon colors unless present in the brand.`);
     }
 
     if (brandCtx.length > 0) {

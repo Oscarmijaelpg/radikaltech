@@ -223,9 +223,6 @@ export class InstagramScraper {
             },
           });
           posts.push({ url: postUrl, caption, assetId: asset.id });
-          
-          // Analizar la imagen de forma asíncrona para que tenga su descripción visual lista
-          imageAnalyzer.analyze(publicUrl).catch(() => null);
 
           if (input.competitorId && postUrl) {
             try {

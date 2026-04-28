@@ -41,7 +41,7 @@ export class AgentRouter {
       'Dada una pregunta del usuario, elige UN solo agente (del listado) que mejor responda según expertise:',
       '- ankor: identidad, misión, visión, valores, esencia, posicionamiento',
       '- sira: análisis de mercado, competencia, patrones, oportunidades',
-      '- nexo: creatividad, biblioteca de imágenes, referencias visuales, logos, ideas de campañas, contenido',
+      '- nexo: creatividad, ideas de campañas, copies, hooks, contenido',
       '- kronos: estrategia, planificación 6-12m, priorización, objetivos',
       '- indexa: métricas, KPIs, dashboards, A/B tests, analítica',
       '',

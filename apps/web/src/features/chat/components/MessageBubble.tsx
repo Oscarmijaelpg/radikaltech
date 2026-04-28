@@ -22,7 +22,6 @@ import { useCreateMemory } from '@/features/memory/api/memory';
 import { exportToPDF, exportToWord } from '@/shared/utils/exportUtils';
 import type { AgentMeta } from '../agents';
 import { ToolResultCard } from './ToolResultCard';
-import { ImageAnalysisDialog } from '@/features/content/components/ImageAnalysisDialog';
 
 export interface ToolChipState {
   name: string;
@@ -69,7 +68,6 @@ export function MessageBubble({
   const [category, setCategory] = useState<MemoryCategory>('note');
   const [value, setValue] = useState(content);
   const [saved, setSaved] = useState(false);
-  const [previewAsset, setPreviewAsset] = useState<{ asset_url: string; ai_description?: string } | null>(null);
 
   const { activeProject } = useProject();
   const createMemory = useCreateMemory();
@@ -139,7 +137,7 @@ export function MessageBubble({
         )}
       >
         {isUser ? (
-          <p className="whitespace-pre-wrap break-words">{content.replace(/\[ASSETS: .*\]/gs, '').trim()}</p>
+          <p className="whitespace-pre-wrap break-words">{content}</p>
         ) : (
           <div
             className={cn(
@@ -196,52 +194,8 @@ export function MessageBubble({
                 ))}
               </div>
             )}
-            <div className="break-words overflow-x-auto mt-2">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  img: () => null, // NEVER render markdown images
-                  ol: ({ node, ...props }) => {
-                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
-                    if (hasTool) return null;
-                    return <ol {...props} className="list-decimal ml-4 my-2" />;
-                  },
-                  ul: ({ node, ...props }) => {
-                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
-                    if (hasTool) return null;
-                    return <ul {...props} className="list-disc ml-4 my-2" />;
-                  },
-                  li: ({ node, ...props }) => {
-                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
-                    if (hasTool) return null;
-                    return <li {...props} className="my-1" />;
-                  },
-                  a: ({ node, ...props }) => {
-                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
-                    const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)/i.test(props.href || '');
-                    const isStorageLink = props.href?.includes('supabase') || props.href?.includes('storage');
-                    if (hasTool && (isImageUrl || isStorageLink)) return null;
-                    if (isImageUrl && props.href) {
-                      return (
-                        <span 
-                          className="text-[hsl(var(--color-primary))] font-bold underline cursor-pointer hover:text-[hsl(var(--color-primary)/0.8)]"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPreviewAsset({ asset_url: props.href!, ai_description: props.children?.toString() || 'Imagen del chat' });
-                          }}
-                        >
-                          {props.children}
-                        </span>
-                      );
-                    }
-                    return <a {...props} target="_blank" rel="noreferrer" className="text-[hsl(var(--color-primary))] font-bold hover:underline">{props.children}</a>;
-                  }
-                }}
-              >
-                {tools?.some(t => t.name === 'get_library_assets') 
-                  ? 'Aquí tienes tu galería visual. Por favor, selecciona hasta 3 referencias que desees utilizar para generar tu nueva imagen.'
-                  : content.replace(/\[ASSETS: .*\]/gs, '').trim() || ' '}
-              </ReactMarkdown>
+            <div className="break-words overflow-x-auto">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content || ' '}</ReactMarkdown>
             </div>
             {streaming && (
               <span className="inline-flex items-center gap-2 text-slate-400 text-xs mt-2 not-prose">
@@ -316,13 +270,6 @@ export function MessageBubble({
           </>
         )}
       </div>
-      
-      <ImageAnalysisDialog 
-        asset={previewAsset}
-        open={!!previewAsset}
-        onOpenChange={(o) => !o && setPreviewAsset(null)}
-      />
-
       {isUser && (
         <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl shrink-0 bg-slate-900 text-white grid place-items-center text-[10px] sm:text-xs font-bold">
           {userInitials ?? 'TÚ'}

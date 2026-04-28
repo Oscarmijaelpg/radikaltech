@@ -394,9 +394,6 @@ export class BrandOrchestrator {
                     metadata: { source: 'brand_analysis', origin_url: imgUrl } as Prisma.InputJsonValue,
                   },
                 });
-                
-                // Analizar la imagen para que su descripción esté disponible
-                this.imageAnalyzer.analyze(stored.publicUrl).catch(() => null);
               }
             } catch (err) {
               logger.warn({ err, imgUrl }, 'moodboard image persist failed');

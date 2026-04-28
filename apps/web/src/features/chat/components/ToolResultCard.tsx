@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 import type { ToolChipState } from './MessageBubble';
 import { Icon } from '@radikal/ui';
-import { ImageAnalysisDialog } from '@/features/content/components/ImageAnalysisDialog';
 
 interface Props {
   tool: ToolChipState;
@@ -11,56 +10,32 @@ interface Props {
 }
 
 export function ToolResultCard({ tool, onOpenReport, onQuickPrompt }: Props) {
-  const [previewAsset, setPreviewAsset] = useState<{ asset_url: string; ai_description?: string } | null>(null);
-
   if (tool.status !== 'done' || !tool.data) return null;
 
-  let content = null;
   switch (tool.name) {
     case 'generate_image':
-      content = <ImageResultCard data={tool.data} onPreview={() => setPreviewAsset({ asset_url: tool.data!.url as string, ai_description: tool.resultSummary })} />;
-      break;
-    case 'get_library_assets':
-      content = <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
-      break;
+      return <ImageResultCard data={tool.data} />;
+    case 'propose_image':
+      return <ImageProposalCard data={tool.data} onQuickPrompt={onQuickPrompt} />;
     case 'search_news':
-      content = <NewsResultCard data={tool.data} />;
-      break;
+      return <NewsResultCard data={tool.data} />;
     case 'find_trends':
-      content = <TrendsResultCard data={tool.data} />;
-      break;
+      return <TrendsResultCard data={tool.data} />;
     case 'get_competitor_data':
-      content = <CompetitorDataCard data={tool.data} />;
-      break;
+      return <CompetitorDataCard data={tool.data} />;
     case 'get_brand_profile':
-      content = <BrandProfileCard data={tool.data} />;
-      break;
+      return <BrandProfileCard data={tool.data} />;
     case 'evaluate_content':
-      content = <ContentEvalCard data={tool.data} />;
-      break;
+      return <ContentEvalCard data={tool.data} />;
     case 'analyze_website':
-      content = <WebsiteAnalysisCard data={tool.data} />;
-      break;
+      return <WebsiteAnalysisCard data={tool.data} />;
     case 'generate_report':
-      content = <ReportCreatedCard data={tool.data} onOpenReport={onOpenReport} />;
-      break;
+      return <ReportCreatedCard data={tool.data} onOpenReport={onOpenReport} />;
     case 'detect_markets':
-      content = <MarketsCard data={tool.data} />;
-      break;
+      return <MarketsCard data={tool.data} />;
     default:
-      content = null;
+      return null;
   }
-
-  return (
-    <>
-      {content}
-      <ImageAnalysisDialog 
-        asset={previewAsset} 
-        open={!!previewAsset} 
-        onOpenChange={(o) => !o && setPreviewAsset(null)} 
-      />
-    </>
-  );
 }
 
 function CardWrapper({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -71,29 +46,18 @@ function CardWrapper({ children, className }: { children: React.ReactNode; class
   );
 }
 
-function ImageResultCard({ data, onPreview }: { data: Record<string, unknown>; onPreview: () => void }) {
+function ImageResultCard({ data }: { data: Record<string, unknown> }) {
   const url = data.url as string | undefined;
   if (!url) return null;
   return (
-    <CardWrapper className="max-w-[320px]">
-      <div 
-        className="rounded-xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow group relative"
-        onClick={onPreview}
-      >
-        <img src={url} alt="Imagen generada" className="w-full h-[180px] object-cover transition-transform group-hover:scale-105" />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <span className="text-white text-[10px] font-black uppercase tracking-widest border border-white/40 px-3 py-1.5 rounded-full backdrop-blur-sm">Expandir Análisis</span>
-        </div>
+    <CardWrapper>
+      <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+        <img src={url} alt="Imagen generada" className="w-full max-h-[200px] sm:max-h-[300px] object-cover" />
       </div>
-      <div className="flex items-center justify-between mt-2 px-1">
-        <p className="text-[10px] text-slate-500 flex items-center gap-1 font-bold uppercase tracking-tighter">
-          <Icon name="palette" className="text-[12px]" />
-          Imagen IA
-        </p>
-        <button onClick={onPreview} className="text-[10px] font-black text-[hsl(var(--color-primary))] hover:underline uppercase tracking-tighter">
-          Ver detalles
-        </button>
-      </div>
+      <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+        <Icon name="palette" className="text-[14px]" />
+        Imagen generada con IA
+      </p>
     </CardWrapper>
   );
 }
@@ -461,14 +425,8 @@ function MarketsCard({ data }: { data: Record<string, unknown> }) {
 }
 
 function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unknown>, onQuickPrompt?: (text: string) => void }) {
-  const assets = data.assets as Array<{ id: string; url: string; tags: string[]; aiDescription?: string; suggested?: boolean }> | undefined;
-  
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
-    const initial = new Set<string>();
-    const suggested = assets?.filter(a => a.suggested).slice(0, 3);
-    suggested?.forEach(a => initial.add(a.id));
-    return initial;
-  });
+  const assets = data.assets as Array<{ id: string; url: string; tags: string[]; aiDescription?: string }> | undefined;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => {
@@ -484,10 +442,10 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
   const handleGenerate = (mode: 'creative' | 'referential') => {
     if (!onQuickPrompt) return;
     const modeName = mode === 'creative' ? 'Modo Creativo' : 'Apegado al Referente';
-    let prompt = `Con tus imágenes seleccionadas estamos generando tu imagen. (${modeName})`;
+    let prompt = `Genérala en ${modeName}`;
     if (selectedIds.size > 0) {
       const idsStr = Array.from(selectedIds).join(',');
-      prompt += `\n\n[ASSETS: ${idsStr}]`;
+      prompt += ` [ASSETS: ${idsStr}]`;
     }
     onQuickPrompt(prompt);
   };
@@ -505,50 +463,31 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
       </div>
       
       {assets && assets.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-5 max-h-[320px] overflow-y-auto pr-2 scrollbar-hide hover:scrollbar-default transition-all">
+        <div className="flex flex-wrap gap-2 mb-4">
           {assets.map((a) => {
             const isSelected = selectedIds.has(a.id);
-            const isLogo = a.tags?.includes('logo');
-            const isSuggested = a.suggested && !isLogo;
-
             return (
               <div 
                 key={a.id} 
                 onClick={() => toggleSelection(a.id)}
                 className={cn(
-                  "relative aspect-square overflow-hidden rounded-[1.25rem] border-2 transition-all duration-500 shadow-sm cursor-pointer group",
+                  "relative overflow-hidden rounded-xl border-2 transition-all duration-300 shadow-sm cursor-pointer w-24 h-24 sm:w-28 sm:h-28 group",
                   isSelected 
-                      ? "border-[hsl(var(--color-primary))] ring-[6px] ring-[hsl(var(--color-primary)/0.1)] scale-[1.03] z-10" 
-                      : "border-slate-100 bg-white hover:border-[hsl(var(--color-primary)/0.3)] hover:shadow-md"
+                      ? "border-[hsl(var(--color-primary))] ring-4 ring-[hsl(var(--color-primary)/0.1)] scale-105 z-10" 
+                      : "border-slate-200 bg-slate-50 grayscale-[0.3] opacity-80 hover:opacity-100 hover:grayscale-0 hover:border-[hsl(var(--color-primary)/0.3)]"
                 )}
               >
                 <img src={a.url} alt="Referencia" className="w-full h-full object-cover" />
-                
-                {isLogo && (
-                  <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                    Logo
+                {isSelected && (
+                  <div className="absolute top-1 right-1 bg-[hsl(var(--color-primary))] text-white p-0.5 rounded-full shadow-lg scale-75">
+                      <Icon name="check" className="text-[16px] font-black" />
                   </div>
                 )}
-
-                {isSuggested && (
-                  <div className="absolute top-2 right-2 bg-amber-500/90 backdrop-blur-md text-white text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
-                    <Icon name="star" className="text-[10px]" />
-                    Sugerido
-                  </div>
-                )}
-
-                <div className={cn(
-                  "absolute inset-0 flex items-center justify-center transition-all duration-300",
-                  isSelected ? "bg-[hsl(var(--color-primary)/0.2)]" : "bg-black/0 group-hover:bg-black/5"
-                )}>
-                  {isSelected ? (
-                    <div className="bg-[hsl(var(--color-primary))] text-white p-1.5 rounded-full shadow-lg animate-in zoom-in-50 duration-300">
-                      <Icon name="check" className="text-[18px] font-black" />
+                {!isSelected && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 flex items-center justify-center transition-all">
+                        <Icon name="add_circle" className="text-[20px] text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
                     </div>
-                  ) : (
-                    <Icon name="add_circle" className="text-[22px] text-white opacity-0 group-hover:opacity-100 drop-shadow-lg transition-opacity" />
-                  )}
-                </div>
+                )}
               </div>
             );
           })}
@@ -558,18 +497,17 @@ function ImageProposalCard({ data, onQuickPrompt }: { data: Record<string, unkno
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={() => handleGenerate('referential')}
-          disabled={selectedIds.size === 0}
-          className="flex-1 px-4 py-3.5 bg-[hsl(var(--color-primary))] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.1em] hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:grayscale disabled:pointer-events-none"
+          className="flex-1 px-4 py-3 bg-[hsl(var(--color-primary))] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
         >
-          <Icon name="auto_fix_high" className="text-[18px]" />
-          Generar Apegado al Referente
+          <Icon name="filter_center_focus" className="text-[16px]" />
+          Apegado al Referente
         </button>
         <button
           onClick={() => handleGenerate('creative')}
-          className="flex-1 px-4 py-3.5 bg-white border-2 border-[hsl(var(--color-primary))] text-[hsl(var(--color-primary))] rounded-2xl text-[11px] font-black uppercase tracking-[0.1em] hover:bg-[hsl(var(--color-primary)/0.05)] transition-all flex items-center justify-center gap-2"
+          className="flex-1 px-4 py-3 bg-white border-2 border-[hsl(var(--color-primary))] text-[hsl(var(--color-primary))] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[hsl(var(--color-primary)/0.05)] transition-all flex items-center justify-center gap-2"
         >
-          <Icon name="auto_awesome" className="text-[18px]" />
-          Exploración Creativa
+          <Icon name="auto_awesome" className="text-[16px]" />
+          Modo Creativo
         </button>
       </div>
     </CardWrapper>

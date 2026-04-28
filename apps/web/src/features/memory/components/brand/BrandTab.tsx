@@ -24,7 +24,6 @@ import { ActiveJobsBanner } from './ActiveJobsBanner';
 import { EditBrandDialog } from './EditBrandDialog';
 import { BrandHistory } from './BrandHistory';
 import { AssetUploader } from '@/features/content/components/AssetUploader';
-import { ImageAnalysisDialog } from '@/features/content/components/ImageAnalysisDialog';
 
 interface Props {
   projectId: string;
@@ -129,11 +128,7 @@ export function BrandTab({ projectId }: Props) {
         <BrandBusinessSection project={project} brand={brand} />
       </div>
 
-      <VisualDirectionSection 
-        brand={brand} 
-        instagramRefs={instagramRefs} 
-        onImageClick={(asset) => setPreviewAsset(asset)}
-      />
+      <VisualDirectionSection brand={brand} instagramRefs={instagramRefs} />
 
       {socialAccounts && socialAccounts.length > 0 && (
         <SocialAccountsSection accounts={socialAccounts} />
@@ -179,12 +174,7 @@ export function BrandTab({ projectId }: Props) {
         </Card>
       )}
 
-      {moodboardAssets.length > 0 && (
-        <MoodboardSection 
-          assets={moodboardAssets} 
-          onImageClick={(asset) => setPreviewAsset(asset)}
-        />
-      )}
+      {moodboardAssets.length > 0 && <MoodboardSection assets={moodboardAssets} />}
 
       <BrandHistory projectId={projectId} />
 
@@ -195,11 +185,57 @@ export function BrandTab({ projectId }: Props) {
         </DialogContent>
       </Dialog>
 
-      <ImageAnalysisDialog 
-        asset={previewAsset} 
-        open={!!previewAsset} 
-        onOpenChange={(v) => !v && setPreviewAsset(null)} 
-      />
+      <Dialog open={!!previewAsset} onOpenChange={(v) => !v && setPreviewAsset(null)}>
+        <DialogContent className="sm:max-w-[900px] p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
+          <DialogTitle className="sr-only">Análisis de imagen</DialogTitle>
+          {previewAsset && (
+            <div className="flex flex-col md:flex-row h-full min-h-[500px]">
+              <div className="flex-1 bg-slate-900 flex items-center justify-center overflow-hidden min-h-[300px] md:min-h-auto">
+                <img src={previewAsset.asset_url} className="w-full h-full object-contain max-h-[600px]" alt="Preview" />
+              </div>
+              <div className="w-full md:w-[360px] p-8 bg-white flex flex-col gap-6 overflow-y-auto">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Puntuación IA</p>
+                  {previewAsset.aesthetic_score != null ? (
+                    <div className="flex items-end gap-2">
+                      <span className="text-5xl font-black text-slate-900">{Number(previewAsset.aesthetic_score).toFixed(1)}</span>
+                      <span className="text-slate-400 font-bold mb-1.5">/ 10</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Sin análisis aún</p>
+                  )}
+                </div>
+
+                {previewAsset.ai_description && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Análisis Visual</p>
+                    <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl">{previewAsset.ai_description}</p>
+                  </div>
+                )}
+
+                {previewAsset.tags && previewAsset.tags.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Etiquetas detectadas</p>
+                    <div className="flex flex-wrap gap-2">
+                      {previewAsset.tags.filter(t => t !== 'user_uploaded').map(t => (
+                        <span key={t} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 uppercase tracking-wide">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-auto pt-4 border-t border-slate-100">
+                  <Button className="w-full rounded-2xl font-black uppercase tracking-widest text-[11px]" asChild>
+                    <a href={previewAsset.asset_url} download target="_blank" rel="noreferrer">
+                      <Icon name="download" className="mr-2" /> Descargar original
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <EditBrandDialog
         open={open}

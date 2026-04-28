@@ -21,7 +21,7 @@
 
 ## ¿Qué es Radikal?
 
-Radikal es una plataforma de **inteligencia de marca** que orquesta varios agentes de IA para ayudar a equipos de marketing y fundadores a: 
+Radikal es una plataforma de **inteligencia de marca** que orquesta varios agentes de IA para ayudar a equipos de marketing y fundadores a:
 
 - **Mapear su marca automáticamente** a partir de su sitio web e Instagram (logo, paleta, tono, propuesta de valor).
 - **Analizar competidores** con scraping de Instagram/TikTok, análisis visual y detección automática.

@@ -48,7 +48,6 @@ function useGenerateImage() {
       reference_asset_ids?: string[];
       use_brand_palette?: boolean;
       variations?: number;
-      source_section?: string;
     }) => {
       const res = await api.post<{ data: GenerateResult }>(
         '/ai-services/generate-image',
@@ -65,7 +64,7 @@ function useImageAssets(projectId: string | undefined) {
     enabled: !!projectId,
     queryFn: async () => {
       const res = await api.get<{ data: ContentAssetDTO[] }>(
-        `/content?project_id=${projectId}&type=image&sort=recent&limit=24&tags=section:generate`,
+        `/content?project_id=${projectId}&type=image&sort=recent&limit=24`,
       );
       return res.data;
     },
@@ -161,7 +160,6 @@ export function ImageGenerator() {
         reference_asset_ids: refIds.length ? refIds : undefined,
         use_brand_palette: useBrandPalette,
         variations: variationsCount,
-        source_section: 'generate',
       });
       setCurrent(res);
       setSelectedVariantIdx(null);

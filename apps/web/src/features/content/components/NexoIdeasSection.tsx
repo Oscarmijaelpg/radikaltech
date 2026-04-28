@@ -36,7 +36,7 @@ export function NexoIdeasSection() {
   const [resultModal, setResultModal] = useState<GenerateImageResult | null>(null);
 
   const { data: reports, isLoading: isLoadingReports } = useReports(activeProject?.id);
-  const { data: assets } = useAssets(activeProject?.id, { type: 'image', tags: 'section:nexo_ideas' });
+  const { data: assets } = useAssets(activeProject?.id);
   const { data: memories } = useMemories(activeProject?.id, 'ideation');
   
   const generateIdeas = useGenerateIdeas();
@@ -234,7 +234,7 @@ export function NexoIdeasSection() {
              </div>
              
              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {assets?.slice(0, 12).map((asset) => (
+                {assets?.filter(a => a.tags.includes('generated')).slice(0, 12).map((asset) => (
                   <div key={asset.id} className="group relative aspect-square rounded-3xl overflow-hidden border-2 border-white shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
                     <img src={asset.asset_url} className="w-full h-full object-cover" alt="Generated" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -244,7 +244,7 @@ export function NexoIdeasSection() {
                     </div>
                   </div>
                 ))}
-                {(!assets || assets.length === 0) && (
+                {(!assets || assets.filter(a => a.tags.includes('generated')).length === 0) && (
                   <div className="col-span-full py-12 text-center text-slate-400 text-xs italic">
                     Las imágenes que generes con Nexo aparecerán aquí.
                   </div>
