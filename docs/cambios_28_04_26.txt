@@ -1,0 +1,60 @@
+DETALLE DE ACTUALIZACIONES Y MEJORAS - SESIÓN 28/04/2026
+=========================================================
+
+Esta sesión se centró en resolver la "ceguera de marca" en los dashboards competitivos, garantizando que el usuario pueda compararse 1 a 1 con sus competidores, además de asegurar una experiencia 100% en español.
+
+1. VISIBILIDAD Y PERSISTENCIA DE DATOS DE LA MARCA
+--------------------------------------------------
+PROBLEMA ANTERIOR: El sistema ignoraba los posts scrapeados de la marca propia porque el scraper buscaba un 'competitorId'. Si no lo encontraba, descartaba los datos. En el benchmark y tablas, la marca siempre aparecía con valores en "0".
+
+SOLUCIÓN Y CAMBIOS:
+- Refactorización de Scrapers: Se modificaron 'instagram-scraper.ts' y 'tiktok-scraper.ts' para permitir la persistencia de posts cuando 'competitorId' es null (asociándolos directamente al projectId).
+- Nueva Lógica de Perfil: Ahora el scraper distingue entre actualizar la tabla 'Competitor' (para competencia) y la tabla 'SocialAccount' (para la marca propia), evitando errores de referencia.
+- Botón "Sincronizar mi marca": Se añadió un botón de acción rápida en la pestaña de Benchmark que dispara una sincronización manual de las cuentas de Instagram/TikTok configuradas por el usuario.
+    * Archivo: apps/web/src/features/memory/components/CompetitorsBenchmarkTab.tsx
+    * Endpoint: POST /social-accounts/sync-project/:projectId
+
+2. REDISEÑO TOTAL DE GRÁFICOS COMPARATIVOS (LISTA DE COMPETENCIA)
+-----------------------------------------------------------------
+PROBLEMA ANTERIOR: Los gráficos de la pestaña "Lista" solo mostraban datos de competidores, dejando al usuario sin una referencia visual de su propio rendimiento. El gráfico de "Mezcla de formatos" era un Pie Chart global ilegible.
+
+SOLUCIÓN Y CAMBIOS:
+- Integración de Marca "(Yo)": Se crearon endpoints específicos para obtener las estadísticas sociales de la marca propia (social-stats y social-posts).
+- Gráficos Actualizados (Engagement, Volumen, Dispersión): 
+    * Ahora incluyen una barra/punto adicional identificado como "(Yo) [Nombre de Marca]".
+    * Se utiliza el color primario (azul Radikal) para la marca propia y colores aleatorios para competidores.
+- Transformación "Mezcla de Formatos":
+    * ANTES: Un solo gráfico de torta que sumaba los formatos de todos los competidores mezclados.
+    * AHORA: Un gráfico de Barras Apiladas por Marca. Cada marca tiene su propia barra mostrando su mix de Video vs Imagen vs Carousel.
+- Archivos clave: 
+    * apps/api/src/modules/projects/routes.ts & service.ts (Nuevos endpoints)
+    * apps/web/src/features/memory/components/CompetitionCharts.tsx (Nueva lógica visual)
+
+3. INTELIGENCIA ARTIFICIAL 100% EN ESPAÑOL
+------------------------------------------
+PROBLEMA ANTERIOR: Sira (la IA) generaba los apartados de "Fortalezas, Debilidades e Insights" y "Narrativa Estratégica" en inglés cuando la fuente de datos original era en inglés o el modelo de lenguaje por defecto así lo decidía.
+
+SOLUCIÓN Y CAMBIOS:
+- Blindaje de Prompts: Se actualizaron los system prompts en tres servicios clave para forzar la respuesta en español mediante instrucciones negativas y positivas explícitas ("TODA LA RESPUESTA DEBE ESTAR EN ESPAÑOL").
+- Archivos modificados:
+    * apps/api/src/modules/ai-services/competitor-analyzer.ts (Análisis web)
+    * apps/api/src/modules/ai-services/competitor-narrative.ts (Interpretación de Sira)
+    * apps/api/src/modules/ai-services/brand-synthesizer.ts (Identidad de marca)
+
+4. GLOSARIO Y MEJORAS DE UX EN BENCHMARK
+----------------------------------------
+- Nuevas Variables del Radar: Se eliminaron métricas genéricas (Crecimiento/Multiplataforma) por métricas de alto valor real: "Interacción" (Comentarios) y "Alcance de Video" (Vistas).
+- Glosario Visual: Se añadió una sección explicativa debajo del gráfico de radar que define qué significa "Variedad", "Interacción" y "Alcance Video", incluyendo iconos para una interpretación intuitiva.
+
+---------------------------------------------------------
+RESUMEN TÉCNICO DE ARCHIVOS TOCADOS:
+- apps/api/src/modules/ai-services/instagram-scraper.ts
+- apps/api/src/modules/ai-services/tiktok-scraper.ts
+- apps/api/src/modules/ai-services/competitor-analyzer.ts
+- apps/api/src/modules/ai-services/competitor-narrative.ts
+- apps/api/src/modules/ai-services/brand-synthesizer.ts
+- apps/api/src/modules/projects/service.ts
+- apps/api/src/modules/projects/routes.ts
+- apps/web/src/features/memory/components/CompetitionCharts.tsx
+- apps/web/src/features/memory/components/CompetitorsBenchmarkTab.tsx
+---------------------------------------------------------

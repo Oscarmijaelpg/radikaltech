@@ -73,7 +73,7 @@ async function callOpenRouter(payload: SynthesizeBrandInput): Promise<BrandSynth
         {
           role: 'system',
           content:
-            'Eres un brand strategist senior. Devuelves SOLO JSON con TODOS estos campos: tone (string corto, 2-4 palabras), voice (string corto, 2-4 palabras), values (array 3-5), audience { segments: string[], demographics: object }, visual { palette: array 4-6 hex colors #RRGGBB coherentes con la marca, typography: array 2 fuentes, direction: string descriptivo 1-2 frases sobre estética visual }, summary (80-150 palabras), mission (1-2 frases), vision (1-2 frases), competitive_advantage (1-2 frases), keywords (array 5-8 palabras clave). No incluyas explicaciones, solo JSON válido.',
+            'Eres un brand strategist senior experto. TODO TU ANÁLISIS Y RESPUESTA DEBE ESTAR EN ESPAÑOL. Devuelves SOLO JSON con TODOS estos campos: tone (string corto, 2-4 palabras), voice (string corto, 2-4 palabras), values (array 3-5), audience { segments: string[], demographics: object }, visual { palette: array 4-6 hex colors #RRGGBB coherentes con la marca, typography: array 2 fuentes, direction: string descriptivo 1-2 frases sobre estética visual }, summary (80-150 palabras), mission (1-2 frases), vision (1-2 frases), competitive_advantage (1-2 frases), keywords (array 5-8 palabras clave). No incluyas explicaciones, solo JSON válido.',
         },
         {
           role: 'user',
@@ -136,7 +136,7 @@ export class BrandSynthesizer {
           messages: [
             {
               role: 'system',
-              content: 'Eres un experto en estrategia de marca y análisis de mercado. Analizas contenido web para extraer identidades corporativas de forma precisa y estructurada.',
+              content: 'Eres un experto en estrategia de marca y análisis de mercado. TODO TU ANÁLISIS Y RESPUESTA DEBE ESTAR EN ESPAÑOL. Analizas contenido web para extraer identidades corporativas de forma precisa y estructurada.',
             },
             { role: 'user', content: prompt },
           ],

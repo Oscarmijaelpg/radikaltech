@@ -123,3 +123,28 @@ projectsRouter.post('/:id/detect-markets', async (c) => {
   }
   return c.json(ok(res));
 });
+
+projectsRouter.get('/:id/social-stats', async (c) => {
+  const user = c.get('user');
+  const res = await projectsService.getSocialStats(c.req.param('id'), user.id);
+  return c.json(ok(res));
+});
+
+projectsRouter.get('/:id/social-posts', async (c) => {
+  const user = c.get('user');
+  const limit = parseInt(c.req.query('limit') ?? '50', 10);
+  const posts = await projectsService.getSocialPosts(c.req.param('id'), user.id, limit);
+  // Manual serialization to match competitor posts structure
+  const serialized = posts.map(p => ({
+    id: p.id,
+    post_url: p.postUrl,
+    caption: p.caption,
+    likes: p.likes,
+    comments: p.comments,
+    views: p.views,
+    platform: String(p.platform),
+    image_url: p.imageUrl,
+    posted_at: p.postedAt?.toISOString() ?? null,
+  }));
+  return c.json(ok(serialized));
+});

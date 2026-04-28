@@ -14,7 +14,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { Card, SectionTitle, Spinner } from '@radikal/ui';
 import { api } from '@/lib/api';
 import { type CompetitorStats, type SocialPostItem } from '../api/memory';
@@ -63,13 +63,39 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
       enabled: !!id,
     })),
   });
+  
+  // Brand data queries
+  const { data: brandStats, isLoading: loadingBrandStats } = useQuery({
+    queryKey: ['brand-stats', projectId],
+    queryFn: async () => {
+      const r = await api.get<{ data: CompetitorStats }>(`/projects/${projectId}/social-stats`);
+      return r.data;
+    },
+    enabled: !!projectId,
+  });
 
-  const loadingStats = statsQueries.some((q) => q.isLoading);
-  const loadingPosts = postsQueries.some((q) => q.isLoading);
-  const stats: CompetitorStats[] = statsQueries
-    .map((q) => q.data)
-    .filter((d): d is CompetitorStats => !!d);
+  const { data: brandPosts, isLoading: loadingBrandPosts } = useQuery({
+    queryKey: ['brand-posts', projectId],
+    queryFn: async () => {
+      const r = await api.get<{ data: SocialPostItem[] }>(`/projects/${projectId}/social-posts?limit=30`);
+      return r.data;
+    },
+    enabled: !!projectId,
+  });
+
+  const loadingStats = statsQueries.some((q) => q.isLoading) || loadingBrandStats;
+  const loadingPosts = postsQueries.some((q) => q.isLoading) || loadingBrandPosts;
+  
+  const stats: CompetitorStats[] = [
+    ...(brandStats ? [brandStats] : []),
+    ...statsQueries
+      .map((q) => q.data)
+      .filter((d): d is CompetitorStats => !!d)
+  ];
+  
   const postsById: Record<string, SocialPostItem[]> = {};
+  if (brandPosts) postsById['brand'] = brandPosts;
+  
   competitorIds.forEach((id, i) => {
     postsById[id] = postsQueries[i]?.data ?? [];
   });
@@ -84,55 +110,72 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
 
   const engagementData = useMemo(
     () =>
-      stats.map((s, i) => ({
-        name: nameById[s.competitor_id] ?? s.competitor_name,
-        avgEngagement: Math.round(s.avg_engagement),
-        fill: colorFor(s.competitor_name, i),
-      })),
+      stats.map((s, i) => {
+        const isBrand = s.competitor_id === 'brand';
+        return {
+          name: isBrand ? `(Yo) ${s.competitor_name}` : (nameById[s.competitor_id] ?? s.competitor_name),
+          avgEngagement: Math.round(s.avg_engagement),
+          fill: isBrand ? 'hsl(var(--color-primary))' : colorFor(s.competitor_name, i),
+        };
+      }),
     [stats, nameById],
   );
 
   const volumeData = useMemo(() => {
     const cutoff = Date.now() - 28 * 86_400_000;
-    return competitorIds.map((id, i) => {
+    const ids = brandStats ? ['brand', ...competitorIds] : competitorIds;
+    return ids.map((id, i) => {
       const posts = postsById[id] ?? [];
       const count = posts.filter((p) => {
         if (!p.posted_at) return false;
         return new Date(p.posted_at).getTime() >= cutoff;
       }).length;
+      const isBrand = id === 'brand';
+      const name = isBrand ? `(Yo) ${brandStats?.competitor_name || 'Mi Marca'}` : (nameById[id] ?? 'Competidor');
       return {
-        name: nameById[id] ?? 'Competidor',
+        name,
         count,
-        fill: colorFor(nameById[id] ?? '', i),
+        fill: isBrand ? 'hsl(var(--color-primary))' : colorFor(name, i),
       };
     });
-  }, [competitorIds, postsById, nameById]);
+  }, [competitorIds, postsById, nameById, brandStats]);
 
   const formatMixData = useMemo(() => {
-    const agg: Record<string, number> = {};
-    stats.forEach((s) => {
-      Object.entries(s.format_mix ?? {}).forEach(([k, v]) => {
-        const key = k || 'unknown';
-        agg[key] = (agg[key] ?? 0) + v;
-      });
+    return stats.map((s) => {
+      const isBrand = s.competitor_id === 'brand';
+      const name = isBrand ? `(Yo) ${s.competitor_name}` : (nameById[s.competitor_id] ?? s.competitor_name);
+      return {
+        name,
+        ...s.format_mix,
+      };
     });
-    return Object.entries(agg).map(([name, value]) => ({ name, value }));
+  }, [stats, nameById]);
+
+  const formatKeys = useMemo(() => {
+    const keys = new Set<string>();
+    stats.forEach((s) => {
+      Object.keys(s.format_mix ?? {}).forEach((k) => keys.add(k));
+    });
+    return Array.from(keys);
   }, [stats]);
 
   const scatterData = useMemo(() => {
-    return competitorIds.flatMap((id, i) => {
-      const color = colorFor(nameById[id] ?? '', i);
+    const ids = brandStats ? ['brand', ...competitorIds] : competitorIds;
+    return ids.flatMap((id, i) => {
+      const isBrand = id === 'brand';
+      const color = isBrand ? 'hsl(var(--color-primary))' : colorFor(nameById[id] ?? '', i);
+      const name = isBrand ? `(Yo) ${brandStats?.competitor_name || 'Mi Marca'}` : (nameById[id] ?? 'Competidor');
       return (postsById[id] ?? []).map((p) => ({
         x: p.likes,
         y: p.comments,
         z: p.views || 50,
         postUrl: p.post_url,
         caption: p.caption,
-        competitor: nameById[id] ?? 'Competidor',
+        competitor: name,
         fill: color,
       }));
     });
-  }, [competitorIds, postsById, nameById]);
+  }, [competitorIds, postsById, nameById, brandStats]);
 
   if (loadingStats || loadingPosts) {
     return (
@@ -191,18 +234,19 @@ export function CompetitionCharts({ projectId, competitorIds }: Props) {
       <Card className="p-5">
         <h3 className="text-sm font-bold text-slate-900 mb-1">Mezcla de formatos</h3>
         <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-4">
-          Video / imagen / carousel
+          Video / imagen / carousel por marca
         </p>
         <ResponsiveContainer width="100%" height={280}>
-          <PieChart>
-            <Pie data={formatMixData} dataKey="value" nameKey="name" outerRadius={100} label>
-              {formatMixData.map((_, i) => (
-                <Cell key={i} fill={colorFor('fmt', i)} />
-              ))}
-            </Pie>
+          <BarChart data={formatMixData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--color-chart-grid))" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
             <Tooltip />
-            <Legend />
-          </PieChart>
+            <Legend wrapperStyle={{ fontSize: '10px' }} />
+            {formatKeys.map((key, i) => (
+              <Bar key={key} dataKey={key} stackId="a" fill={colorFor(key, i + 5)} radius={0} />
+            ))}
+          </BarChart>
         </ResponsiveContainer>
       </Card>
 
