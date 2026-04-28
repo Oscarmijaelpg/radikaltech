@@ -47,12 +47,7 @@ export function GeneratedLibrary() {
   const [selected, setSelected] = useState<ContentAsset | null>(null);
   const [editTarget, setEditTarget] = useState<ContentAsset | null>(null);
 
-  const { data: allAssets, isLoading } = useAssets(activeProject?.id, { type: 'image', sort: 'recent' });
-  
-  // Filtrar solo las generadas por la plataforma
-  const assets = useMemo(() => {
-    return allAssets?.filter(a => a.tags.includes('generated')) || [];
-  }, [allAssets]);
+  const { data: assets, isLoading } = useAssets(activeProject?.id, { type: 'image', sort: 'recent', tags: 'generated' });
 
   const deleteAsset = useDeleteAsset();
   const evaluateAsset = useEvaluateAsset();

@@ -116,6 +116,7 @@ export interface EditImageInput {
   source_asset_id: string;
   edit_instruction: string;
   project_id?: string;
+  source_section?: string;
 }
 
 export interface EditImageResult {
@@ -217,6 +218,7 @@ export function useGenerateImage() {
       reference_asset_ids?: string[];
       use_brand_palette?: boolean;
       variations?: number;
+      source_section?: string;
     }) => {
       const res = await api.post<{ data: GenerateImageResult }>(
         '/ai-services/generate-image',

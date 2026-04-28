@@ -56,7 +56,17 @@ export function ImageAnalysisDialog({ asset, open, onOpenChange }: Props) {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Análisis de Dirección de Arte</p>
                 <div className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100 shadow-inner max-h-[300px] overflow-y-auto scrollbar-hide">
-                  {asset.ai_description || asset.marketing_feedback}
+                  {(asset.ai_description || asset.marketing_feedback || '')
+                    .replace(/https?:\/\/[^\s]+/g, '')
+                    .replace(/Imagen generada:/gi, '')
+                    .replace(/TASK:[\s\S]*?(STYLE:|$)/gi, '')
+                    .replace(/VISUAL CONCEPT:[\s\S]*?(\.|$)/gi, '')
+                    .replace(/###[\s\S]*?###/g, '')
+                    .replace(/PLATFORM:.*$/gm, '')
+                    .replace(/IMAGE-COMPOSITION PROTOCOL:.*$/gm, '')
+                    .replace(/MANDATORY ASPECT RATIO:.*$/gm, '')
+                    .replace(/STRICT ROLE:.*$/gm, '')
+                    .trim()}
                 </div>
               </div>
             )}
@@ -87,7 +97,7 @@ export function ImageAnalysisDialog({ asset, open, onOpenChange }: Props) {
                   <Icon name="download" className="mr-2" /> Descargar Original
                 </a>
               </Button>
-              <p className="text-[9px] text-slate-400 text-center font-medium">Resolución original · Supabase Cloud Storage</p>
+              <p className="text-[9px] text-slate-400 text-center font-medium">Resolución original · Almacenamiento seguro</p>
             </div>
           </div>
         </div>

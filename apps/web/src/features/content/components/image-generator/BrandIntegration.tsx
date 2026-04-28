@@ -57,7 +57,7 @@ export function BrandIntegration({
             </p>
             <p className="text-[11px] text-slate-500 leading-tight">
               {hasLogo
-                ? 'Gemini 2.5 Flash Image preservará tu logo tal cual'
+                ? 'Nexo preservará tu logo tal cual'
                 : 'Sube tu logo en Memoria → Marca para activarlo'}
             </p>
           </div>
@@ -73,7 +73,7 @@ export function BrandIntegration({
             </span>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[240px]">
-            Gemini 2.5 preservará tu logo exactamente como es
+            La IA preservará tu logo exactamente como es
           </TooltipContent>
         </Tooltip>
       </div>

@@ -35,11 +35,7 @@ export function SingleResult({
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-display text-lg font-bold">Tu imagen</h3>
         <div className="flex gap-2 flex-wrap">
-          <Badge>
-            {current.model === 'gemini-2.5-flash-image'
-              ? 'Generado con Gemini 2.5'
-              : 'Generado con DALL-E 3'}
-          </Badge>
+          <Badge>Generado por Nexo</Badge>
           <Badge variant="muted">{current.size}</Badge>
           <Badge variant="muted">{current.style}</Badge>
           {current.variations?.[0]?.quality_score !== undefined && (
@@ -56,7 +52,6 @@ export function SingleResult({
           className="w-full h-auto object-contain max-h-[600px]"
         />
       </div>
-      <p className="text-sm text-slate-600 mb-4 italic">&ldquo;{current.prompt}&rdquo;</p>
       <div className="flex flex-wrap gap-2 items-center">
         <Button variant="outline" onClick={onDownload}>
           <Icon name="download" className="text-[18px]" />

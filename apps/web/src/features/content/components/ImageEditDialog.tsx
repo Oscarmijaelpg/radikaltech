@@ -118,9 +118,7 @@ export function ImageEditDialog({
             </div>
             {result && (
               <div className="mt-2 flex gap-2 flex-wrap">
-                <Badge variant="muted">
-                  {result.model === 'gemini-2.5-flash-image' ? 'Gemini 2.5' : 'DALL-E 3'}
-                </Badge>
+                <Badge variant="muted">Generado por Nexo</Badge>
               </div>
             )}
           </div>

@@ -155,11 +155,12 @@ aiServicesRouter.post(
       reference_asset_ids: z.array(z.string().uuid()).max(6).optional(),
       use_brand_palette: z.boolean().optional().default(true),
       variations: z.number().int().min(1).max(4).optional(),
+      source_section: z.string().optional(),
     }),
   ),
   async (c) => {
     const user = c.get('user');
-    const { prompt, size, style, mode, project_id, reference_asset_ids, use_brand_palette, variations } =
+    const { prompt, size, style, mode, project_id, reference_asset_ids, use_brand_palette, variations, source_section } =
       c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
     const res = await withCredits(
@@ -179,6 +180,7 @@ aiServicesRouter.post(
           referenceAssetIds: reference_asset_ids,
           useBrandPalette: use_brand_palette,
           variations,
+          sourceSection: source_section,
         }),
     );
     return c.json(ok(res));
@@ -194,11 +196,12 @@ aiServicesRouter.post(
       source_asset_id: z.string().uuid(),
       edit_instruction: z.string().min(3).max(2000),
       project_id: z.string().uuid().optional(),
+      source_section: z.string().optional(),
     }),
   ),
   async (c) => {
     const user = c.get('user');
-    const { source_asset_id, edit_instruction, project_id } = c.req.valid('json');
+    const { source_asset_id, edit_instruction, project_id, source_section } = c.req.valid('json');
     await assertOptionalProject(project_id, user.id);
     const source = await prisma.contentAsset.findUnique({ where: { id: source_asset_id } });
     if (!source) throw new NotFound('Asset not found');
@@ -215,6 +218,7 @@ aiServicesRouter.post(
           editInstruction: edit_instruction,
           userId: user.id,
           projectId: project_id,
+          sourceSection: source_section,
         }),
     );
     return c.json(ok(res));

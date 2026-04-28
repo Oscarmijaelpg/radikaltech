@@ -10,9 +10,11 @@ import type { ContentAssetLite } from './utils';
 export function VisualDirectionSection({
   brand,
   instagramRefs,
+  onImageClick,
 }: {
   brand: BrandProfile | null | undefined;
   instagramRefs: ContentAssetLite[];
+  onImageClick: (asset: ContentAssetLite) => void;
 }) {
   return (
     <Card className="p-4 sm:p-6 md:p-8 bg-white">
@@ -38,11 +40,10 @@ export function VisualDirectionSection({
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
             {instagramRefs.map((a) => (
-              <a
+              <button
                 key={a.id}
-                href={a.asset_url}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => onImageClick(a)}
+                type="button"
                 className="aspect-square rounded-xl overflow-hidden bg-slate-100 hover:opacity-80 hover:scale-[1.03] transition-all shadow-sm"
               >
                 <img
@@ -51,7 +52,7 @@ export function VisualDirectionSection({
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
-              </a>
+              </button>
             ))}
           </div>
         </div>

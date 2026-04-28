@@ -139,7 +139,7 @@ export function MessageBubble({
         )}
       >
         {isUser ? (
-          <p className="whitespace-pre-wrap break-words">{content}</p>
+          <p className="whitespace-pre-wrap break-words">{content.replace(/\[ASSETS: .*\]/gs, '').trim()}</p>
         ) : (
           <div
             className={cn(
@@ -196,30 +196,31 @@ export function MessageBubble({
                 ))}
               </div>
             )}
-            <div className="break-words overflow-x-auto">
+            <div className="break-words overflow-x-auto mt-2">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  img: ({ node, ...props }) => {
-                    // Avoid duplicate images if a tool already generated one
-                    const hasGeneratedImage = tools?.some(t => t.name === 'generate_image' && t.status === 'done');
-                    if (hasGeneratedImage) return null;
-
-                    return (
-                      <img 
-                        {...props} 
-                        className="rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-all max-w-full h-auto mt-2 mb-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (props.src) {
-                            setPreviewAsset({ asset_url: props.src, ai_description: props.alt || 'Imagen del chat' });
-                          }
-                        }}
-                      />
-                    );
+                  img: () => null, // NEVER render markdown images
+                  ol: ({ node, ...props }) => {
+                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
+                    if (hasTool) return null;
+                    return <ol {...props} className="list-decimal ml-4 my-2" />;
+                  },
+                  ul: ({ node, ...props }) => {
+                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
+                    if (hasTool) return null;
+                    return <ul {...props} className="list-disc ml-4 my-2" />;
+                  },
+                  li: ({ node, ...props }) => {
+                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
+                    if (hasTool) return null;
+                    return <li {...props} className="my-1" />;
                   },
                   a: ({ node, ...props }) => {
+                    const hasTool = tools?.some(t => t.name === 'generate_image' || t.name === 'get_library_assets');
                     const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)/i.test(props.href || '');
+                    const isStorageLink = props.href?.includes('supabase') || props.href?.includes('storage');
+                    if (hasTool && (isImageUrl || isStorageLink)) return null;
                     if (isImageUrl && props.href) {
                       return (
                         <span 
@@ -233,11 +234,13 @@ export function MessageBubble({
                         </span>
                       );
                     }
-                    return <a {...props} target="_blank" rel="noreferrer">{props.children}</a>;
+                    return <a {...props} target="_blank" rel="noreferrer" className="text-[hsl(var(--color-primary))] font-bold hover:underline">{props.children}</a>;
                   }
                 }}
               >
-                {content || ' '}
+                {tools?.some(t => t.name === 'get_library_assets') 
+                  ? 'Aquí tienes tu galería visual. Por favor, selecciona hasta 3 referencias que desees utilizar para generar tu nueva imagen.'
+                  : content.replace(/\[ASSETS: .*\]/gs, '').trim() || ' '}
               </ReactMarkdown>
             </div>
             {streaming && (
