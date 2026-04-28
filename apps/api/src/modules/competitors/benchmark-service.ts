@@ -94,9 +94,12 @@ export class CompetitorBenchmarkService {
       where: { projectId, userId, competitorId: null },
     });
 
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    const myName = project?.companyName ?? project?.name ?? 'Mi marca';
+
     let mySnapshot: BrandSnapshot;
     if (myPosts.length > 0) {
-      mySnapshot = snapshotFromAggregate('Mi marca', aggregatePosts(myPosts));
+      mySnapshot = snapshotFromAggregate(myName, aggregatePosts(myPosts));
     } else {
       // Fallback: social accounts como proxy cuando aún no hay scraping.
       const accounts = await prisma.socialAccount.findMany({
@@ -105,7 +108,7 @@ export class CompetitorBenchmarkService {
       const platforms = accounts.map((a) => String(a.platform));
       const totalFollowers = accounts.reduce((s, a) => s + (a.followers ?? 0), 0);
       mySnapshot = {
-        name: 'Mi marca',
+        name: myName,
         social_posts_count: 0,
         avg_likes: 0,
         avg_comments: 0,

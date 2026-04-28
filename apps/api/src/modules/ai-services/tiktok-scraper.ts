@@ -109,46 +109,70 @@ export class TikTokScraper {
 
         posts.push({ url: postUrl, caption, likes, comments, shares, views });
 
-        if (input.competitorId) {
+        if (postUrl) {
           try {
-            await prisma.socialPost.upsert({
-              where: {
-                competitorId_postUrl: {
-                  competitorId: input.competitorId,
-                  postUrl,
+            const postData = {
+              caption,
+              imageUrl: coverUrl,
+              likes,
+              comments,
+              shares,
+              views,
+              postType: 'video',
+              postedAt: publishedAt ? new Date(publishedAt) : null,
+              raw: item as unknown as Prisma.InputJsonValue,
+            };
+
+            if (input.competitorId) {
+              await prisma.socialPost.upsert({
+                where: {
+                  competitorId_postUrl: {
+                    competitorId: input.competitorId,
+                    postUrl,
+                  },
                 },
-              },
-              update: {
-                caption,
-                imageUrl: coverUrl,
-                likes,
-                comments,
-                shares,
-                views,
-                postType: 'video',
-                postedAt: publishedAt ? new Date(publishedAt) : null,
-                raw: item as unknown as Prisma.InputJsonValue,
-              },
-              create: {
-                competitorId: input.competitorId,
-                userId: input.userId,
-                projectId: input.projectId,
-                platform: 'tiktok',
-                postUrl,
-                postId: item.id ?? null,
-                caption,
-                imageUrl: coverUrl,
-                postType: 'video',
-                likes,
-                comments,
-                shares,
-                views,
-                postedAt: publishedAt ? new Date(publishedAt) : null,
-                raw: item as unknown as Prisma.InputJsonValue,
-              },
-            });
+                update: postData,
+                create: {
+                  ...postData,
+                  competitorId: input.competitorId,
+                  userId: input.userId,
+                  projectId: input.projectId,
+                  platform: 'tiktok',
+                  postUrl,
+                  postId: item.id ?? null,
+                },
+              });
+            } else {
+              const existing = await prisma.socialPost.findFirst({
+                where: {
+                  projectId: input.projectId,
+                  platform: 'tiktok',
+                  postUrl,
+                  competitorId: null,
+                },
+              });
+
+              if (existing) {
+                await prisma.socialPost.update({
+                  where: { id: existing.id },
+                  data: postData,
+                });
+              } else {
+                await prisma.socialPost.create({
+                  data: {
+                    ...postData,
+                    competitorId: null,
+                    userId: input.userId,
+                    projectId: input.projectId,
+                    platform: 'tiktok',
+                    postUrl,
+                    postId: item.id ?? null,
+                  },
+                });
+              }
+            }
           } catch (err) {
-            logger.warn({ err }, 'tiktok social_posts upsert failed');
+            logger.warn({ err, competitorId: input.competitorId }, 'tiktok social_posts persistence failed');
           }
         }
       }

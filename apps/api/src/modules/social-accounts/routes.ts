@@ -42,3 +42,9 @@ socialAccountsRouter.delete('/:id', async (c) => {
   const user = c.get('user');
   return c.json(ok(await socialAccountsService.remove(c.req.param('id'), user.id)));
 });
+
+socialAccountsRouter.post('/sync-project/:projectId', async (c) => {
+  const user = c.get('user');
+  const projectId = c.req.param('projectId');
+  return c.json(ok(await socialAccountsService.syncProject(projectId, user.id)));
+});

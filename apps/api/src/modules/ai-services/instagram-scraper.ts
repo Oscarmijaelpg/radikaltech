@@ -163,17 +163,35 @@ export class InstagramScraper {
       );
 
       // Update social_account with handle and follower count if available
+      // Update profile data: if competitor, update competitor table. If brand, update socialAccount.
       if (profile) {
         try {
-          await prisma.socialAccount.updateMany({
-            where: { projectId: input.projectId, platform: 'instagram' },
-            data: {
-              handle: profile.username ?? handle,
-              followers: profile.followersCount ?? null,
-            },
-          });
+          if (input.competitorId) {
+            await prisma.competitor.update({
+              where: { id: input.competitorId },
+              data: {
+                engagementStats: {
+                  followers: profile.followersCount ?? 0,
+                  handle: profile.username ?? handle,
+                  lastScrapedAt: new Date().toISOString(),
+                } as any,
+              },
+            });
+          } else {
+            await prisma.socialAccount.updateMany({
+              where: { 
+                projectId: input.projectId, 
+                platform: 'instagram',
+                // For the brand, we don't have competitorId in this table
+              },
+              data: {
+                handle: profile.username ?? handle,
+                followers: profile.followersCount ?? null,
+              },
+            });
+          }
         } catch (err) {
-          logger.warn({ err }, 'failed to update social_account with ig profile data');
+          logger.warn({ err, competitorId: input.competitorId }, 'failed to update profile data');
         }
       }
 
@@ -224,44 +242,72 @@ export class InstagramScraper {
           });
           posts.push({ url: postUrl, caption, assetId: asset.id });
 
-          if (input.competitorId && postUrl) {
+          if (postUrl) {
             try {
-              await prisma.socialPost.upsert({
-                where: {
-                  competitorId_postUrl: {
-                    competitorId: input.competitorId,
-                    postUrl,
+              const postData = {
+                caption,
+                imageUrl: publicUrl,
+                likes: item.likesCount ?? 0,
+                comments: item.commentsCount ?? 0,
+                views: item.videoViewCount ?? item.videoPlayCount ?? 0,
+                postType: item.type ?? null,
+                postedAt: publishedAt ? new Date(publishedAt) : null,
+                raw: item as unknown as Prisma.InputJsonValue,
+              };
+
+              if (input.competitorId) {
+                await prisma.socialPost.upsert({
+                  where: {
+                    competitorId_postUrl: {
+                      competitorId: input.competitorId,
+                      postUrl,
+                    },
                   },
-                },
-                update: {
-                  caption,
-                  imageUrl: publicUrl,
-                  likes: item.likesCount ?? 0,
-                  comments: item.commentsCount ?? 0,
-                  views: item.videoViewCount ?? item.videoPlayCount ?? 0,
-                  postType: item.type ?? null,
-                  postedAt: publishedAt ? new Date(publishedAt) : null,
-                  raw: item as unknown as Prisma.InputJsonValue,
-                },
-                create: {
-                  competitorId: input.competitorId,
-                  userId: input.userId,
-                  projectId: input.projectId,
-                  platform: 'instagram',
-                  postUrl,
-                  postId: item.id ?? item.shortCode ?? null,
-                  caption,
-                  imageUrl: publicUrl,
-                  postType: item.type ?? null,
-                  likes: item.likesCount ?? 0,
-                  comments: item.commentsCount ?? 0,
-                  views: item.videoViewCount ?? item.videoPlayCount ?? 0,
-                  postedAt: publishedAt ? new Date(publishedAt) : null,
-                  raw: item as unknown as Prisma.InputJsonValue,
-                },
-              });
+                  update: postData,
+                  create: {
+                    ...postData,
+                    competitorId: input.competitorId,
+                    userId: input.userId,
+                    projectId: input.projectId,
+                    platform: 'instagram',
+                    postUrl,
+                    postId: item.id ?? item.shortCode ?? null,
+                  },
+                });
+              } else {
+                // Brand case: no competitorId. Use findFirst to avoid duplicates if possible, or just create.
+                // Since there's no unique constraint for (projectId, postUrl) where competitorId is null in schema,
+                // we search manually.
+                const existing = await prisma.socialPost.findFirst({
+                  where: {
+                    projectId: input.projectId,
+                    platform: 'instagram',
+                    postUrl,
+                    competitorId: null,
+                  },
+                });
+
+                if (existing) {
+                  await prisma.socialPost.update({
+                    where: { id: existing.id },
+                    data: postData,
+                  });
+                } else {
+                  await prisma.socialPost.create({
+                    data: {
+                      ...postData,
+                      competitorId: null,
+                      userId: input.userId,
+                      projectId: input.projectId,
+                      platform: 'instagram',
+                      postUrl,
+                      postId: item.id ?? item.shortCode ?? null,
+                    },
+                  });
+                }
+              }
             } catch (err) {
-              logger.warn({ err }, 'ig social_posts upsert failed');
+              logger.warn({ err, competitorId: input.competitorId }, 'ig social_posts persistence failed');
             }
           }
         } catch (err) {
@@ -272,6 +318,10 @@ export class InstagramScraper {
       // Visual analysis of top-engagement posts (async, non-blocking failure)
       if (input.competitorId) {
         await runVisualAnalysisForCompetitor(input.competitorId, 'instagram');
+      } else {
+        // Para la propia marca, también podemos correr el análisis si queremos, 
+        // pero runVisualAnalysisForCompetitor espera un competitorId.
+        // TODO: Implementar runVisualAnalysisForProject
       }
 
       await prisma.aiJob.update({

@@ -21,6 +21,7 @@ import {
 import {
   useCompetitorBenchmark,
   useCompetitorGaps,
+  useSyncSocialProject,
   type BrandSnapshot,
   type CompetitorSnapshot,
 } from '../api/memory';
@@ -54,6 +55,44 @@ const POSITION_META: Record<
     icon: 'trending_down',
   },
 };
+
+const METRIC_DEFINITIONS = [
+  {
+    key: 'engagement',
+    label: 'Engagement',
+    icon: 'favorite',
+    desc: 'Score de compromiso basado en likes y comentarios.',
+    color: 'text-rose-500 bg-rose-50',
+  },
+  {
+    key: 'frequency',
+    label: 'Frecuencia',
+    icon: 'calendar_month',
+    desc: 'Promedio de publicaciones realizadas por semana.',
+    color: 'text-blue-500 bg-blue-50',
+  },
+  {
+    key: 'variety',
+    label: 'Variedad',
+    icon: 'category',
+    desc: 'Diversidad en el uso de formatos (Reels, Carruseles, Imágenes).',
+    color: 'text-amber-500 bg-amber-50',
+  },
+  {
+    key: 'interaction',
+    label: 'Interacción',
+    icon: 'chat_bubble',
+    desc: 'Volumen promedio de comentarios por publicación.',
+    color: 'text-emerald-500 bg-emerald-50',
+  },
+  {
+    key: 'video',
+    label: 'Alcance Video',
+    icon: 'play_circle',
+    desc: 'Rendimiento promedio de visualizaciones en videos.',
+    color: 'text-violet-500 bg-violet-50',
+  },
+];
 
 function fmtNum(n: number): string {
   if (!isFinite(n) || isNaN(n)) return '0';
@@ -89,22 +128,31 @@ function radarData(
   const myFormats = Object.keys(my.format_mix).length;
   const compFormats = comp ? Object.keys(comp.format_mix).length : 0;
   const [var_t, var_c] = normalize(myFormats, compFormats);
-  const [plat_t, plat_c] = normalize(my.platforms.length, comp?.platforms.length ?? 0);
-  // Growth: posts count as proxy
-  const [gr_t, gr_c] = normalize(my.social_posts_count, comp?.social_posts_count ?? 0);
+  const [plat_t, plat_c] = normalize(my.avg_comments, comp?.avg_comments ?? 0);
+  const [gr_t, gr_c] = normalize(my.avg_views, comp?.avg_views ?? 0);
   return [
     { dimension: 'Engagement', tu: eng_t, competidor: eng_c },
     { dimension: 'Frecuencia', tu: freq_t, competidor: freq_c },
-    { dimension: 'Formatos', tu: var_t, competidor: var_c },
-    { dimension: 'Multi-plataforma', tu: plat_t, competidor: plat_c },
-    { dimension: 'Crecimiento', tu: gr_t, competidor: gr_c },
+    { dimension: 'Variedad', tu: var_t, competidor: var_c },
+    { dimension: 'Interacción', tu: plat_t, competidor: plat_c },
+    { dimension: 'Alcance Video', tu: gr_t, competidor: gr_c },
   ];
 }
 
 export function CompetitorsBenchmarkTab({ projectId }: Props) {
-  const { data: benchmark, isLoading } = useCompetitorBenchmark(projectId);
+  const { data: benchmark, isLoading, refetch } = useCompetitorBenchmark(projectId);
   const { data: gaps, isLoading: loadingGaps } = useCompetitorGaps(projectId);
+  const { mutate: syncBrand, isPending: isSyncing } = useSyncSocialProject();
   const navigate = useNavigate();
+
+  const handleSyncBrand = () => {
+    syncBrand(projectId, {
+      onSuccess: () => {
+        // Podríamos mostrar un toast aquí
+        setTimeout(() => refetch(), 2000);
+      }
+    });
+  };
 
   const topComps = useMemo(() => benchmark?.competitors.slice(0, 5) ?? [], [benchmark]);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
@@ -184,7 +232,18 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
                   <td className="p-3 text-right">{fmtNum(my_brand.avg_comments)}</td>
                   <td className="p-3 text-right">{fmtNum(my_brand.posts_per_week)}</td>
                   <td className="p-3 text-xs text-slate-600">{my_brand.best_performing_platform ?? '—'}</td>
-                  <td className="p-3">—</td>
+                  <td className="p-3 text-right">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-violet-600 h-8 text-[11px] font-bold uppercase gap-1"
+                      onClick={handleSyncBrand}
+                      disabled={isSyncing}
+                    >
+                      <Icon name={isSyncing ? 'sync' : 'refresh'} className={`text-sm ${isSyncing ? 'animate-spin' : ''}`} />
+                      {isSyncing ? 'Sincronizando...' : my_brand.social_posts_count === 0 ? 'Sincronizar mi marca' : 'Actualizar'}
+                    </Button>
+                  </td>
                 </tr>
                 {topComps.map((c) => (
                   <tr key={c.id} className="border-b border-slate-100 last:border-0">
@@ -271,6 +330,23 @@ export function CompetitorsBenchmarkTab({ projectId }: Props) {
               </RadarChart>
             </ResponsiveContainer>
           </Card>
+          
+          {/* Glosario de métricas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
+            {METRIC_DEFINITIONS.map((m) => (
+              <div key={m.key} className="p-3 rounded-xl border border-slate-100 bg-white/50 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded-lg ${m.color} flex items-center justify-center`}>
+                    <Icon name={m.icon} className="text-sm" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-900">{m.label}</span>
+                </div>
+                <p className="text-[10px] leading-tight text-slate-500">
+                  {m.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
