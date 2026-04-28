@@ -36,6 +36,8 @@ export class InitialIntelligenceOrchestrator {
 
     const companyDataStr = JSON.stringify(companyData, null, 2);
 
+    const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+
     try {
       // 2. Leer los prompts base
       // Asumimos que process.cwd() es apps/api y docs/ está en ../../docs
@@ -56,7 +58,7 @@ ${companyDataStr}
       // 4. Buscar Noticias con Kimi K2.5
       logger.info('Ejecutando búsqueda de noticias en Kimi...');
       const newsSearch = await moonshotWebSearch({
-        systemPrompt: 'Eres un analista senior de inteligencia. HOY ES 27 DE ABRIL DE 2026. Tu misión es buscar noticias y tendencias ACTUALES (2025-2026). Devuelve tu análisis en formato Markdown limpio, estructurado y usando las fuentes encontradas con enlaces reales.',
+        systemPrompt: `Eres un analista senior de inteligencia. HOY ES ${today}. Tu misión es buscar noticias y tendencias ACTUALES. Devuelve tu análisis en formato Markdown limpio, estructurado y usando las fuentes encontradas con enlaces reales.`,
         userPrompt: finalNewsPrompt || 'Busca noticias para esta empresa: ' + companyData.name,
       });
 
@@ -86,7 +88,7 @@ ${companyDataStr}
       // 6. Buscar Competencia con Kimi K2.5
       logger.info('Ejecutando búsqueda de competencia en Kimi...');
       const compSearch = await moonshotWebSearch({
-        systemPrompt: 'Eres un analista estratégico senior. HOY ES 27 DE ABRIL DE 2026. Tu misión es buscar competidores y estrategias ACTUALES (2025-2026). Devuelve tu análisis en formato Markdown limpio, estructurado y usando las fuentes encontradas con enlaces reales.',
+        systemPrompt: `Eres un analista estratégico senior. HOY ES ${today}. Tu misión es buscar competidores y estrategias ACTUALES. Devuelve tu análisis en formato Markdown limpio, estructurado y usando las fuentes encontradas con enlaces reales.`,
         userPrompt: finalCompPrompt || 'Busca competencia para esta empresa: ' + companyData.name,
       });
 
