@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function CompetitorsTab({ projectId, subTab }: Props) {
-  const t = useCompetitorsTab(projectId);
+  const t = useCompetitorsTab(projectId) as any;
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   usePageTour('competitors');
@@ -35,7 +35,7 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
     queryKey: ['active-jobs', 'competition', projectId],
     enabled: !!projectId,
     queryFn: async () => {
-      const res = await api.get<{ data: Array<{ id: string; kind: string; status: string }> }>(
+      const res = await api.get<{ data: Array<{ id: string; kind: string; status: string; metadata?: any }> }>(
         `/jobs/active?project_id=${projectId}`,
       );
       return res.data || [];
@@ -225,7 +225,6 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
               title="Aún no hay diagnóstico"
               message="Completa el análisis de tu sitio web en Onboarding para que pueda generar este reporte para ti."
               action={{ label: 'Generar diagnóstico ahora', onClick: handleRefresh }}
-              loading={refreshing}
             />
           </Card>
         )}
@@ -233,7 +232,7 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
     );
   }
 
-  const analyzedIds = t.competitors.filter((c) => c.last_analyzed_at).map((c) => c.id);
+  const analyzedIds = (t.competitors as any[]).filter((c: any) => c.last_analyzed_at).map((c: any) => c.id);
 
   return (
     <div className="space-y-5 relative">
@@ -287,7 +286,7 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {t.competitors.map((c) => (
+          {(t.competitors as any[]).map((c: any) => (
             <CompetitorCard
               key={c.id}
               competitor={c}

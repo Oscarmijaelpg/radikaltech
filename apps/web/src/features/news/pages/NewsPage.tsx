@@ -64,7 +64,7 @@ export function NewsPage() {
   const { data: activeJobs } = useQuery({
     queryKey: ['active-jobs', 'news', activeProject?.id],
     queryFn: async () => {
-      const res = await api.get(`/jobs/active?project_id=${activeProject?.id}`);
+      const res = await api.get<{ data: any[] }>(`/jobs/active?project_id=${activeProject?.id}`);
       return res.data || [];
     },
     enabled: !!activeProject?.id,
@@ -142,10 +142,10 @@ export function NewsPage() {
     setItems([]);
     setAnalysis(null);
     try {
-      const res = await aggregate.mutateAsync({
+      const res = (await aggregate.mutateAsync({
         topic: query,
         project_id: activeProject?.id,
-      });
+      })) as any;
       setItems(res.result.items ?? []);
       setAnalysis(res.result.analysis ?? null);
     } catch {
@@ -173,7 +173,7 @@ export function NewsPage() {
   const loading = aggregate.isPending;
 
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
-  const initialReport = useMemo(() => savedList.find(r => r.title === 'Reporte Inicial de Noticias' || r.sourceData?.pipeline === 'initial-intelligence-news'), [savedList]);
+  const initialReport = useMemo(() => savedList.find(r => r.title === 'Reporte Inicial de Noticias' || (r.sourceData as any)?.pipeline === 'initial-intelligence-news'), [savedList]);
 
   return (
     <div className="min-h-full bg-gradient-to-br from-cyan-50/40 via-white to-blue-50/40">
