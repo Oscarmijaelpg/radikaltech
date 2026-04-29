@@ -82,7 +82,7 @@ export function WelcomeStep({ onStart }: WelcomeStepProps) {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 items-center">
       <div className="order-2 md:order-1 flex flex-col gap-6">
         <span className="self-start px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest border border-amber-200 shadow-sm">
-          Desarrollo · v1.0
+          Desarrollo · v1.1
         </span>
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black tracking-tight">

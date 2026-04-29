@@ -65,7 +65,7 @@ export function AuthPage() {
           <p className="text-slate-500 text-sm mt-1 font-medium">Inteligencia radical</p>
           <div className="h-1 w-12 bg-gradient-to-r from-transparent via-[hsl(var(--color-primary))] to-transparent opacity-60 rounded-full shadow-[0_0_10px_hsl(var(--color-primary))] mt-4" />
           <span className="mt-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest border border-amber-200 shadow-sm">
-            Desarrollo · v1.0
+            Desarrollo · v1.1
           </span>
         </div>
 
