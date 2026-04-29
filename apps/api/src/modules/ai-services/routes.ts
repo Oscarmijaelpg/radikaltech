@@ -17,6 +17,7 @@ import {
   autoCompetitorDetector,
   marketDetector,
   trendingFinder,
+  initialIntelligenceOrchestrator,
   parseInstagramHandle,
   parseTikTokHandle,
 } from './index.js';
@@ -498,5 +499,86 @@ aiServicesRouter.post(
       () => trendingFinder.detect({ projectId: project_id, userId: user.id }),
     );
     return c.json(ok(res));
+  },
+);
+
+aiServicesRouter.post(
+  '/refresh-competition-report',
+  aiRateLimits.default('refresh-competition'),
+  zValidator('json', z.object({ project_id: z.string().uuid() })),
+  async (c) => {
+    const user = c.get('user');
+    const { project_id } = c.req.valid('json');
+    const project = await prisma.project.findUnique({ where: { id: project_id } });
+    if (!project) throw new NotFound('Project not found');
+    if (project.userId !== user.id) throw new Forbidden();
+
+    // Cobro de créditos (usando la misma clave que autoCompetitorDetect por ahora, o una específica si existe)
+    const charge = await creditService.charge({
+      userId: user.id,
+      actionKey: ACTION_KEYS.competitorAnalyze, // Reutilizamos esta acción para el cobro
+      metadata: { project_id, type: 'refresh-report' },
+    });
+
+    void (async () => {
+      try {
+        await initialIntelligenceOrchestrator.runCompetitionIntelligence({
+          projectId: project_id,
+          userId: user.id,
+        });
+      } catch (err) {
+        logger.error({ err, project_id }, 'background competition refresh failed');
+        try {
+          await creditService.refund({
+            transactionId: charge.transactionId,
+            reason: `refresh-competition fallido: ${err instanceof Error ? err.message : 'error'}`,
+          });
+        } catch (refundErr) {
+          logger.warn({ err: refundErr }, '[credits] refund failed for refresh-competition');
+        }
+      }
+    })();
+
+    return c.json(ok({ status: 'running', message: 'Actualización de diagnóstico iniciada' }));
+  },
+);
+
+aiServicesRouter.post(
+  '/refresh-news-report',
+  aiRateLimits.default('refresh-news'),
+  zValidator('json', z.object({ project_id: z.string().uuid() })),
+  async (c) => {
+    const user = c.get('user');
+    const { project_id } = c.req.valid('json');
+    const project = await prisma.project.findUnique({ where: { id: project_id } });
+    if (!project) throw new NotFound('Project not found');
+    if (project.userId !== user.id) throw new Forbidden();
+
+    const charge = await creditService.charge({
+      userId: user.id,
+      actionKey: ACTION_KEYS.newsAggregate,
+      metadata: { project_id, type: 'refresh-news-report' },
+    });
+
+    void (async () => {
+      try {
+        await initialIntelligenceOrchestrator.runIndustryNewsIntelligence({
+          projectId: project_id,
+          userId: user.id,
+        });
+      } catch (err) {
+        logger.error({ err, project_id }, 'background news refresh failed');
+        try {
+          await creditService.refund({
+            transactionId: charge.transactionId,
+            reason: `refresh-news fallido: ${err instanceof Error ? err.message : 'error'}`,
+          });
+        } catch (refundErr) {
+          logger.warn({ err: refundErr }, '[credits] refund failed for refresh-news');
+        }
+      }
+    })();
+
+    return c.json(ok({ status: 'running', message: 'Actualización de noticias iniciada' }));
   },
 );

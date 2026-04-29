@@ -48,7 +48,7 @@ interface ChatCompletion {
 const KIMI_K2_FORCED_TEMPERATURE = 0.6;
 const DEFAULT_TEMPERATURE = KIMI_K2_FORCED_TEMPERATURE;
 const DEFAULT_MAX_ITERATIONS = 6;
-const DEFAULT_TIMEOUT_MS = 90_000;
+const DEFAULT_TIMEOUT_MS = 300_000; // 5 minutos para búsquedas profundas
 
 const TOOLS_PAYLOAD = [
   { type: 'builtin_function', function: { name: '$web_search' } },

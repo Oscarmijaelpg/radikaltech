@@ -132,7 +132,6 @@ export class BrandSynthesizer {
         },
         body: JSON.stringify({
           model: LLM_MODELS.chat.openrouter,
-          response_format: { type: 'json_object' },
           messages: [
             {
               role: 'system',
@@ -141,7 +140,7 @@ export class BrandSynthesizer {
             { role: 'user', content: prompt },
           ],
         }),
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(120_000),
       });
 
       if (!res.ok) return null;

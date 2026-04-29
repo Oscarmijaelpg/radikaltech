@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import {
   Button,
   Card,
@@ -25,6 +25,10 @@ import { NewsResultsGrid } from '../components/NewsResultsGrid';
 import { SavedSearchesSidebar } from '../components/SavedSearchesSidebar';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { useToast } from '@/shared/ui/Toaster';
+import { CHARACTERS } from '@/shared/characters';
 
 function parseReportItems(r: SavedReport): NewsItem[] {
   try {
@@ -41,15 +45,86 @@ function parseReportItems(r: SavedReport): NewsItem[] {
 
 export function NewsPage() {
   const { activeProject } = useProject();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [topic, setTopic] = useState('');
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [items, setItems] = useState<NewsItem[]>([]);
   const [analysis, setAnalysis] = useState<NewsAnalysis | null>(null);
   const [view, setView] = useState<'search' | 'diagnostic'>('diagnostic');
+  const [refreshing, setRefreshing] = useState(false);
 
   const aggregate = useAggregateNews();
   const saved = useSavedNewsReports(activeProject?.id);
   const sira = useSiraContextual();
+
+  const hasSeenJob = useRef(false);
+
+  // Polling para Jobs de noticias
+  const { data: activeJobs } = useQuery({
+    queryKey: ['active-jobs', 'news', activeProject?.id],
+    queryFn: async () => {
+      const res = await api.get(`/jobs/active?project_id=${activeProject?.id}`);
+      return res.data || [];
+    },
+    enabled: !!activeProject?.id,
+    refetchInterval: (query) => {
+      const hasNewsJob = query.state.data?.some((j: any) => j.kind === 'news-refresh');
+      return hasNewsJob ? 3000 : 15000;
+    },
+  });
+
+  const newsJob = useMemo(() => 
+    activeJobs?.find((j: any) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
+  [activeJobs]);
+
+  useEffect(() => {
+    if (newsJob) {
+      hasSeenJob.current = true;
+    }
+
+    if (refreshing && hasSeenJob.current && !newsJob) {
+      setRefreshing(false);
+      hasSeenJob.current = false;
+      queryClient.invalidateQueries({ queryKey: ['reports', 'news', activeProject?.id] });
+      toast({
+        title: 'Noticias Actualizadas',
+        description: 'Sira ha terminado de rastrear el sector.',
+        variant: 'success',
+      });
+    }
+  }, [newsJob, refreshing, activeProject?.id, queryClient, toast]);
+
+  const handleRefresh = async () => {
+    if (!activeProject?.id || refreshing || newsJob) return;
+    setRefreshing(true);
+    hasSeenJob.current = false; // Reset al iniciar
+    try {
+      await api.post('/ai/refresh-news-report', { project_id: activeProject.id });
+      toast({
+        title: 'Actualización iniciada',
+        description: 'Sira está analizando las tendencias del sector. Recibirás una notificación cuando el reporte McKinsey esté listo.',
+        variant: 'success'
+      });
+    } catch (err) {
+      setRefreshing(false);
+      toast({
+        title: 'Error',
+        description: 'No se pudo iniciar la búsqueda de noticias.',
+        variant: 'error',
+      });
+    }
+  };
+
+  const stepMessages: Record<string, string> = {
+    'initializing': 'Iniciando investigación...',
+    'generating-prompt': 'Analizando contexto de marca...',
+    'searching-kimi': 'Rastreando noticias en la web (2025-2026)...',
+    'saving-report': 'Redactando reporte estratégico...',
+    'completed': '¡Todo listo!'
+  };
+
+  const currentStep = (newsJob?.metadata as any)?.step || 'searching-kimi';
 
   const askSiraAbout = (item: NewsItem) => {
     sira.openWith({
@@ -151,6 +226,22 @@ export function NewsPage() {
                 </button>
               </div>
 
+              {view === 'diagnostic' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing || !!newsJob}
+                  className="rounded-xl border-white/40 text-white hover:bg-white/10 relative z-10 h-11"
+                >
+                  <Icon 
+                    name="refresh" 
+                    className={cn("mr-2", (refreshing || !!newsJob) && "animate-spin")} 
+                  />
+                  {refreshing || !!newsJob ? 'Actualizando...' : 'Actualizar análisis'}
+                </Button>
+              )}
+
               {view === 'search' && (
                 <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
                   <Input
@@ -190,7 +281,26 @@ export function NewsPage() {
           <section className="order-1 lg:order-2 relative min-h-[320px] flex flex-col gap-6">
             {view === 'diagnostic' && (
               <>
-                {initialReport ? (
+                {refreshing || !!newsJob ? (
+                  <Card className="p-12 flex flex-col items-center justify-center text-center space-y-6 bg-gradient-to-br from-blue-50 to-white border-blue-100 shadow-inner">
+                    <div className="w-32 h-32 rounded-[32px] bg-gradient-to-br from-cyan-400 to-blue-500 p-[3px] animate-pulse">
+                      <div className="w-full h-full rounded-[29px] bg-white overflow-hidden grid place-items-center">
+                        <img src={CHARACTERS.sira.image} alt="Sira" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                    <div className="max-w-md">
+                      <h3 className="text-2xl font-display font-black text-slate-900 mb-2">Buscando información actualizada</h3>
+                      <p className="text-slate-600 leading-relaxed">
+                        Sira está analizando las tendencias más relevantes de tu industria para 2025-2026. 
+                        Este proceso puede tardar un par de minutos mientras navega por la web.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-cyan-600 font-bold text-sm bg-cyan-50 px-4 py-2 rounded-full border border-cyan-100">
+                      <Icon name="refresh" className="animate-spin text-lg" />
+                      {stepMessages[currentStep] || 'Analizando noticias sectoriales...'}
+                    </div>
+                  </Card>
+                ) : initialReport ? (
                   <Card className="p-8 sm:p-12 bg-gradient-to-br from-white to-blue-50/50 shadow-xl border-blue-100/50 rounded-[32px]">
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-4">
@@ -199,7 +309,7 @@ export function NewsPage() {
                         </div>
                         <div>
                           <h3 className="text-3xl font-display font-black text-slate-900">Análisis del Sector</h3>
-                          <p className="text-sm text-slate-500">Reporte estratégico generado por la IA al inicio</p>
+                          <p className="text-sm text-slate-500">Reporte estratégico generado por la IA</p>
                         </div>
                       </div>
                     </div>
@@ -234,8 +344,13 @@ export function NewsPage() {
                     <CharacterEmpty
                       character="sira"
                       title="Aún no hay análisis inicial"
-                      message="Completa el escaneo de tu sitio web en el onboarding para que Sira pueda rastrear noticias iniciales del sector."
+                      message="Presiona el botón de actualizar o completa el onboarding para que Sira analice tu industria."
                     />
+                    <div className="mt-6">
+                      <Button onClick={handleRefresh}>
+                        Generar Análisis Inicial
+                      </Button>
+                    </div>
                   </Card>
                 )}
               </>
