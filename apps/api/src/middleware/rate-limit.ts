@@ -98,7 +98,7 @@ export function createRateLimiter(
 /** Presets para las rutas de ai-services. */
 export const aiRateLimits = {
   generateImage: createRateLimiter({ windowMs: WINDOW_5_MIN, max: 10, name: 'ai:generate-image' }),
-  analyzeBrand: createRateLimiter({ windowMs: WINDOW_15_MIN, max: 3, name: 'ai:analyze-brand' }),
+  analyzeBrand: createRateLimiter({ windowMs: WINDOW_15_MIN, max: 20, name: 'ai:analyze-brand' }),
   aggregateNews: createRateLimiter({ windowMs: WINDOW_10_MIN, max: 20, name: 'ai:aggregate-news' }),
   default: (name: string) =>
     createRateLimiter({ windowMs: WINDOW_5_MIN, max: 30, name: `ai:${name}` }),

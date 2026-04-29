@@ -174,14 +174,14 @@ ${postsBlock}
 Colores dominantes (hex): ${comp.topColors.join(', ') || '—'}
 Style tags: ${comp.topStyleTags.join(', ') || '—'}
 
-Devuelve SOLO JSON con esta forma exacta:
+Devuelve SOLO JSON con esta forma exacta. TODA LA RESPUESTA DEBE ESTAR EN ESPAÑOL (ES-ES o ES-LA):
 {
   "summary": "3-4 párrafos interpretando qué es esta marca, qué hace bien, dónde tiene vulnerabilidades. Usa lenguaje humano y específico, no genérico.",
   "aesthetic": "2-3 párrafos describiendo su identidad visual (paleta, estilo fotográfico, tipografía inferida, tono visual). Basado en colores y style tags.",
   "opportunity": "3-5 bullets concretos y accionables de qué PUEDE HACER MI MARCA '${brand.name}' frente a este competidor. Sé específico, no plantillas."
 }
 
-No incluyas la clave 'version'. No agregues texto fuera del JSON.`;
+No incluyas la clave 'version'. No agregues texto fuera del JSON. TODO EN ESPAÑOL.`;
 }
 
 async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'version'>> {
@@ -214,7 +214,7 @@ async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'versi
         {
           role: 'system',
           content:
-            'Eres Sira, analista de inteligencia de marca. Devuelves JSON estricto con interpretaciones concretas y accionables — nunca genéricas.',
+            'Eres Sira, analista de inteligencia de marca experta. TODO TU ANÁLISIS Y RESPUESTA DEBE ESTAR EN ESPAÑOL. Devuelves JSON estricto con interpretaciones concretas y accionables — nunca genéricas.',
         },
         { role: 'user', content: prompt },
       ],

@@ -187,4 +187,34 @@ export const projectsService = {
     });
     return serializeProject(updated);
   },
+
+  async getSocialStats(id: string, userId: string) {
+    const { aggregatePosts, snapshotFromAggregate } = await import('../competitors/benchmark-helpers.js');
+    const project = await assertOwner(id, userId);
+    const posts = await prisma.socialPost.findMany({
+      where: { projectId: id, competitorId: null },
+    });
+    const agg = aggregatePosts(posts);
+    const snapshot = snapshotFromAggregate(project.companyName ?? project.name, agg);
+
+    return {
+      competitor_id: 'brand',
+      competitor_name: project.companyName ?? project.name,
+      total_posts: agg.count,
+      total_likes: agg.likes,
+      total_comments: agg.comments,
+      avg_engagement: snapshot.engagement_score,
+      by_platform: agg.byPlatform,
+      format_mix: agg.formatMix,
+    };
+  },
+
+  async getSocialPosts(id: string, userId: string, limit = 50) {
+    await assertOwner(id, userId);
+    return prisma.socialPost.findMany({
+      where: { projectId: id, competitorId: null },
+      orderBy: { postedAt: 'desc' },
+      take: limit,
+    });
+  },
 };

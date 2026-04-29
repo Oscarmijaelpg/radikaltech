@@ -93,15 +93,21 @@ export async function buildBrandContext(
 - NO HAS SELECCIONADO UN LOGO EN LAS REFERENCIAS.
 - POR LO TANTO: **ESTÁ ESTRICTAMENTE PROHIBIDO INVENTAR O DIBUJAR UN LOGO**.
 - La imagen NO debe contener ningún logo, marca de agua o texto corporativo inventado. Solo enfócate en la escena/producto sin branding si el logo no está en las Refs.`);
+      } else {
+        brandCtx.push(`
+### CRITICAL LOGO RULE ###
+- HAS SELECCIONADO UN LOGO EN LAS REFERENCIAS.
+- POR LO TANTO: **EL LOGO GENERADO DEBE SER EXACTAMENTE EL LOGO SELECCIONADO**.
+- Está ESTRICTAMENTE PROHIBIDO alterar, rediseñar o inventar variaciones del logo. Usa el logo provisto tal cual y respeta sus proporciones, colores y diseño exactos.`);
       }
     } else {
       // No references at all
       brandCtx.push(`
 ### CRITICAL BRANDING & TEXT RULE ###
-- NO HAY REFERENCIAS VISUALES.
-- **PROHIBIDO INVENTAR LOGOS**: La IA no debe intentar crear un logo de la marca por su cuenta. 
+- NO HAY REFERENCIAS VISUALES Y NO HAS SELECCIONADO NINGÚN LOGO.
+- **PROHIBIDO INVENTAR LOGOS**: La IA no debe intentar crear o inventar un logo de la marca por su cuenta bajo ninguna circunstancia.
 - **NO PLACEHOLDERS DE TEXTO**: Está TERMINANTEMENTE PROHIBIDO incluir textos técnicos como "[TEXT OVERLAY SPACE]", "[Insert Title]", "Your text here" o corchetes de posición. Si vas a incluir texto, debe ser contenido real y final.
-- Crea una escena genérica que respete los colores de la marca pero SIN incluir logos o placeholders inventados.`);
+- Crea una escena genérica que respete los colores de la marca pero SIN incluir logos, marcas de agua o placeholders inventados.`);
     }
 
     // Mode-specific composition protocol (mirrors previous platform ContentIdeation.tsx)

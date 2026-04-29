@@ -8,13 +8,13 @@ export const generateImageTool: ToolDefinition = {
     function: {
       name: 'generate_image',
       description:
-        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Solo úsalo DESPUÉS de que el usuario haya seleccionado activos de la galería de get_library_assets.',
+        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Solo úsalo DESPUÉS de que el usuario haya seleccionado activos de la galería de get_library_assets. IMPORTANTE SOBRE LOGOS: Si el usuario seleccionó un logo, la imagen DEBE incluir ese logo EXACTO. Si el usuario NO seleccionó ningún logo, la imagen NO debe tener ningún logo y NO debes inventar ninguno.',
       parameters: {
         type: 'object',
         properties: {
           prompt: { 
             type: 'string',
-            description: 'Descripción detallada de la imagen a generar, incluyendo el concepto visual, ambiente, colores y estilo deseado.',
+            description: 'Descripción detallada de la imagen. REGLA CRÍTICA DE LOGOS: Si el usuario seleccionó un logo (reference_asset_ids), debes instruir "Include the exact provided logo, do not modify it". Si NO seleccionó un logo, debes instruir explícitamente "NO logo, NO text, NO brand marks, do not invent any logo".',
           },
           size: { 
             type: 'string', 

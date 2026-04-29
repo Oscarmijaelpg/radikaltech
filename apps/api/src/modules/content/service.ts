@@ -33,6 +33,12 @@ export const contentService = {
       const tagList = Array.isArray(filter.tags) ? filter.tags : [filter.tags];
       where.tags = { hasEvery: tagList };
     }
+    
+    // Excluir assets de competidores por defecto, a menos que se pidan explícitamente
+    const hasCompetitorTag = filter.tags && (Array.isArray(filter.tags) ? filter.tags.includes('competitor') : filter.tags === 'competitor');
+    if (!hasCompetitorTag) {
+      where.NOT = { tags: { has: 'competitor' } };
+    }
 
     const orderBy: Prisma.ContentAssetOrderByWithRelationInput =
       filter.sort === 'score'

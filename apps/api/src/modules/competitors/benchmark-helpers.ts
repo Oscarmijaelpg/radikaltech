@@ -193,9 +193,15 @@ export function buildSummary(
     parts.push(`Tu marca está por detrás de la mayoría de competidores en métricas clave.`);
   }
   if (bestComp) {
-    parts.push(
-      `${bestComp.name} lidera en engagement promedio (${Math.round(bestComp.engagement_score)} vs ${Math.round(my.engagement_score)} tuyo).`,
-    );
+    if (bestComp.engagement_score > my.engagement_score) {
+      parts.push(
+        `${bestComp.name} lidera en engagement promedio (${Math.round(bestComp.engagement_score)} vs ${Math.round(my.engagement_score)} tuyo).`,
+      );
+    } else if (my.engagement_score > 0 && bestComp.engagement_score > 0) {
+      parts.push(
+        `Tú superas al competidor más cercano (${bestComp.name}) en engagement promedio (${Math.round(my.engagement_score)} vs ${Math.round(bestComp.engagement_score)}).`,
+      );
+    }
   }
   parts.push(`Frecuencia tuya: ${my.posts_per_week.toFixed(1)} posts/semana.`);
   return parts.join(' ');

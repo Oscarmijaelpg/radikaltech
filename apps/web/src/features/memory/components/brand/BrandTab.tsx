@@ -8,7 +8,9 @@ import {
   useUpdateProject,
   useActiveJobs,
 } from '../../api/memory';
+import { useDeleteAsset } from '@/features/content/api/content';
 import { api } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useProject, type Project } from '@/providers/ProjectProvider';
 import { palettetoArray, type ContentAssetLite } from './utils';
 import { BrandHero } from './BrandHero';
@@ -56,6 +58,21 @@ export function BrandTab({ projectId }: Props) {
   const [open, setOpen] = useState(false);
   const [openUploadModal, setOpenUploadModal] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<import('./utils').ContentAssetLite | null>(null);
+  const deleteAsset = useDeleteAsset();
+  const queryClient = useQueryClient();
+
+  const handleDelete = async (e: React.MouseEvent, assetId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta imagen de tu memoria?')) return;
+    
+    try {
+      await deleteAsset.mutateAsync({ id: assetId, project_id: projectId });
+      // Force refresh assets
+      queryClient.invalidateQueries({ queryKey: ['content', 'list', projectId] });
+    } catch (err) {
+      console.error('Failed to delete asset:', err);
+    }
+  };
 
   const logo = assets?.find((a) => a.tags?.includes('logo')) ?? null;
   const instagramRefs =
@@ -133,6 +150,7 @@ export function BrandTab({ projectId }: Props) {
         brand={brand} 
         instagramRefs={instagramRefs} 
         onImageClick={(asset) => setPreviewAsset(asset)}
+        onDelete={handleDelete}
       />
 
       {socialAccounts && socialAccounts.length > 0 && (
@@ -167,6 +185,13 @@ export function BrandTab({ projectId }: Props) {
                      {Number(asset.aesthetic_score).toFixed(1)}
                    </div>
                  )}
+                 <button
+                    onClick={(e) => handleDelete(e, asset.id)}
+                    className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/90 text-red-500 shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                    title="Eliminar imagen"
+                  >
+                    <Icon name="delete" className="text-[14px]" />
+                  </button>
               </button>
            ))}
         </div>
@@ -183,6 +208,7 @@ export function BrandTab({ projectId }: Props) {
         <MoodboardSection 
           assets={moodboardAssets} 
           onImageClick={(asset) => setPreviewAsset(asset)}
+          onDelete={handleDelete}
         />
       )}
 

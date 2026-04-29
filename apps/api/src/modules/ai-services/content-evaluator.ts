@@ -1,7 +1,8 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
-import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
+import { LLM_MODELS, PROVIDER_URLS, preferredChatProvider } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
+import { imageAnalyzer } from './image-analyzer.js';
 import { NotFound, Forbidden } from '../../lib/errors.js';
 
 export interface ContentEvaluationResult {
@@ -29,18 +30,31 @@ const SYSTEM_PROMPT = `Eres un director creativo y especialista en marketing vis
 No añadas texto fuera del JSON.`;
 
 async function callVision(imageUrl: string): Promise<ContentEvaluationResult> {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY not configured');
+  const provider = preferredChatProvider();
+  const endpoint = provider === 'openrouter' 
+    ? PROVIDER_URLS.openrouter.chatCompletions 
+    : PROVIDER_URLS.openai.chatCompletions;
+  
+  const model = provider === 'openrouter' ? 'openai/gpt-4o' : 'gpt-4o';
+
+  const apiKey = provider === 'openrouter' ? env.OPENROUTER_API_KEY : env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(`${provider.toUpperCase()} API Key not configured`);
   }
 
-  const res = await fetch(PROVIDER_URLS.openai.chatCompletions, {
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
+      ...(provider === 'openrouter' ? {
+        'HTTP-Referer': env.WEB_URL ?? 'https://radikal.ai',
+        'X-Title': 'Radikal',
+      } : {}),
     },
     body: JSON.stringify({
-      model: LLM_MODELS.evaluator,
+      model,
       response_format: { type: 'json_object' },
       temperature: 0.4,
       messages: [
@@ -62,7 +76,7 @@ async function callVision(imageUrl: string): Promise<ContentEvaluationResult> {
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`OpenAI Vision ${res.status}: ${text.slice(0, 300)}`);
+    throw new Error(`${provider} Vision ${res.status}: ${text.slice(0, 300)}`);
   }
 
   const body = await res.json();
@@ -82,6 +96,21 @@ async function callVision(imageUrl: string): Promise<ContentEvaluationResult> {
 }
 
 export class ContentEvaluator {
+  /**
+   * Realiza el análisis completo (Marketing + Dirección de Arte) sobre una URL.
+   * Útil para flujos donde queremos los datos ANTES de persistir en la DB.
+   */
+  static async evaluateImageUrl(imageUrl: string): Promise<{ 
+    marketing: ContentEvaluationResult; 
+    art: ImageVisualAnalysis | null;
+  }> {
+    const [marketing, art] = await Promise.all([
+      callVision(imageUrl),
+      imageAnalyzer.analyze(imageUrl).catch(() => null)
+    ]);
+    return { marketing, art };
+  }
+
   async evaluate(
     input: EvaluateContentInput,
   ): Promise<{ jobId: string; result: ContentEvaluationResult }> {
@@ -103,7 +132,8 @@ export class ContentEvaluator {
       let result: ContentEvaluationResult;
 
       if (asset.assetType === 'image') {
-        result = await callVision(asset.assetUrl);
+        const { marketing } = await ContentEvaluator.evaluateImageUrl(asset.assetUrl);
+        result = marketing;
       } else {
         result = {
           aesthetic_score: 0,
@@ -120,12 +150,15 @@ export class ContentEvaluator {
           ? (asset.metadata as Record<string, unknown>)
           : {};
 
+      const existingTags = Array.isArray(asset.tags) ? asset.tags : [];
+      const newTags = Array.from(new Set([...existingTags, ...result.tags]));
+
       await prisma.contentAsset.update({
         where: { id: asset.id },
         data: {
           aestheticScore: result.aesthetic_score,
           marketingFeedback: result.marketing_feedback,
-          tags: result.tags,
+          tags: newTags,
           metadata: {
             ...existingMeta,
             suggestions: result.suggestions,
@@ -155,3 +188,6 @@ export class ContentEvaluator {
     }
   }
 }
+
+// Para retrocompatibilidad y facilidad de uso
+import { ImageVisualAnalysis } from './image-analyzer.js';

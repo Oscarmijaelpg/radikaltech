@@ -37,7 +37,6 @@ export function useCompetitorsTab(projectId: string) {
     (c) => !c.status || c.status === 'confirmed',
   );
 
-  const [subTab, setSubTab] = useState<SubTab>('list');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Competitor | null>(null);
   const [userSocialOpen, setUserSocialOpen] = useState(false);
@@ -139,8 +138,6 @@ export function useCompetitorsTab(projectId: string) {
     isLoading,
     suggested,
     competitors,
-    subTab,
-    setSubTab,
     modalOpen,
     setModalOpen,
     editing,

@@ -66,3 +66,14 @@ export function useDeleteSocialAccount() {
     },
   });
 }
+
+export function useSyncSocialProject() {
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const r = await api.post<{ data: { scheduled: number } }>(
+        `/social-accounts/sync-project/${projectId}`,
+      );
+      return r.data;
+    },
+  });
+}

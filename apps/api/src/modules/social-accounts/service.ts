@@ -1,5 +1,7 @@
 import { prisma, type SocialPlatform, type SocialSource } from '@radikal/db';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
+import { instagramScraper, tiktokScraper, parseInstagramHandle, parseTikTokHandle } from '../ai-services/index.js';
+import { logger } from '../../lib/logger.js';
 
 export interface SocialAccountInput {
   project_id: string;
@@ -80,5 +82,56 @@ export const socialAccountsService = {
     await assertAccountOwner(id, userId);
     await prisma.socialAccount.delete({ where: { id } });
     return { deleted: true };
+  },
+
+  async syncProject(projectId: string, userId: string) {
+    await assertProjectOwner(projectId, userId);
+    const accounts = await prisma.socialAccount.findMany({
+      where: { projectId, isActive: true },
+    });
+
+    if (accounts.length === 0) {
+      return { scheduled: 0, message: 'No active social accounts found for this project.' };
+    }
+
+    const scrapes: Array<{ platform: string; handle: string; promise: Promise<unknown> }> = [];
+    for (const a of accounts) {
+      let handle = a.handle;
+      if (!handle && a.url) {
+        if (a.platform === 'instagram') handle = parseInstagramHandle(a.url);
+        if (a.platform === 'tiktok') handle = parseTikTokHandle(a.url);
+      }
+      if (!handle) continue;
+
+      if (a.platform === 'instagram') {
+        scrapes.push({
+          platform: 'instagram',
+          handle,
+          promise: instagramScraper.scrape({ handle, userId, projectId }),
+        });
+      } else if (a.platform === 'tiktok') {
+        scrapes.push({
+          platform: 'tiktok',
+          handle,
+          promise: tiktokScraper.scrape({ handle, userId, projectId }),
+        });
+      }
+    }
+
+    if (scrapes.length > 0) {
+      void Promise.allSettled(scrapes.map((s) => s.promise)).then((results) => {
+        results.forEach((r, i) => {
+          if (r.status === 'rejected') {
+            const s = scrapes[i]!;
+            logger.warn(
+              { err: r.reason, platform: s.platform, handle: s.handle, projectId },
+              '[social-accounts.syncProject] auto-scrape failed',
+            );
+          }
+        });
+      });
+    }
+
+    return { scheduled: scrapes.length };
   },
 };

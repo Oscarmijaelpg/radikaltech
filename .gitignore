@@ -73,3 +73,5 @@ openapi_spec.json
 scratch/
 .agents/skills/local-deploy/
 openrouter_debug.log
+.git_temp/
+

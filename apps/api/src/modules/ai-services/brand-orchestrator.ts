@@ -8,6 +8,7 @@ import { NotFound, Forbidden } from '../../lib/errors.js';
 import { WebsiteAnalyzer } from './website-analyzer/index.js';
 import { firecrawlScrape } from './website-analyzer/scrape.js';
 import { mapWebsiteLinks } from './website-analyzer/firecrawl-service.js';
+import { ContentEvaluator } from './content-evaluator.js';
 import { BrandSynthesizer } from './brand-synthesizer.js';
 import { ImageAnalyzer, type ImageVisualAnalysis } from './image-analyzer.js';
 import { InstagramScraper, parseInstagramHandle } from './instagram-scraper.js';
@@ -153,6 +154,7 @@ function aggregatePalette(analyses: ImageVisualAnalysis[]): string[] {
 
 export class BrandOrchestrator {
   private imageAnalyzer = new ImageAnalyzer();
+  private contentEvaluator = new ContentEvaluator();
   private brandSynthesizer = new BrandSynthesizer();
   private instagramScraper = new InstagramScraper();
   private tiktokScraper = new TikTokScraper();
@@ -384,19 +386,28 @@ export class BrandOrchestrator {
             try {
               const stored = await downloadAndStoreImage(imgUrl, input.userId);
               if (stored) {
+                // Analizar antes de guardar para tener todo el contenido listo
+                const { marketing, art } = await ContentEvaluator.evaluateImageUrl(stored.publicUrl);
+
                 await prisma.contentAsset.create({
                   data: {
                     projectId: input.projectId,
                     userId: input.userId,
                     assetType: 'image',
                     assetUrl: stored.publicUrl,
-                    tags: ['moodboard', 'website_auto'],
-                    metadata: { source: 'brand_analysis', origin_url: imgUrl } as Prisma.InputJsonValue,
+                    aestheticScore: marketing.aesthetic_score,
+                    marketingFeedback: marketing.marketing_feedback,
+                    aiDescription: art?.full_narrative || art?.description || null,
+                    tags: Array.from(new Set(['moodboard', 'website_auto', ...marketing.tags])),
+                    metadata: { 
+                      source: 'brand_analysis', 
+                      origin_url: imgUrl,
+                      suggestions: marketing.suggestions,
+                      detected_elements: marketing.detected_elements,
+                      visual_analysis: art,
+                    } as Prisma.InputJsonValue,
                   },
                 });
-                
-                // Analizar la imagen para que su descripción esté disponible
-                this.imageAnalyzer.analyze(stored.publicUrl).catch(() => null);
               }
             } catch (err) {
               logger.warn({ err, imgUrl }, 'moodboard image persist failed');
