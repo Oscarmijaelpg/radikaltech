@@ -1,0 +1,1 @@
+src/presentation/utils/memoryMarkdownUtils.tsx(3,32): error TS2307: Cannot find module '../../../core/domain/entities' or its corresponding type declarations.

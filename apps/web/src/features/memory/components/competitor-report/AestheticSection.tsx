@@ -1,0 +1,89 @@
+import { Badge } from '@radikal/ui';
+import type { Competitor, SocialPostItem } from '../../api/memory';
+import { useAesthetic } from './useAesthetic';
+import { NarrativeSkeleton } from './NarrativeSkeleton';
+import { ReportSection } from './ReportSection';
+
+interface Props {
+  competitor: Competitor;
+  posts: SocialPostItem[] | undefined;
+}
+
+function renderParagraphs(text: string) {
+  return text
+    .split(/\n\n+/)
+    .filter((p) => p.trim())
+    .map((p, i) => (
+      <p key={i} className="text-base text-slate-700 leading-relaxed">
+        {p}
+      </p>
+    ));
+}
+
+interface PropsExtended extends Props {
+  regenerating?: boolean;
+}
+
+export function AestheticSection({
+  competitor,
+  posts,
+  regenerating,
+}: PropsExtended) {
+  const agg = useAesthetic(posts);
+  const narrative = competitor.narrative?.aesthetic?.trim() ?? '';
+  const isLoading = !!regenerating;
+  const hasNarrative = narrative.length > 0;
+
+  return (
+    <ReportSection
+      icon="palette"
+      title="Estética visual"
+      subtitle="Identidad visual inferida de sus últimos posts"
+    >
+      {isLoading ? (
+        <NarrativeSkeleton paragraphs={2} />
+      ) : hasNarrative ? (
+        <div className="space-y-4 mb-6">{renderParagraphs(narrative)}</div>
+      ) : null}
+
+      {agg ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-3">
+              Colores dominantes
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {agg.topColors.map((c, i) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <span
+                    className="w-10 h-10 rounded-xl border border-slate-200 shadow-sm"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                  <span className="text-[9px] font-mono text-slate-400">{c}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-3">
+              Estilos frecuentes
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {agg.topTags.map(({ tag, count }, i) => (
+                <Badge key={i} variant="secondary">
+                  {tag} · {count}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : !hasNarrative && !isLoading ? (
+        <p className="text-sm text-slate-500 italic">
+          Sin datos visuales aún. Sincroniza sus posts para que la IA pueda analizar su
+          identidad visual.
+        </p>
+      ) : null}
+    </ReportSection>
+  );
+}
