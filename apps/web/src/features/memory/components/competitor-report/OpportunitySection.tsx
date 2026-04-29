@@ -21,16 +21,20 @@ export function OpportunitySection({ competitor, regenerating }: Props) {
   const hasContent = narrative.length > 0;
   const bullets = hasContent ? parseBullets(narrative) : [];
 
+  if (!hasContent && !isLoading) {
+    return null;
+  }
+
   return (
     <ReportSection
       icon="rocket_launch"
-      title="Tu oportunidad"
-      subtitle="Qué puedes hacer frente a este competidor, específico para tu marca"
+      title="Estrategia para ganarles"
+      subtitle="Acciones concretas para diferenciarte y superar a este competidor"
       className="bg-gradient-to-br from-violet-50/50 to-pink-50/50 border-violet-100"
     >
       {isLoading ? (
         <NarrativeSkeleton paragraphs={2} />
-      ) : bullets.length > 0 ? (
+      ) : (
         <ul className="space-y-3">
           {bullets.map((b, i) => (
             <li key={i} className="flex items-start gap-3 text-base text-slate-800">
@@ -41,13 +45,6 @@ export function OpportunitySection({ competitor, regenerating }: Props) {
             </li>
           ))}
         </ul>
-      ) : (
-        <div className="flex items-center gap-3 text-sm text-slate-500 italic">
-          <Icon name="hourglass_empty" className="text-[18px]" />
-          {competitor.last_analyzed_at
-            ? 'Pulsa "Generar interpretación" arriba para ver oportunidades específicas.'
-            : 'Analiza a este competidor para ver oportunidades específicas.'}
-        </div>
       )}
     </ReportSection>
   );

@@ -29,6 +29,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useToast } from '@/shared/ui/Toaster';
 import { CHARACTERS } from '@/shared/characters';
+import { repairMarkdownTable } from '@/shared/utils';
+import { markdownComponents } from '@/features/reports/components/reader/markdown';
 
 function parseReportItems(r: SavedReport): NewsItem[] {
   try {
@@ -335,6 +337,7 @@ export function NewsPage() {
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
+                          ...markdownComponents,
                           a: ({ node, ...props }) => (
                             <a {...props} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline font-semibold" />
                           ),
@@ -350,10 +353,9 @@ export function NewsPage() {
                               </div>
                             );
                           },
-                          pre: ({ children }) => <>{children}</>
                         }}
                       >
-                        {initialReport.content || 'Reporte vacío.'}
+                        {repairMarkdownTable(initialReport.content || 'Reporte vacío.')}
                       </ReactMarkdown>
                     </div>
                   </Card>

@@ -176,9 +176,9 @@ Style tags: ${comp.topStyleTags.join(', ') || '—'}
 
 Devuelve SOLO JSON con esta forma exacta. TODA LA RESPUESTA DEBE ESTAR EN ESPAÑOL (ES-ES o ES-LA):
 {
-  "summary": "3-4 párrafos interpretando qué es esta marca, qué hace bien, dónde tiene vulnerabilidades. Usa lenguaje humano y específico, no genérico.",
-  "aesthetic": "2-3 párrafos describiendo su identidad visual (paleta, estilo fotográfico, tipografía inferida, tono visual). Basado en colores y style tags.",
-  "opportunity": "3-5 bullets concretos y accionables de qué PUEDE HACER MI MARCA '${brand.name}' frente a este competidor. Sé específico, no plantillas."
+  "summary": "3-4 párrafos interpretando qué es esta marca, qué hace bien y qué vulnerabilidades tiene que podemos aprovechar. Usa lenguaje humano y estratégico.",
+  "aesthetic": "2-3 párrafos describiendo su identidad visual y cómo podemos diferenciarnos de ellos a nivel estético.",
+  "opportunity": "3-5 bullets con una ESTRATEGIA DE VENTAJA COMPETITIVA para MI MARCA '${brand.name}' frente a '${comp.name}'. No des consejos al competidor. Enfócate en: 1) Qué hacen ellos mejor que debemos superar, 2) Qué debilidad tienen que podemos explotar, 3) Cómo diferenciarnos radicalmente."
 }
 
 No incluyas la clave 'version'. No agregues texto fuera del JSON. TODO EN ESPAÑOL.`;

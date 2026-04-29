@@ -76,11 +76,13 @@ async function synthesizeWithOpenRouter(
         {
           role: 'system',
           content:
-            'Eres un analista estratégico experto en mercado hispanohablante. TODO TU ANÁLISIS Y RESPUESTA DEBE ESTAR EN ESPAÑOL (ES-ES o ES-LA). Devuelves JSON con { competitors: [{name, url, summary, strengths[], weaknesses[]}], insights: string[] }.',
+            'Eres un analista estratégico experto. TODO TU ANÁLISIS Y RESPUESTA DEBE ESTAR EN ESPAÑOL. ' +
+            'IMPORTANTE: Debes devolver un JSON con esta estructura: { competitors: [{name, url, summary, strengths[], weaknesses[]}], insights: string[] }. ' +
+            'Los "insights" deben ser recomendaciones ESTRATÉGICAS PARA MI MARCA para ganarles. No des consejos a la competencia.',
         },
         {
           role: 'user',
-          content: `Consulta: "${query}"\n\nResultados de búsqueda:\n${context}\n\nDevuelve entre 3 y 6 competidores relevantes y 3-5 insights estratégicos. TODO EL CONTENIDO DEL JSON DEBE ESTAR EN ESPAÑOL. SOLO JSON.`,
+          content: `Consulta: "${query}"\n\nResultados de búsqueda:\n${context}\n\nDevuelve entre 3 y 6 competidores relevantes y 3-5 insights estratégicos. TODO EN ESPAÑOL. SOLO JSON.`,
         },
       ],
     }),

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { repairMarkdownTable } from '@/shared/utils';
 import {
   Badge,
   Button,
@@ -321,7 +322,7 @@ export function ReportReader({ reportId, onDeleted }: Props) {
           {contentMode === 'markdown' && report.content && (
             <div className="prose prose-slate prose-sm md:prose-base max-w-none break-words [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                {report.content}
+                {repairMarkdownTable(report.content)}
               </ReactMarkdown>
             </div>
           )}

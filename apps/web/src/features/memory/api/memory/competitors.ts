@@ -21,6 +21,12 @@ export function useCompetitors(
       return r.data;
     },
     enabled: !!projectId,
+    refetchInterval: (query) => {
+      const list = query.state.data;
+      if (!list || list.length === 0) return false;
+      const hasPending = list.some((c) => !c.last_analyzed_at || c.narrative_stale);
+      return hasPending ? 5000 : 30000;
+    },
   });
 }
 
@@ -240,7 +246,7 @@ export function useCompetitor(competitorId: string | null | undefined) {
         !c.last_analyzed_at ||
         c.narrative_stale === true ||
         (!c.narrative && !!c.last_analyzed_at);
-      return shouldPoll ? 3000 : false;
+      return shouldPoll ? 3000 : 60000;
     },
   });
 }
@@ -300,6 +306,11 @@ export function useCompetitorStats(competitorId: string | null | undefined) {
       return r.data;
     },
     enabled: !!competitorId,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      const hasStats = !!data?.engagement_stats || (data && (data as any).total_posts > 0);
+      return !hasStats ? 5000 : 60000;
+    },
   });
 }
 
@@ -318,6 +329,11 @@ export function useCompetitorPosts(
       return r.data;
     },
     enabled: !!competitorId,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      const hasPosts = data && data.length > 0;
+      return !hasPosts ? 5000 : 60000;
+    },
   });
 }
 
@@ -389,6 +405,12 @@ export function useCompetitorBenchmark(projectId: string | null | undefined) {
       return r.data;
     },
     enabled: !!projectId,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      // Si no hay competidores en el benchmark, poleamos más rápido
+      const hasCompetitors = data && data.competitors && data.competitors.length > 0;
+      return !hasCompetitors ? 5000 : 60000;
+    },
   });
 }
 

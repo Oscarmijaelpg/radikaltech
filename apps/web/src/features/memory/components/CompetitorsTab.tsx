@@ -16,9 +16,11 @@ import { api } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CHARACTERS } from '@/shared/characters';
+import { markdownComponents } from '@/features/reports/components/reader/markdown';
 
 import { useToast } from '@/shared/ui/Toaster';
 import { cn } from '@/shared/utils/cn';
+import { repairMarkdownTable } from '@/shared/utils';
 
 interface Props {
   projectId: string;
@@ -217,6 +219,7 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  ...markdownComponents,
                   a: ({ node, ...props }) => (
                     <a {...props} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline font-semibold" />
                   ),
@@ -232,10 +235,9 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
                       </div>
                     );
                   },
-                  pre: ({ children }) => <>{children}</>
                 }}
               >
-                {initialReport.content || 'Reporte vacío.'}
+                {repairMarkdownTable(initialReport.content || 'Reporte vacío.')}
               </ReactMarkdown>
             </div>
           </Card>

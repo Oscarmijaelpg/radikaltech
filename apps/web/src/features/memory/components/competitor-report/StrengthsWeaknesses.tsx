@@ -62,7 +62,7 @@ export function StrengthsWeaknesses({ competitor }: Props) {
         <div className="mt-6 pt-6 border-t border-slate-100">
           <SectionTitle className="mb-3 flex items-center gap-2">
             <Icon name="lightbulb" className="text-[16px] text-amber-500" />
-            Insights estratégicos
+            Claves para superarles
           </SectionTitle>
           <ol className="space-y-2">
             {insights.map((ins, i) => (

@@ -36,7 +36,6 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/memory', label: 'Mi marca', icon: 'auto_awesome', tour: 'nav-memory' },
       { to: '/content', label: 'Contenido', icon: 'palette', tour: 'nav-content' },
       { to: '/news', label: 'Análisis', icon: 'insights', tour: 'nav-reports' },
-      { to: '/sira', label: 'Analiza Sira', icon: 'monitor_heart', tour: 'nav-sira' },
     ],
   },
 ];

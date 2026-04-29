@@ -10,6 +10,7 @@ import {
   useRegenerateNarrative,
   useSyncSocial,
 } from '../api/memory';
+import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
 import { AestheticSection } from '../components/competitor-report/AestheticSection';
 import { AnalyzingBanner } from '../components/competitor-report/AnalyzingBanner';
 import { DigitalPresence } from '../components/competitor-report/DigitalPresence';
@@ -131,6 +132,7 @@ export function CompetitorReportPage() {
         id={REPORT_DOM_ID}
         className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-5 sm:space-y-6"
       >
+        <AnalysisSubnav />
         <HeaderSection
           competitor={competitor}
           onBack={handleBack}

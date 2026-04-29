@@ -49,15 +49,21 @@ export const markdownComponents: Components = {
     );
   },
   table: (props) => (
-    <div className="my-4 overflow-x-auto">
-      <table className="w-full border-collapse text-sm" {...props} />
+    <div className="my-8 overflow-x-auto rounded-[24px] border border-slate-200/60 bg-white shadow-xl shadow-slate-200/20">
+      <table className="w-full border-collapse text-sm text-slate-700 min-w-[600px]" {...props} />
     </div>
   ),
+  thead: (props) => (
+    <thead className="bg-slate-50/80 backdrop-blur-sm" {...props} />
+  ),
   th: (props) => (
-    <th className="bg-slate-100 px-3 py-2 text-left font-bold text-xs uppercase tracking-wide border-b-2 border-slate-200" {...props} />
+    <th className="px-6 py-4 text-left font-display font-black text-slate-900 border-b-2 border-slate-200 uppercase tracking-wider text-[11px]" {...props} />
   ),
   td: (props) => (
-    <td className="px-3 py-2 border-b border-slate-100 text-sm" {...props} />
+    <td className="px-6 py-4 border-b border-slate-100 align-top leading-relaxed" {...props} />
+  ),
+  tr: (props) => (
+    <tr className="hover:bg-slate-50/50 transition-colors last:border-0" {...props} />
   ),
   hr: () => <hr className="my-6 border-slate-200" />,
 };
