@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuth } from './AuthProvider';
 
@@ -38,12 +38,21 @@ const ProjectContext = createContext<ProjectContextValue | null>(null);
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: () => api.get<{ data: Project[] }>('/projects').then((r) => r.data),
     enabled: !!session,
   });
+
+  // Limpiar estado y caché al cerrar sesión para que no persistan datos entre cuentas
+  useEffect(() => {
+    if (!session) {
+      setActiveProject(null);
+      queryClient.removeQueries({ queryKey: ['projects'] });
+    }
+  }, [session, queryClient]);
 
   const projects = data ?? [];
 
