@@ -599,8 +599,9 @@ No menciones herramientas ni que es un prompt.`;
 
 export class InitialIntelligenceOrchestrator {
   async runInitialIntelligence(input: { projectId: string; userId: string }) {
-    await this.runNewsIntelligence(input);
-    await this.runCompetitionIntelligence(input);
+    // We run them concurrently in the background as jobs
+    void this.runIndustryNewsIntelligence(input);
+    void this.runCompetitionIntelligence(input);
   }
 
   async runNewsIntelligence(input: { projectId: string; userId: string }) {
