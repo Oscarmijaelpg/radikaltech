@@ -47,7 +47,7 @@ interface ChatCompletion {
 // modelos futuros, pero hoy se ignora si el modelo es de la familia kimi-k2.
 const KIMI_K2_FORCED_TEMPERATURE = 0.6;
 const DEFAULT_TEMPERATURE = KIMI_K2_FORCED_TEMPERATURE;
-const DEFAULT_MAX_ITERATIONS = 6;
+const DEFAULT_MAX_ITERATIONS = 4;
 const DEFAULT_TIMEOUT_MS = 300_000; // 5 minutos para búsquedas profundas
 
 const TOOLS_PAYLOAD = [

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Button, Card, Icon, Skeleton } from '@radikal/ui';
+import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
@@ -31,6 +31,9 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   usePageTour('competitors');
 
+  const queryClient = useQueryClient();
+  const prevRefreshing = useRef(false);
+
   const { data: activeJobs } = useQuery({
     queryKey: ['active-jobs', 'competition', projectId],
     enabled: !!projectId,
@@ -42,21 +45,18 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
     },
     refetchInterval: (query) => {
       const hasActive = query.state.data?.some(j => j.kind === 'competition-refresh');
-      return hasActive ? 3000 : 15000;
+      return hasActive ? 3000 : 8000;
     }
   });
 
   const activeJob = activeJobs?.find(j => j.kind === 'competition-refresh');
   const isRefreshingJob = !!activeJob;
   const currentStep = (activeJob?.metadata as any)?.step || 'initializing';
-  
-  const queryClient = useQueryClient();
-  const prevRefreshing = useRef(isRefreshingJob);
 
   useEffect(() => {
     if (prevRefreshing.current && !isRefreshingJob) {
-      // La tarea terminó, invalidamos reportes para forzar recarga
       queryClient.invalidateQueries({ queryKey: ['reports', 'competition', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['recent-jobs', 'competition', projectId] });
     }
     prevRefreshing.current = isRefreshingJob;
   }, [isRefreshingJob, projectId, queryClient]);
@@ -69,7 +69,8 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
         `/jobs/recent?project_id=${projectId}&limit=1`,
       );
       return res.data || [];
-    }
+    },
+    staleTime: 0,
   });
 
   const lastJob = recentJobs?.[0];
@@ -107,7 +108,9 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
     setRefreshing(true);
     try {
       await api.post('/ai/refresh-competition-report', { project_id: projectId });
-      
+      // Forzar refetch inmediato para mostrar el estado "corriendo" sin esperar el intervalo
+      queryClient.removeQueries({ queryKey: ['recent-jobs', 'competition', projectId] });
+      await queryClient.invalidateQueries({ queryKey: ['active-jobs', 'competition', projectId] });
       toast({
         title: 'Actualización iniciada',
         description: 'Sira está analizando la competencia. Recibirás una notificación cuando el reporte McKinsey esté listo.',
@@ -161,12 +164,30 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
     return (
       <div className="space-y-5">
         {hasError && (
-          <Card className="p-4 bg-red-50 border-red-100 text-red-700 flex items-center gap-3 rounded-2xl mb-4">
-            <Icon name="warning" className="text-xl" />
-            <div className="text-sm">
-              <p className="font-bold">La última actualización falló</p>
-              <p className="opacity-80">{lastJob?.error || 'Ocurrió un error inesperado al contactar con el buscador inteligente.'}</p>
+          <Card className="p-4 bg-red-50 border-red-100 text-red-700 flex items-start justify-between gap-3 rounded-2xl mb-4">
+            <div className="flex items-start gap-3">
+              <Icon name="warning" className="text-xl shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-bold">La última actualización falló</p>
+                <p className="opacity-80 mt-0.5">
+                  {lastJob?.error?.includes('startup cleanup') || lastJob?.error?.includes('proceso que lo creó')
+                    ? 'El servidor se reinició mientras procesaba el análisis.'
+                    : lastJob?.error?.includes('timeout') || lastJob?.error?.includes('AbortError')
+                    ? 'La búsqueda tardó demasiado. Inténtalo de nuevo.'
+                    : lastJob?.error || 'Ocurrió un error inesperado al contactar con el buscador inteligente.'}
+                </p>
+              </div>
             </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="shrink-0 border-red-200 text-red-700 hover:bg-red-100"
+            >
+              {refreshing ? <Spinner size="sm" /> : <Icon name="refresh" className="text-base" />}
+              Reintentar
+            </Button>
           </Card>
         )}
         {initialReport ? (
