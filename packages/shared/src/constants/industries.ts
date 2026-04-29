@@ -1,0 +1,25 @@
+export const INDUSTRIES = [
+  'Tecnología/Software',
+  'E-commerce/Retail Online',
+  'Marketing/Publicidad/Mercadeo',
+  'Salud/Bienestar/Belleza',
+  'Educación/EdTech',
+  'Servicios Financieros/Fintech',
+  'Inmobiliaria/Bienes Raíces',
+  'Servicios Legales/Consultoría',
+  'Alimentos y Bebidas/Gastronomía',
+  'Hotelería/Turismo/Viajes',
+  'Construcción/Arquitectura',
+  'Manufactura/Industria Pesada',
+  'Minería/Energía',
+  'Agricultura/Agroindustria',
+  'Automotriz/Transporte',
+  'Logística/Cadena de Suministro',
+  'Moda/Textil',
+  'Farmacéutica/Biotecnología',
+  'Entretenimiento/Medios',
+  'ONG/Sin Ánimo de Lucro',
+  'Otro',
+] as const;
+
+export type Industry = (typeof INDUSTRIES)[number];
