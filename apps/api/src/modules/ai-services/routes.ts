@@ -318,7 +318,7 @@ aiServicesRouter.post(
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseInstagramHandle(handle ?? url ?? '');
-    if (!parsed) throw new BadRequest('Invalid instagram handle or URL');
+    if (!parsed) throw new BadRequest('Handle o URL de Instagram inválido');
 
     const res = await withCredits(
       {
@@ -361,7 +361,7 @@ aiServicesRouter.post(
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseTikTokHandle(handle ?? url ?? '');
-    if (!parsed) throw new BadRequest('Invalid tiktok handle or URL');
+    if (!parsed) throw new BadRequest('Handle o URL de TikTok inválido');
 
     const res = await withCredits(
       {

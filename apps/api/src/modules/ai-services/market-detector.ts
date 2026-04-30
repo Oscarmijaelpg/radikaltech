@@ -1,5 +1,6 @@
 import { prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { BadRequest } from '../../lib/errors.js';
 import { preferredChatEndpoint, preferredChatModel } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 
@@ -18,7 +19,7 @@ export interface DetectMarketsResult {
 
 async function callOpenRouter(system: string, user: string): Promise<string> {
   if (!env.OPENROUTER_API_KEY && !env.OPENAI_API_KEY) {
-    throw new Error('No hay proveedor de IA configurado');
+    throw new BadRequest('No hay proveedor de IA configurado');
   }
   const payload = {
     model: preferredChatModel(),
@@ -44,7 +45,7 @@ async function callOpenRouter(system: string, user: string): Promise<string> {
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(30_000),
   });
-  if (!res.ok) throw new Error(`AI provider ${res.status}: ${await res.text().catch(() => '')}`);
+  if (!res.ok) throw new BadRequest(`AI provider ${res.status}: ${await res.text().catch(() => '')}`);
   const body = await res.json();
   return body.choices?.[0]?.message?.content ?? '{}';
 }

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { BadRequest } from '../../lib/errors.js';
 import { APIFY_ACTORS, apifyRunSyncUrl } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { supabaseAdmin } from '../../lib/supabase.js';
@@ -121,10 +122,10 @@ export async function runVisualAnalysisForCompetitor(
 export class InstagramScraper {
   async scrape(input: ScrapeInstagramInput): Promise<ScrapeInstagramResult> {
     if (!env.APIFY_API_KEY) {
-      throw new Error('APIFY_API_KEY not configured');
+      throw new BadRequest('APIFY_API_KEY no está configurado');
     }
     const handle = input.handle.replace(/^@/, '').trim();
-    if (!handle) throw new Error('Invalid instagram handle');
+    if (!handle) throw new BadRequest('Handle de Instagram inválido');
 
     const job = await prisma.aiJob.create({
       data: {
@@ -150,7 +151,7 @@ export class InstagramScraper {
       );
       if (!res.ok) {
         const text = await res.text().catch(() => '');
-        throw new Error(`Apify ${res.status}: ${text.slice(0, 300)}`);
+        throw new BadRequest(`Apify ${res.status}: ${text.slice(0, 300)}`);
       }
       const rawItems = (await res.json()) as ApifyProfileItem[];
 

@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { BadRequest } from '../../lib/errors.js';
 import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
@@ -84,7 +85,7 @@ async function callOpenRouter(payload: SynthesizeBrandInput): Promise<BrandSynth
     signal: AbortSignal.timeout(40_000),
   });
 
-  if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text().catch(() => '')}`);
+  if (!res.ok) throw new BadRequest(`OpenRouter ${res.status}: ${await res.text().catch(() => '')}`);
   const body = await res.json();
   const content = body.choices?.[0]?.message?.content ?? '{}';
   try {

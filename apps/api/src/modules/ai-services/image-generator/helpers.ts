@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@radikal/db';
+import { BadRequest } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { supabaseAdmin } from '../../../lib/supabase.js';
 import type { ImageVisualAnalysis } from '../image-analyzer.js';
@@ -25,7 +26,7 @@ export async function uploadBuffer(
   if (up.error) throw up.error;
   const pub = supabaseAdmin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   const url = pub.data?.publicUrl ?? '';
-  if (!url) throw new Error('No public URL after upload');
+  if (!url) throw new BadRequest('No se obtuvo URL pública tras subir la imagen');
   return { url, path };
 }
 

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { LLM_MODELS, PROVIDER_URLS } from '../../../config/providers.js';
 import { env } from '../../../config/env.js';
+import { BadRequest, Forbidden, NotFound } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { imageAnalyzer, type ImageVisualAnalysis } from '../image-analyzer.js';
 import { watermarkImageWithPadding } from './watermark.js';
@@ -282,8 +283,8 @@ REGLAS DE ORO:
       }
 
       if (variations.length === 0) {
-        throw new Error(
-          'No image generation provider succeeded (check GEMINI/OPENROUTER/OPENAI keys)',
+        throw new BadRequest(
+          'Ningún proveedor de generación de imágenes respondió (revisa las claves GEMINI/OPENROUTER/OPENAI)',
         );
       }
 
@@ -355,8 +356,8 @@ REGLAS DE ORO:
     const source = await prisma.contentAsset.findUnique({
       where: { id: input.sourceAssetId },
     });
-    if (!source) throw new Error('Source asset not found');
-    if (source.userId !== input.userId) throw new Error('Forbidden');
+    if (!source) throw new NotFound('Asset de origen no encontrado');
+    if (source.userId !== input.userId) throw new Forbidden();
 
     const instruction = input.editInstruction.trim();
     const prompt = `Edita esta imagen siguiendo la instrucción: ${instruction}. Mantén los elementos principales y el branding.`;
@@ -429,7 +430,7 @@ REGLAS DE ORO:
         }
       }
       if (!buf || !modelUsed) {
-        throw new Error('No image editor provider succeeded');
+        throw new BadRequest('Ningún proveedor de edición de imágenes respondió');
       }
 
       if (logoBuf) {

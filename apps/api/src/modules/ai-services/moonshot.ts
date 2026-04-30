@@ -120,13 +120,13 @@ export async function moonshotWebSearch(
         { status: res.status, body: errBody.slice(0, 400), model },
         'moonshot chat.completions failed',
       );
-      throw new Error(`Moonshot ${res.status}: ${errBody.slice(0, 300)}`);
+      throw new BadRequest(`Moonshot ${res.status}: ${errBody.slice(0, 300)}`);
     }
 
     const json = (await res.json()) as ChatCompletion;
     const choice = json.choices?.[0];
     if (!choice) {
-      throw new Error('Moonshot devolvió respuesta vacía (sin choices)');
+      throw new BadRequest('Moonshot devolvió respuesta vacía (sin choices)');
     }
 
     lastText = choice.message.content ?? lastText;

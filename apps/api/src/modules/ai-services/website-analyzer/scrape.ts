@@ -1,4 +1,5 @@
 import { env } from '../../../config/env.js';
+import { BadRequest } from '../../../lib/errors.js';
 import { PROVIDER_URLS } from '../../../config/providers.js';
 import type { FirecrawlScrapeResponse } from './types.js';
 
@@ -22,7 +23,7 @@ export async function firecrawlScrape(url: string): Promise<FirecrawlScrapeRespo
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`Firecrawl ${res.status}: ${text.slice(0, 300)}`);
+    throw new BadRequest(`Firecrawl ${res.status}: ${text.slice(0, 300)}`);
   }
   return res.json();
 }

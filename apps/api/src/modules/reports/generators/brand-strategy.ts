@@ -1,4 +1,5 @@
 import { prisma } from '@radikal/db';
+import { NotFound } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { notificationService } from '../../notifications/service.js';
 import { callOpenRouter } from './llm.js';
@@ -14,7 +15,7 @@ export async function generateBrandStrategy(input: {
   projectId: string;
 }) {
   const project = await prisma.project.findUnique({ where: { id: input.projectId } });
-  if (!project) throw new Error('Project not found');
+  if (!project) throw new NotFound('Project not found');
   const brand = await prisma.brandProfile.findUnique({ where: { projectId: input.projectId } });
 
   const ctx = [

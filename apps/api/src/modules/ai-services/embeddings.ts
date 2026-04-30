@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { BadRequest } from '../../lib/errors.js';
 import { LLM_MODELS, PROVIDER_URLS } from '../../config/providers.js';
 
 export interface SimilarMemory {
@@ -89,7 +90,7 @@ export class EmbeddingsService {
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => '');
-      throw new Error(`Embeddings upstream ${res.status}: ${txt.slice(0, 200)}`);
+      throw new BadRequest(`Embeddings upstream ${res.status}: ${txt.slice(0, 200)}`);
     }
     const json = (await res.json()) as {
       data?: Array<{ embedding?: number[]; index?: number }>;

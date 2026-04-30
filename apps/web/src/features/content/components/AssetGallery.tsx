@@ -12,6 +12,7 @@ import {
   Skeleton,
   Spinner,
 } from '@radikal/ui';
+import { formatDate } from '@radikal/shared';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { useProject } from '@/providers/ProjectProvider';
 import {
@@ -35,17 +36,6 @@ function scoreBadgeVariant(score: number | null) {
   return 'success' as const;
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function AssetThumb({ asset }: { asset: ContentAsset }) {
   if (asset.asset_type === 'image') {

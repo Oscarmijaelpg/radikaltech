@@ -17,6 +17,7 @@ import {
   TabsTrigger,
   Textarea,
 } from '@radikal/ui';
+import { formatDate } from '@radikal/shared';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
@@ -51,11 +52,6 @@ function extractTitle(value: string): { title: string; body: string } {
   return { title: firstLine.slice(0, 60), body: value };
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 function iconForMime(mime?: string): string {
   if (!mime) return 'description';

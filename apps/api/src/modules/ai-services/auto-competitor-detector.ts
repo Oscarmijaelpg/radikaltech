@@ -1,4 +1,5 @@
 import { prisma, Prisma } from '@radikal/db';
+import { NotFound } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
 import { notificationService } from '../notifications/service.js';
 import { moonshotWebSearch, stripJsonWrapping } from './moonshot.js';
@@ -182,7 +183,7 @@ function buildUserPrompt(project: {
 export class AutoCompetitorDetector {
   async detect(input: AutoCompetitorDetectInput): Promise<AutoCompetitorResult> {
     const project = await prisma.project.findUnique({ where: { id: input.projectId } });
-    if (!project) throw new Error('Project not found');
+    if (!project) throw new NotFound('Project not found');
 
     const countryText =
       (project.operatingCountries?.trim() ||

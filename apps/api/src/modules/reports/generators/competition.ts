@@ -1,4 +1,5 @@
 import { prisma } from '@radikal/db';
+import { NotFound } from '../../../lib/errors.js';
 
 const COMPETITION_POSTS_LIMIT = 30;
 const TOP_POSTS_LIMIT = 5;
@@ -14,7 +15,7 @@ export async function generateCompetitionReport(input: {
     where: { id: input.competitorId },
   });
   if (!competitor || competitor.projectId !== input.projectId) {
-    throw new Error('Competitor not found');
+    throw new NotFound('Competitor not found');
   }
 
   const posts = await prisma.socialPost.findMany({

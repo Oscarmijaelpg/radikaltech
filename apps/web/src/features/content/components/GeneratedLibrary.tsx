@@ -30,17 +30,6 @@ function scoreBadgeVariant(score: number | null) {
   return 'success' as const;
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 export function GeneratedLibrary() {
   const { activeProject } = useProject();

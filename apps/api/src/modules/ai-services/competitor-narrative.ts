@@ -1,4 +1,5 @@
 import { prisma, Prisma } from '@radikal/db';
+import { BadRequest, NotFound } from '../../lib/errors.js';
 import {
   CompetitorNarrativeSchema,
   COMPETITOR_NARRATIVE_VERSION,
@@ -62,7 +63,7 @@ async function loadSnapshot(competitorId: string): Promise<{
       },
     },
   });
-  if (!competitor) throw new Error(`Competitor ${competitorId} not found`);
+  if (!competitor) throw new NotFound(`Competitor ${competitorId} not found`);
 
   const analysis = parseRecord(competitor.analysisData);
   const webAnalysis = analysis && analysis.web ? parseRecord(analysis.web) : analysis;
@@ -190,7 +191,7 @@ async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'versi
     : PROVIDER_URLS.openai.chatCompletions;
   const model = env.OPENROUTER_API_KEY ? LLM_MODELS.chat.openrouter : LLM_MODELS.chat.openai;
   const apiKey = env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('Sin LLM configurado (OPENROUTER o OPENAI)');
+  if (!apiKey) throw new BadRequest('Sin LLM configurado (OPENROUTER o OPENAI)');
 
   logger.info(
     { endpoint, model, promptLength: prompt.length },
@@ -224,7 +225,7 @@ async function callLLM(prompt: string): Promise<Omit<CompetitorNarrative, 'versi
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
     logger.error({ status: res.status, body: errText.slice(0, 500) }, '[narrative] LLM error');
-    throw new Error(`LLM ${res.status}: ${errText}`);
+    throw new BadRequest(`LLM ${res.status}: ${errText}`);
   }
   const body = await res.json();
   const raw = body.choices?.[0]?.message?.content ?? '{}';

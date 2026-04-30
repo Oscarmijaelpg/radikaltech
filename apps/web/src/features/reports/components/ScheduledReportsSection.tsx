@@ -11,6 +11,7 @@ import {
   Skeleton,
   Spinner,
 } from '@radikal/ui';
+import { formatDateTime } from '@radikal/shared';
 import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import {
   useScheduledReports,
@@ -35,15 +36,6 @@ const FREQ_OPTIONS: Array<{ value: ScheduledReportFrequency; label: string }> = 
   { value: 'monthly', label: 'Mensual' },
 ];
 
-function formatDate(iso: string | null) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('es', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 interface Props {
   projectId: string;
@@ -114,7 +106,7 @@ export function ScheduledReportsSection({ projectId }: Props) {
                 <p className="text-[11px] text-slate-500">
                   {KIND_OPTIONS.find((k) => k.value === sr.kind)?.label ?? sr.kind} ·{' '}
                   {FREQ_OPTIONS.find((f) => f.value === sr.frequency)?.label ?? sr.frequency}{' '}
-                  · próx: {formatDate(sr.nextRunAt)}
+                  · próx: {formatDateTime(sr.nextRunAt)}
                 </p>
               </div>
               <button

@@ -1,4 +1,5 @@
 import { env } from '../../../config/env.js';
+import { BadRequest } from '../../../lib/errors.js';
 import { LLM_MODELS, PROVIDER_URLS } from '../../../config/providers.js';
 import { logger } from '../../../lib/logger.js';
 import type { WebsiteAnalysisResult } from './types.js';
@@ -55,13 +56,13 @@ async function callChatCompletion(prompt: string): Promise<string> {
       signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     });
     if (!res.ok) {
-      throw new Error(`OpenRouter ${res.status}: ${await res.text().catch(() => '')}`);
+      throw new BadRequest(`OpenRouter ${res.status}: ${await res.text().catch(() => '')}`);
     }
     const body = await res.json();
     return body.choices?.[0]?.message?.content ?? '{}';
   }
 
-  throw new Error('No hay proveedor de IA configurado (OPENAI_API_KEY u OPENROUTER_API_KEY)');
+  throw new BadRequest('No hay proveedor de IA configurado (OPENAI_API_KEY u OPENROUTER_API_KEY)');
 }
 
 export async function extractInfoWithAI(

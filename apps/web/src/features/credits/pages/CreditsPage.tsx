@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Icon, Spinner, Badge } from '@radikal/ui';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatDateTime } from '@radikal/shared';
 import { cn } from '@/shared/utils/cn';
 import { useCreditBalance, useCreditHistory, type CreditTransaction } from '../api/credits';
 
@@ -44,9 +43,6 @@ function formatMonedas(n: number): string {
   return new Intl.NumberFormat('es-MX').format(n);
 }
 
-function formatDate(iso: string | Date): string {
-  return format(new Date(iso), "dd 'de' MMM yyyy · HH:mm", { locale: es });
-}
 
 export function CreditsPage() {
   const balanceQ = useCreditBalance();
@@ -171,7 +167,7 @@ export function CreditsPage() {
                       )}
                     </div>
                     <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 mt-0.5">
-                      <span>{formatDate(t.createdAt)}</span>
+                      <span>{formatDateTime(t.createdAt)}</span>
                       <span>saldo: {formatMonedas(t.balanceAfter)}</span>
                     </div>
                   </div>
