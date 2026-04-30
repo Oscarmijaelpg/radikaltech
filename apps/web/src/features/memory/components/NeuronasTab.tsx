@@ -146,6 +146,7 @@ export function NeuronasTab({ projectId }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar en notas y documentos..."
+            aria-label="Buscar en notas y documentos"
             className="pl-10"
           />
         </div>

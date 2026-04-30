@@ -111,6 +111,7 @@ function RecommendationsTab() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="Buscar por título o razón…"
+          aria-label="Buscar recomendaciones"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 pr-10"
@@ -388,6 +389,7 @@ function ReportsTab() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="Buscar por título…"
+          aria-label="Buscar reportes"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 pr-10"

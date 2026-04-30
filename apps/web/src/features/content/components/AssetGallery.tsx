@@ -42,7 +42,7 @@ function AssetThumb({ asset }: { asset: ContentAsset }) {
     return (
       <img
         src={asset.asset_url}
-        alt=""
+        alt={asset.ai_description ?? 'Contenido visual'}
         className="w-full aspect-square object-cover"
         loading="lazy"
       />
@@ -263,7 +263,7 @@ export function AssetGallery() {
               {selected.asset_type === 'image' ? (
                 <img
                   src={selected.asset_url}
-                  alt=""
+                  alt={selected.ai_description ?? 'Vista previa del contenido'}
                   className="w-full max-h-[420px] object-contain rounded-2xl bg-slate-50"
                 />
               ) : (

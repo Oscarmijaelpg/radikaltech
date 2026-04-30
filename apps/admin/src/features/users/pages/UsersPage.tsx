@@ -52,12 +52,15 @@ export function UsersPage() {
       const all: AdminUser[] = [];
       let page = 1;
       const pageSize = 200;
-      while (page <= 20) {
+      const MAX_PAGES = 20;
+      let totalRecords = 0;
+      while (page <= MAX_PAGES) {
         const res = await api.get<{
           data: AdminUser[];
-          meta: { totalPages: number };
+          meta: { totalPages: number; total: number };
         }>(`/admin/users${qs({ ...filters, page, pageSize })}`);
         all.push(...res.data);
+        totalRecords = res.meta.total;
         if (page >= res.meta.totalPages) break;
         page += 1;
       }
@@ -72,7 +75,13 @@ export function UsersPage() {
         { key: 'id', label: 'ID' },
       ]);
       downloadCsv(`usuarios-${Date.now()}.csv`, csv);
-      toast({ variant: 'success', title: `Exportados ${all.length} usuarios` });
+      const truncated = all.length < totalRecords;
+      toast({
+        variant: truncated ? 'warning' : 'success',
+        title: truncated
+          ? `Exportados ${all.length} de ${totalRecords} usuarios (límite 4.000)`
+          : `Exportados ${all.length} usuarios`,
+      });
     } catch (err) {
       toast({
         variant: 'error',
@@ -114,6 +123,7 @@ export function UsersPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Buscar por correo o nombre…"
+              aria-label="Buscar usuarios"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 pr-10"

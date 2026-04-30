@@ -37,6 +37,7 @@ export function SmartActionsGrid({ actions, loading }: Props) {
               key={a.id}
               type="button"
               onClick={a.action}
+              aria-label={a.title}
               className={cn(
                 'group relative text-left p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-white shadow-lg bg-gradient-to-br overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] min-h-[110px] sm:min-h-[130px] flex flex-col',
                 a.gradient,

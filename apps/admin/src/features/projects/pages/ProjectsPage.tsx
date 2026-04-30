@@ -43,6 +43,7 @@ export function ProjectsPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Buscar por nombre, empresa o sitio web…"
+              aria-label="Buscar proyectos"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 pr-10"
