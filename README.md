@@ -1,7 +1,7 @@
 <div align="center">
   <img src="apps/web/src/media/radikal-logo.png" alt="Radikal" width="120" />
 
-  # Radikal
+  # Radikal 
 
   **Plataforma de inteligencia de marca con IA — análisis competitivo, generación visual y agentes inteligentes orquestados.**
 

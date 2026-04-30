@@ -42,11 +42,14 @@ export function JobsPage() {
       const all: AdminJob[] = [];
       let page = 1;
       const pageSize = 200;
-      while (page <= 20) {
-        const res = await api.get<{ data: AdminJob[]; meta: { totalPages: number } }>(
+      const MAX_PAGES = 20;
+      let totalRecords = 0;
+      while (page <= MAX_PAGES) {
+        const res = await api.get<{ data: AdminJob[]; meta: { totalPages: number; total: number } }>(
           `/admin/jobs${qs({ ...filters, page, pageSize })}`,
         );
         all.push(...res.data);
+        totalRecords = res.meta.total;
         if (page >= res.meta.totalPages) break;
         page += 1;
       }
@@ -63,7 +66,13 @@ export function JobsPage() {
         { key: 'userEmail', label: 'Email usuario', get: (r) => r.user?.email ?? '' },
       ]);
       downloadCsv(`tareas-${Date.now()}.csv`, csv);
-      toast({ variant: 'success', title: `Exportadas ${all.length} tareas` });
+      const truncated = all.length < totalRecords;
+      toast({
+        variant: truncated ? 'warning' : 'success',
+        title: truncated
+          ? `Exportadas ${all.length} de ${totalRecords} tareas (límite 4.000)`
+          : `Exportadas ${all.length} tareas`,
+      });
     } catch (err) {
       toast({
         variant: 'error',

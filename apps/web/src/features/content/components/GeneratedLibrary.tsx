@@ -30,17 +30,6 @@ function scoreBadgeVariant(score: number | null) {
   return 'success' as const;
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 export function GeneratedLibrary() {
   const { activeProject } = useProject();
@@ -71,7 +60,7 @@ export function GeneratedLibrary() {
     );
   }
 
-  if (assets.length === 0) {
+  if (!assets?.length) {
     return (
       <CharacterEmpty
         character="nexo"
@@ -99,7 +88,7 @@ export function GeneratedLibrary() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {assets.map((asset) => (
+        {(assets ?? []).map((asset) => (
           <Card
             key={asset.id}
             className="overflow-hidden p-0 group cursor-pointer hover:shadow-2xl transition-all rounded-[2rem] border-slate-100"

@@ -15,6 +15,7 @@ import {
   type NewsAnalysis,
   type NewsItem,
   type SavedReport,
+  type ActiveJob,
 } from '../api/news';
 import { useSiraContextual } from '@/features/sira-contextual';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
@@ -64,18 +65,18 @@ export function NewsPage() {
   const { data: activeJobs } = useQuery({
     queryKey: ['active-jobs', 'news', activeProject?.id],
     queryFn: async () => {
-      const res = await api.get<{ data: any[] }>(`/jobs/active?project_id=${activeProject?.id}`);
+      const res = await api.get<{ data: ActiveJob[] }>(`/jobs/active?project_id=${activeProject?.id}`);
       return res.data || [];
     },
     enabled: !!activeProject?.id,
     refetchInterval: (query) => {
-      const hasNewsJob = query.state.data?.some((j: any) => j.kind === 'news-refresh');
+      const hasNewsJob = query.state.data?.some((j) => j.kind === 'news-refresh');
       return hasNewsJob ? 3000 : 15000;
     },
   });
 
-  const newsJob = useMemo(() => 
-    activeJobs?.find((j: any) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
+  const newsJob = useMemo(() =>
+    activeJobs?.find((j) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
   [activeJobs]);
 
   useEffect(() => {
@@ -142,10 +143,10 @@ export function NewsPage() {
     setItems([]);
     setAnalysis(null);
     try {
-      const res = (await aggregate.mutateAsync({
+      const res = await aggregate.mutateAsync({
         topic: query,
         project_id: activeProject?.id,
-      })) as any;
+      });
       setItems(res.result.items ?? []);
       setAnalysis(res.result.analysis ?? null);
     } catch {
@@ -173,7 +174,17 @@ export function NewsPage() {
   const loading = aggregate.isPending;
 
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
-  const initialReport = useMemo(() => savedList.find(r => r.title === 'Reporte Inicial de Noticias' || (r.sourceData as any)?.pipeline === 'initial-intelligence-news'), [savedList]);
+  const otherReports = useMemo(() => savedList.filter(r => 
+    r.title !== 'Reporte Inicial de Noticias' && 
+    r.sourceData?.pipeline !== 'initial-intelligence-news'
+  ), [savedList]);
+
+  const initialReport = useMemo(() => savedList.find(r => 
+    r.title === 'Reporte Inicial de Noticias' || 
+    r.sourceData?.pipeline === 'initial-intelligence-news'
+  ), [savedList]);
+
+  const showSidebar = view === 'search' || otherReports.length > 0;
 
   return (
     <div className="min-h-full bg-gradient-to-br from-cyan-50/40 via-white to-blue-50/40">
@@ -267,18 +278,26 @@ export function NewsPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 sm:gap-6">
-          <aside className="order-2 lg:order-1">
-            <SavedSearchesSidebar
-              activeProjectId={activeProject?.id}
-              saved={savedList.filter(r => r.title !== 'Reporte Inicial de Noticias')}
-              isLoading={saved.isLoading}
-              currentTopic={currentTopic}
-              onSelect={rerunSaved}
-            />
-          </aside>
+        <div className={cn(
+          "grid grid-cols-1 gap-4 sm:gap-6",
+          showSidebar ? "lg:grid-cols-[280px_1fr]" : "lg:grid-cols-1"
+        )}>
+          {showSidebar && (
+            <aside className="order-2 lg:order-1">
+              <SavedSearchesSidebar
+                activeProjectId={activeProject?.id}
+                saved={otherReports}
+                isLoading={saved.isLoading}
+                currentTopic={currentTopic}
+                onSelect={rerunSaved}
+              />
+            </aside>
+          )}
 
-          <section className="order-1 lg:order-2 relative min-h-[320px] flex flex-col gap-6">
+          <section className={cn(
+            "relative min-h-[320px] flex flex-col gap-6",
+            showSidebar ? "order-1 lg:order-2" : "order-1"
+          )}>
             {view === 'diagnostic' && (
               <>
                 {refreshing || !!newsJob ? (

@@ -11,13 +11,13 @@ export default defineConfig({
     extensions: ['.mts', '.ts', '.mtsx', '.tsx', '.mjs', '.js', '.jsx', '.json'],
   },
   server: {
-    port: 5173,
+    port: 5174,
     // Permite Host headers de Quick Tunnels de Cloudflare para exponer el dev
     // server a testers externos. No afecta producción (prod se sirve estático).
     allowedHosts: ['.trycloudflare.com'],
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3004',
         changeOrigin: true,
       },
     },

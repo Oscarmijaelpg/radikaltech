@@ -302,7 +302,16 @@ Identifica tendencias clave (digitalización, sostenibilidad, IA, etc.) transfor
 Paso 3 – Proyecciones de crecimiento
 Si existen datos de crecimiento del sector para 2026, inclúyelos con su fuente.
 
-REGLA DE ORO: Devuelve un REPORTE EJECUTIVO DE INTELIGENCIA SECTORIAL tipo McKinsey. Elegante, basado en datos, con tablas si es necesario. No incluyas el proceso de búsqueda ni pensamientos internos.`;
+REGLA DE ORO: Devuelve un REPORTE EJECUTIVO DE INTELIGENCIA SECTORIAL tipo McKinsey. Elegante, basado en datos, con tablas si es necesario. 
+
+REQUISITO ESTRICTO DE FUENTES:
+- Cada noticia, tendencia o dato DEBE incluir un enlace Markdown directo a la fuente: [Nombre del Medio](URL).
+- Las fuentes deben ser portales de noticias reconocidos (ej: El Tiempo, Portafolio, Reuters, El Economista, etc.), organismos oficiales o reportes de consultoras.
+- NUNCA incluyas fuentes sin enlace o que sean simples blogs personales.
+- Los enlaces deben ser reales y verificables de 2025 o 2026.
+- Al final del reporte, incluye una tabla consolidada de "Fuentes Consultadas" con sus respectivos links.
+
+No incluyas el proceso de búsqueda ni pensamientos internos.`;
 
 const COMPETITION_PROMPT_BASE = `Actúa como analista estratégico senior especializado en inteligencia competitiva internacional y estructuración de prompts para investigación de mercado.
 
@@ -437,13 +446,16 @@ Si no hay países explícitos, indica:
 
 Alcance del análisis
 
-El análisis competitivo debe limitarse a los países válidos identificados.
+El análisis competitivo debe limitarse estrictamente a las ciudades o regiones válidas identificadas en los datos de la empresa.
+
+PRIORIDAD GEOGRÁFICA CRÍTICA:
+- Si la empresa opera en una ciudad o micro-región específica, los competidores deben ser principalmente locales de esa misma zona.
+- No incluyas competidores de otras ciudades lejanas a menos que tengan una sede física o servicio directo en la ubicación exacta del cliente.
+- Prioriza la cercanía física y la competencia por el mismo mercado local.
 
 No incluyas:
-
-mercados potenciales
-regiones inferidas
-competidores que operen solo fuera de esos países
+- mercados potenciales o regiones inferidas.
+- competidores que operen solo fuera de la zona geográfica específica del cliente.
 Proceso de investigación competitiva
 
 Realiza investigación en tres etapas.
@@ -598,51 +610,22 @@ El texto debe estar listo para enviarse directamente a un motor de investigació
 No menciones herramientas ni que es un prompt.`;
 
 export class InitialIntelligenceOrchestrator {
-  async runInitialIntelligence(input: { projectId: string; userId: string }) {
-    // We run them concurrently in the background as jobs
-    void this.runIndustryNewsIntelligence(input);
-    void this.runCompetitionIntelligence(input);
-  }
-
-  async runNewsIntelligence(input: { projectId: string; userId: string }) {
+  /**
+   * Ejecuta de forma totalmente asíncrona (fire-and-forget) los diagnósticos iniciales.
+   * Diseñado para ser llamado desde el onboarding o procesos automáticos sin bloquear la respuesta.
+   */
+  runInitialIntelligence(input: { projectId: string; userId: string }) {
     const { projectId, userId } = input;
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project) return;
-
-    const companyData = await this.getCompanyData(projectId);
-    const companyDataStr = JSON.stringify(companyData, null, 2);
-    const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
-
-    try {
-      const newsInstruction = `
-${NEWS_GENERATOR_PROMPT}
-
-Datos de la empresa:
-${companyDataStr}
-`;
-      logger.info('Generando prompt final de noticias...');
-      const finalNewsPrompt = await brandSynthesizer.getLLMCompletion(newsInstruction);
-
-      logger.info('Ejecutando búsqueda de noticias en Kimi...');
-      const newsSearch = await moonshotWebSearch({
-        systemPrompt: `Eres un analista senior de inteligencia. HOY ES ${today}. Tu misión es buscar noticias y tendencias ACTUALES. Devuelve tu análisis en formato Markdown limpio, estructurado y usando las fuentes encontradas con enlaces reales.`,
-        userPrompt: finalNewsPrompt || 'Busca noticias para esta empresa: ' + companyData.name,
-      });
-
-      await prisma.report.create({
-        data: {
-          projectId,
-          userId,
-          title: 'Reporte Inicial de Noticias',
-          reportType: 'news',
-          content: newsSearch.text,
-          summary: 'Análisis sectorial generado a partir del escaneo del sitio web.',
-          sourceData: { pipeline: 'initial-intelligence-news', promptUsed: finalNewsPrompt },
-        },
-      });
-    } catch (err) {
-      logger.error({ err }, 'Error en runNewsIntelligence');
-    }
+    logger.info({ projectId, userId }, '[Intelligence] Iniciando orquestación de inteligencia inicial (Background)...');
+    
+    // Lanzamos ambos en paralelo de forma totalmente desacoplada
+    void this.runIndustryNewsIntelligence({ projectId, userId }).catch(err => 
+      logger.error({ err, projectId }, 'Fallo crítico en runIndustryNewsIntelligence en segundo plano')
+    );
+    
+    void this.runCompetitionIntelligence({ projectId, userId }).catch(err => 
+      logger.error({ err, projectId }, 'Fallo crítico en runCompetitionIntelligence en segundo plano')
+    );
   }
 
   async runCompetitionIntelligence(input: { projectId: string; userId: string }) {
@@ -694,13 +677,18 @@ Asegúrate de que los competidores sean relevantes para los países donde opera 
         systemPrompt: `Eres un analista estratégico senior de McKinsey. HOY ES ${today}. 
 Tu única misión es realizar una investigación profunda de competidores y estrategias ACTUALES (2025-2026).
 REGLA CRÍTICA: No digas "necesito buscar" o "voy a investigar". USA LA HERRAMIENTA $web_search de inmediato.
-Realiza todas las búsquedas necesarias hasta tener datos concretos sobre:
-- Movimientos estratégicos 2025-2026.
-- Expansiones geográficas y nuevos mercados.
-- Tratos comerciales, inversiones o rondas de capital.
-- Propuesta de valor actual y diferenciación.
+Realiza todas las búsquedas necesarias hasta tener datos concretos.
 
-Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, con tablas y fuentes con enlaces reales.`,
+REGLA DE ORO PARA TABLAS MARKDOWN:
+- TODAS las tablas deben estar correctamente formadas con encabezados y separadores (|---|---|).
+- Debe haber un SALTO DE LÍNEA REAL (\n) después de cada fila.
+- NUNCA pongas una tabla completa en un solo bloque de texto continuo o sin saltos de línea.
+
+REGLA DE PRECISIÓN GEOGRÁFICA:
+- PRIORIDAD LOCAL: Debes buscar competidores que operen en la MISMA CIUDAD o MUNICIPIO detectado en los datos del cliente. 
+- Si no hay suficientes en la ciudad exacta, expande a la región inmediata (provincia/estado), pero evita empresas de otras ciudades lejanas a menos que operen a nivel nacional y compitan directamente por el mismo público local.
+
+Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, con tablas bien formateadas y fuentes con enlaces reales. Cada competidor debe tener su link oficial.`,
         userPrompt: finalCompPrompt || 'Busca competencia estratégica profunda para esta empresa: ' + companyData.name,
       });
 
@@ -833,6 +821,16 @@ Productos: ${companyData.products || 'Sin productos especificados'}
 Tu única misión es encontrar noticias y tendencias ESTRATÉGICAS para la industria del usuario en 2025-2026.
 REGLA CRÍTICA: No hables de la empresa del usuario, busca noticias de su SECTOR y su COMPETENCIA.
 No digas "voy a buscar". Usa $web_search de inmediato.
+
+REGLA DE ORO PARA TABLAS MARKDOWN:
+- Las tablas deben tener saltos de línea (\n) reales entre cada fila.
+- NUNCA generes tablas comprimidas en una sola línea.
+
+REQUISITO DE FUENTES Y LINKS:
+- Todas las fuentes deben ser LINKS CLICKABLES en formato Markdown: [Nombre Fuente](URL).
+- Prioriza portales reconocidos (Portafolio, El Tiempo, Bloomberg, Forbes, Reuters, etc.).
+- Asegúrate de que los links lleven a la noticia específica.
+
 Al finalizar, redacta un REPORTE EJECUTIVO DE INTELIGENCIA SECTORIAL tipo McKinsey.
 No incluyas bitácoras de búsqueda. Empieza directamente con el título del reporte.`,
         userPrompt: finalNewsPrompt || 'Busca noticias estratégicas 2025-2026 para el sector de ' + (companyData.industry || 'la industria'),

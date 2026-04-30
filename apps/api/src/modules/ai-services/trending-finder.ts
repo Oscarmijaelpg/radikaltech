@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { NotFound } from '../../lib/errors.js';
 import {
   PROVIDER_URLS,
   preferredChatEndpoint,
@@ -237,7 +238,7 @@ export class TrendingFinder {
 
     try {
       const project = await prisma.project.findUnique({ where: { id: input.projectId } });
-      if (!project) throw new Error('Project not found');
+      if (!project) throw new NotFound('Project not found');
       const brand = await prisma.brandProfile.findUnique({
         where: { projectId: input.projectId },
       });

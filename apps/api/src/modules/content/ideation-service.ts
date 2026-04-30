@@ -61,7 +61,7 @@ function parseIdeas(raw: string): ContentIdea[] {
     : Array.isArray((parsed as { ideas?: unknown[] })?.ideas)
     ? (parsed as { ideas: unknown[] }).ideas
     : null;
-  if (!list) throw new Error('formato inesperado: esperaba array de ideas');
+  if (!list) throw new BadRequest('formato inesperado: esperaba array de ideas');
   return list
     .map((item): ContentIdea | null => {
       if (!item || typeof item !== 'object') return null;
@@ -213,7 +213,7 @@ async function fallbackComposeIdeasWithOpenAI(
 ): Promise<string> {
   const apiKey = env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY / OPENROUTER_API_KEY no configurado para fallback');
+    throw new BadRequest('OPENAI_API_KEY / OPENROUTER_API_KEY no configurado para fallback');
   }
   const endpoint = preferredChatEndpoint();
   const headers: Record<string, string> = {
@@ -248,7 +248,7 @@ async function fallbackComposeIdeasWithOpenAI(
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`fallback LLM ${res.status}: ${body.slice(0, 200)}`);
+    throw new BadRequest(`fallback LLM ${res.status}: ${body.slice(0, 200)}`);
   }
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   return json.choices?.[0]?.message?.content ?? '';

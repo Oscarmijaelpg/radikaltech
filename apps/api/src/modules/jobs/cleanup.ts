@@ -1,7 +1,7 @@
 import { prisma } from '@radikal/db';
 import { logger } from '../../lib/logger.js';
 
-const ZOMBIE_TIMEOUT_MS = 15 * 60_000;
+const ZOMBIE_TIMEOUT_MS = 30 * 60_000;   // 30 min — cubre 4 iteraciones Kimi × ~5 min
 const CLEANUP_INTERVAL_MS = 5 * 60_000;
 
 export async function markStartupZombies(): Promise<void> {
@@ -28,7 +28,7 @@ export function startZombieCleanupLoop(): void {
       const threshold = new Date(Date.now() - ZOMBIE_TIMEOUT_MS);
       const result = await prisma.aiJob.updateMany({
         where: {
-          status: 'running',
+          status: { in: ['running', 'queued'] },
           OR: [
             { startedAt: { lt: threshold } },
             { startedAt: null, createdAt: { lt: threshold } },
@@ -36,7 +36,7 @@ export function startZombieCleanupLoop(): void {
         },
         data: {
           status: 'failed',
-          error: 'Job abortado: running > 15 min sin completar',
+          error: 'Job abortado: stuck en running/queued > 30 min sin completar',
           finishedAt: new Date(),
         },
       });

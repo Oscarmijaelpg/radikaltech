@@ -66,7 +66,7 @@ function pickProvider(): {
       extraHeaders: {},
     };
   }
-  throw new Error('No LLM provider configured');
+  throw new BadRequest('No hay proveedor LLM configurado');
 }
 
 function approxTokens(text: string): number {
@@ -90,7 +90,7 @@ async function* streamChatCompletions(
   });
   if (!res.ok || !res.body) {
     const errTxt = await res.text().catch(() => '');
-    throw new Error(`Upstream ${res.status}: ${errTxt.slice(0, 200)}`);
+    throw new BadRequest(`Upstream ${res.status}: ${errTxt.slice(0, 200)}`);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -283,6 +283,7 @@ export async function handleStreamMessage(c: Context<{ Variables: AuthVariables 
         name: string;
         args: Record<string, unknown>;
         resultSummary: string;
+        data?: unknown;
       }> = [];
 
       const send = (event: string, data: string) =>

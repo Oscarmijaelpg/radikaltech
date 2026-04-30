@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -18,7 +18,6 @@ import {
 import { RecommendationCard } from '../components/RecommendationCard';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 
 type Filter = 'all' | RecommendationStatus;
 
@@ -37,6 +36,22 @@ export function RecommendationsPage() {
   const [filter, setFilter] = useState<Filter>('all');
   const q = useRecommendations(activeProject?.id);
   const generateMut = useGenerateRecommendations();
+
+  const [genTimedOut, setGenTimedOut] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (generateMut.isPending) {
+      setGenTimedOut(false);
+      timeoutRef.current = setTimeout(() => setGenTimedOut(true), 90_000);
+    } else {
+      setGenTimedOut(false);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [generateMut.isPending]);
 
   const items = useMemo(() => {
     const all = q.data ?? [];
@@ -69,16 +84,31 @@ export function RecommendationsPage() {
       {generateMut.isPending && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm grid place-items-center p-6">
           <Card className="p-8 max-w-md w-full text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-violet-500 grid place-items-center text-white mb-4 shadow-lg">
-              <Spinner className="text-white" />
-            </div>
-            <h3 className="font-display font-black text-xl mb-2">
-              Estudiando tu marca…
-            </h3>
-            <p className="text-sm text-slate-500">
-              Cruzamos tus datos, competidores, noticias y contenido para proponer acciones
-              concretas. Esto toma unos 30 segundos.
-            </p>
+            {genTimedOut ? (
+              <>
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 grid place-items-center mb-4">
+                  <Icon name="schedule" className="text-amber-600 text-[28px]" />
+                </div>
+                <h3 className="font-display font-black text-xl mb-2">Esto está tardando más de lo habitual</h3>
+                <p className="text-sm text-slate-500 mb-4">
+                  El análisis sigue en segundo plano. Puedes cerrar este diálogo y los resultados aparecerán en unos momentos.
+                </p>
+                <Button variant="outline" onClick={() => generateMut.reset()}>
+                  Cerrar
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-violet-500 grid place-items-center text-white mb-4 shadow-lg">
+                  <Spinner className="text-white" />
+                </div>
+                <h3 className="font-display font-black text-xl mb-2">Estudiando tu marca…</h3>
+                <p className="text-sm text-slate-500">
+                  Cruzamos tus datos, competidores, noticias y contenido para proponer acciones
+                  concretas. Esto toma unos 30 segundos.
+                </p>
+              </>
+            )}
           </Card>
         </div>
       )}
@@ -86,11 +116,6 @@ export function RecommendationsPage() {
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-5 sm:space-y-6 md:space-y-8">
         <AnalysisSubnav />
         {/* Hero */}
-        <FeatureHint
-          id="recommendations-first-v1"
-          title="Estas tarjetas son tus próximos pasos sugeridos"
-          description="Kronos analiza tu marca y te dice qué hacer a continuación. Completa una y verás el impacto."
-        >
         <header className="relative overflow-hidden rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-pink-500 via-fuchsia-500 to-violet-600 p-6 md:p-10 text-white shadow-2xl">
           <div className="absolute top-4 right-4 z-20">
             <HelpButton
@@ -129,7 +154,28 @@ export function RecommendationsPage() {
             </Button>
           </div>
         </header>
-        </FeatureHint>
+
+        {generateMut.isError && (
+          <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
+            <Icon name="error" className="text-red-500 text-[20px] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-800">Error al generar sugerencias</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                {generateMut.error instanceof Error
+                  ? generateMut.error.message
+                  : 'Ocurrió un error inesperado. Intenta de nuevo.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => generateMut.reset()}
+              className="ml-auto text-red-400 hover:text-red-600"
+              aria-label="Cerrar error"
+            >
+              <Icon name="close" className="text-[18px]" />
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">

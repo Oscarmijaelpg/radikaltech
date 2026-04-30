@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '@radikal/db';
 import { env } from '../../config/env.js';
+import { BadRequest } from '../../lib/errors.js';
 import { APIFY_ACTORS, apifyRunSyncUrl } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
 import { runVisualAnalysisForCompetitor } from './instagram-scraper.js';
@@ -60,9 +61,9 @@ export function parseTikTokHandle(raw: string): string | null {
 
 export class TikTokScraper {
   async scrape(input: ScrapeTikTokInput): Promise<ScrapeTikTokResult> {
-    if (!env.APIFY_API_KEY) throw new Error('APIFY_API_KEY not configured');
+    if (!env.APIFY_API_KEY) throw new BadRequest('APIFY_API_KEY no está configurado');
     const handle = input.handle.replace(/^@/, '').trim();
-    if (!handle) throw new Error('Invalid tiktok handle');
+    if (!handle) throw new BadRequest('Handle de TikTok inválido');
 
     const job = await prisma.aiJob.create({
       data: {
@@ -88,7 +89,7 @@ export class TikTokScraper {
       );
       if (!res.ok) {
         const text = await res.text().catch(() => '');
-        throw new Error(`Apify ${res.status}: ${text.slice(0, 300)}`);
+        throw new BadRequest(`Apify ${res.status}: ${text.slice(0, 300)}`);
       }
       const items = (await res.json()) as ApifyTikTokItem[];
       logger.info({ handle, count: items?.length ?? 0 }, 'apify tiktok scrape ok');

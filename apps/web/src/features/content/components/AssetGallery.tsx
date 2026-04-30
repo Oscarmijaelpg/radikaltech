@@ -12,6 +12,7 @@ import {
   Skeleton,
   Spinner,
 } from '@radikal/ui';
+import { formatDate } from '@radikal/shared';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { useProject } from '@/providers/ProjectProvider';
 import {
@@ -35,24 +36,13 @@ function scoreBadgeVariant(score: number | null) {
   return 'success' as const;
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function AssetThumb({ asset }: { asset: ContentAsset }) {
   if (asset.asset_type === 'image') {
     return (
       <img
         src={asset.asset_url}
-        alt=""
+        alt={asset.ai_description ?? 'Contenido visual'}
         className="w-full aspect-square object-cover"
         loading="lazy"
       />
@@ -273,7 +263,7 @@ export function AssetGallery() {
               {selected.asset_type === 'image' ? (
                 <img
                   src={selected.asset_url}
-                  alt=""
+                  alt={selected.ai_description ?? 'Vista previa del contenido'}
                   className="w-full max-h-[420px] object-contain rounded-2xl bg-slate-50"
                 />
               ) : (

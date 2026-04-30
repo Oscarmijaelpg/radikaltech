@@ -12,6 +12,8 @@
   "scripts": {
     "generate": "prisma generate",
     "push": "prisma db push",
+    "seed": "prisma db seed",
+    "reset": "prisma migrate reset --force",
     "studio": "prisma studio"
   },
   "dependencies": {

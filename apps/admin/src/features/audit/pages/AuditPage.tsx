@@ -55,11 +55,14 @@ export function AuditPage() {
       const all: AuditEntry[] = [];
       let page = 1;
       const pageSize = 200;
-      while (page <= 20) {
-        const res = await api.get<{ data: AuditEntry[]; meta: { totalPages: number } }>(
+      const MAX_PAGES = 20;
+      let totalRecords = 0;
+      while (page <= MAX_PAGES) {
+        const res = await api.get<{ data: AuditEntry[]; meta: { totalPages: number; total: number } }>(
           `/admin/audit${qs({ ...filters, page, pageSize })}`,
         );
         all.push(...res.data);
+        totalRecords = res.meta.total;
         if (page >= res.meta.totalPages) break;
         page += 1;
       }
@@ -75,7 +78,13 @@ export function AuditPage() {
         { key: 'metadata', label: 'Detalles' },
       ]);
       downloadCsv(`historial-${Date.now()}.csv`, csv);
-      toast({ variant: 'success', title: `Exportados ${all.length} eventos` });
+      const truncated = all.length < totalRecords;
+      toast({
+        variant: truncated ? 'warning' : 'success',
+        title: truncated
+          ? `Exportados ${all.length} de ${totalRecords} eventos (límite 4.000)`
+          : `Exportados ${all.length} eventos`,
+      });
     } catch (err) {
       toast({
         variant: 'error',

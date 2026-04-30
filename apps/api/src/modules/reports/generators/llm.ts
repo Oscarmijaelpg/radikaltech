@@ -1,4 +1,5 @@
 import { env } from '../../../config/env.js';
+import { BadRequest } from '../../../lib/errors.js';
 import { LLM_MODELS, PROVIDER_URLS } from '../../../config/providers.js';
 
 const LLM_TIMEOUT_MS = 60_000;
@@ -37,7 +38,7 @@ export async function callOpenRouter(options: {
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`OpenRouter ${res.status}: ${text}`);
+    throw new BadRequest(`OpenRouter ${res.status}: ${text}`);
   }
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;

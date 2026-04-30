@@ -8,9 +8,9 @@ export const ProfileSchema = z.object({
   email: z.string().email(),
   full_name: z.string().nullable().optional(),
   avatar_url: z.string().url().nullable().optional(),
-  onboarding_step: z.nativeEnum(OnboardingStep).default(OnboardingStep.COMPANY),
+  onboarding_step: z.nativeEnum(OnboardingStep).default(OnboardingStep.WELCOME),
   onboarding_completed: z.boolean().default(false),
-  locale: z.string().default('es'),
+  language: z.string().default('es'),
   created_at: DateSchema,
   updated_at: DateSchema,
 });
@@ -20,7 +20,7 @@ export const UpdateProfileSchema = ProfileSchema.partial().pick({
   avatar_url: true,
   onboarding_step: true,
   onboarding_completed: true,
-  locale: true,
+  language: true,
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;

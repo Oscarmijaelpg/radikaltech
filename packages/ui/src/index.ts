@@ -1,4 +1,5 @@
 export * from "./lib/cn";
+export * from "./lib/logo-brightness";
 export * from "./components/button";
 export * from "./components/input";
 export * from "./components/textarea";

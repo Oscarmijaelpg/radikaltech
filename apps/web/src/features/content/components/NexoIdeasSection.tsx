@@ -73,7 +73,7 @@ export function NexoIdeasSection() {
     if (!activeProject) return;
 
     // Buscamos si existe al menos un reporte general/integral reciente
-    const hasIntegralReport = reports?.some(r => r.reportType === 'general' || r.reportType === 'strategy');
+    const hasIntegralReport = reports?.some(r => r.reportType === 'general' || r.reportType === 'brand_strategy');
 
     if (!hasIntegralReport) {
       // Si no hay reportes de peso, generamos uno integral internamente
@@ -238,7 +238,7 @@ export function NexoIdeasSection() {
                   <div key={asset.id} className="group relative aspect-square rounded-3xl overflow-hidden border-2 border-white shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
                     <img src={asset.asset_url} className="w-full h-full object-cover" alt="Generated" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                       <Button size="sm" variant="secondary" className="scale-75" onClick={() => setResultModal({ url: asset.asset_url })}>
+                       <Button size="sm" variant="secondary" className="scale-75" onClick={() => setResultModal({ url: asset.asset_url } as GenerateImageResult)}>
                           Ver
                        </Button>
                     </div>

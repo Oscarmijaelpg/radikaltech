@@ -1,7 +1,8 @@
 import { prisma, type SocialPlatform, type SocialSource } from '@radikal/db';
-import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
+import { BadRequest, NotFound } from '../../lib/errors.js';
 import { instagramScraper, tiktokScraper, parseInstagramHandle, parseTikTokHandle } from '../ai-services/index.js';
 import { logger } from '../../lib/logger.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 export interface SocialAccountInput {
   project_id: string;
@@ -18,14 +19,6 @@ function validateSource(input: Pick<SocialAccountInput, 'source' | 'url' | 'manu
   }
   if (input.source === 'manual' && !input.manual_description) {
     throw new BadRequest('manual_description is required when source is "manual"');
-  }
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) {
-    throw new Forbidden('Not project owner');
   }
 }
 

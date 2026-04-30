@@ -47,7 +47,7 @@ interface ChatCompletion {
 // modelos futuros, pero hoy se ignora si el modelo es de la familia kimi-k2.
 const KIMI_K2_FORCED_TEMPERATURE = 0.6;
 const DEFAULT_TEMPERATURE = KIMI_K2_FORCED_TEMPERATURE;
-const DEFAULT_MAX_ITERATIONS = 6;
+const DEFAULT_MAX_ITERATIONS = 4;
 const DEFAULT_TIMEOUT_MS = 300_000; // 5 minutos para búsquedas profundas
 
 const TOOLS_PAYLOAD = [
@@ -120,13 +120,13 @@ export async function moonshotWebSearch(
         { status: res.status, body: errBody.slice(0, 400), model },
         'moonshot chat.completions failed',
       );
-      throw new Error(`Moonshot ${res.status}: ${errBody.slice(0, 300)}`);
+      throw new BadRequest(`Moonshot ${res.status}: ${errBody.slice(0, 300)}`);
     }
 
     const json = (await res.json()) as ChatCompletion;
     const choice = json.choices?.[0];
     if (!choice) {
-      throw new Error('Moonshot devolvió respuesta vacía (sin choices)');
+      throw new BadRequest('Moonshot devolvió respuesta vacía (sin choices)');
     }
 
     lastText = choice.message.content ?? lastText;

@@ -1,6 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
 import type { ScheduledPostPlatform, ScheduledPostStatus } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 export interface ListFilter {
   status?: ScheduledPostStatus;
@@ -27,12 +28,6 @@ export interface UpdateInput {
   scheduledAt?: Date;
   notes?: string | null;
   status?: ScheduledPostStatus;
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
 }
 
 async function getOwned(id: string, userId: string) {

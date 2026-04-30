@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Tabs,
   TabsList,
@@ -18,6 +18,7 @@ import {
   useDeleteRecommendation,
   useDeleteContentAsset,
   useDeleteReport,
+  type ModerationFilters,
 } from '../api/moderation';
 import { Pagination } from '@/shared/ui/Pagination';
 import { useToast } from '@/shared/ui/Toaster';
@@ -60,7 +61,7 @@ export function ModerationPage() {
 
 function useDebouncedSearch(
   search: string,
-  setFilters: (updater: (f: Record<string, unknown>) => Record<string, unknown>) => void,
+  setFilters: React.Dispatch<React.SetStateAction<ModerationFilters>>,
 ) {
   useEffect(() => {
     const t = setTimeout(() => {
@@ -72,7 +73,7 @@ function useDebouncedSearch(
 }
 
 function RecommendationsTab() {
-  const [filters, setFilters] = useState<Record<string, unknown>>({ page: 1, pageSize: 50 });
+  const [filters, setFilters] = useState<ModerationFilters>({ page: 1, pageSize: 50 });
   const [search, setSearch] = useState('');
   const { data, isLoading, isFetching } = useAdminRecommendations(filters);
   const del = useDeleteRecommendation();
@@ -110,6 +111,7 @@ function RecommendationsTab() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="Buscar por título o razón…"
+          aria-label="Buscar recomendaciones"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 pr-10"
@@ -250,7 +252,7 @@ function RecommendationsTab() {
 }
 
 function ContentAssetsTab() {
-  const [filters, setFilters] = useState<Record<string, unknown>>({ page: 1, pageSize: 50 });
+  const [filters, setFilters] = useState<ModerationFilters>({ page: 1, pageSize: 50 });
   const { data, isLoading, isFetching } = useAdminContentAssets(filters);
   const del = useDeleteContentAsset();
   const rows = data?.data ?? [];
@@ -349,7 +351,7 @@ function ContentAssetsTab() {
 }
 
 function ReportsTab() {
-  const [filters, setFilters] = useState<Record<string, unknown>>({ page: 1, pageSize: 50 });
+  const [filters, setFilters] = useState<ModerationFilters>({ page: 1, pageSize: 50 });
   const [search, setSearch] = useState('');
   const { data, isLoading, isFetching } = useAdminReports(filters);
   const del = useDeleteReport();
@@ -387,6 +389,7 @@ function ReportsTab() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="Buscar por título…"
+          aria-label="Buscar reportes"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 pr-10"

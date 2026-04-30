@@ -1,4 +1,5 @@
 import { prisma } from '@radikal/db';
+import { NotFound } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { callOpenRouter, clip } from './llm.js';
 
@@ -24,7 +25,7 @@ export async function generateUnifiedReport(input: {
   projectId: string;
 }) {
   const project = await prisma.project.findUnique({ where: { id: input.projectId } });
-  if (!project) throw new Error('Project not found');
+  if (!project) throw new NotFound('Project not found');
 
   const [
     brand,

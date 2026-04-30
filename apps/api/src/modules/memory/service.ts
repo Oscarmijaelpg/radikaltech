@@ -1,6 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
 import { embeddingsService } from '../ai-services/embeddings.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 function indexMemoryFireAndForget(memoryId: string, text: string) {
   // Never block callers on embeddings; swallow everything.
@@ -22,13 +23,6 @@ export interface UpdateMemoryInput {
   key?: string | null;
   value?: string;
   metadata?: Record<string, unknown> | null;
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
-  return p;
 }
 
 async function assertMemoryOwner(id: string, userId: string) {

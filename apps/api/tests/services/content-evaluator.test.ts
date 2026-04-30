@@ -9,6 +9,27 @@ vi.mock('../../src/config/env.js', () => ({
   },
 }));
 
+// Mock image-analyzer so ContentEvaluator doesn't make real HTTP calls
+vi.mock('../../src/modules/ai-services/image-analyzer.js', () => ({
+  imageAnalyzer: {
+    analyze: vi.fn(async () => ({
+      aesthetic_score: 8.5,
+      tags: ['modern', 'clean'],
+      style_tags: ['modern'],
+      suggestions: ['improve contrast'],
+      detected_elements: ['person', 'sky'],
+      dominant_colors: ['#aabbcc'],
+      lighting: 'natural',
+      mood: 'calm',
+      composition: 'centered',
+      description: 'test image',
+      full_narrative: 'LIFESTYLE: Test. Analysis.',
+      category: 'LIFESTYLE',
+      subject: 'Test',
+    })),
+  },
+}));
+
 const contentAssetFindUnique = vi.fn();
 const contentAssetUpdate = vi.fn(async () => ({}));
 const aiJobCreate = vi.fn(async () => ({ id: 'job-1' }));
@@ -35,28 +56,8 @@ describe('ContentEvaluator', () => {
       assetType: 'image',
       assetUrl: 'https://cdn/img.jpg',
       metadata: { existing: true },
+      tags: [],
     });
-    const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  aesthetic_score: 8.5,
-                  marketing_feedback: 'Great composition',
-                  tags: ['modern', 'clean'],
-                  suggestions: ['improve contrast'],
-                  detected_elements: ['person', 'sky'],
-                }),
-              },
-            },
-          ],
-        }),
-        { status: 200 },
-      ),
-    );
-    vi.stubGlobal('fetch', fetchMock);
 
     const { ContentEvaluator } = await import('../../src/modules/ai-services/content-evaluator.js');
     const e = new ContentEvaluator();
@@ -80,16 +81,14 @@ describe('ContentEvaluator', () => {
       assetType: 'video',
       assetUrl: 'https://cdn/v.mp4',
       metadata: null,
+      tags: [],
     });
-    const fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
 
     const { ContentEvaluator } = await import('../../src/modules/ai-services/content-evaluator.js');
     const e = new ContentEvaluator();
     const res = await e.evaluate({ assetId: 'a1', userId: 'u1' });
     expect(res.result.aesthetic_score).toBe(0);
     expect(res.result.marketing_feedback).toMatch(/imágenes/i);
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('throws Forbidden when asset belongs to other user', async () => {

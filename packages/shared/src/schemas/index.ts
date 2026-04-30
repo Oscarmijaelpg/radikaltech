@@ -13,3 +13,8 @@ export * from './recommendation.js';
 export * from './ai.js';
 export * from './competitor-narrative.js';
 export * from './credits.js';
+export * from './competitor.js';
+export * from './content-asset.js';
+export * from './ai-job.js';
+export * from './scheduled-post.js';
+export * from './scheduled-report.js';

@@ -58,20 +58,23 @@ broadcastAdminRouter.post('/notifications', zValidator('json', broadcastSchema),
   }
 
   const batchSize = 500;
-  let created = 0;
+  const batches: Array<ReturnType<typeof prisma.notification.createMany>> = [];
   for (let i = 0; i < recipients.length; i += batchSize) {
     const chunk = recipients.slice(i, i + batchSize);
-    const res = await prisma.notification.createMany({
-      data: chunk.map((userId) => ({
-        userId,
-        kind: body.kind,
-        title: body.title,
-        body: body.body ?? null,
-        actionUrl: body.actionUrl ?? null,
-      })),
-    });
-    created += res.count;
+    batches.push(
+      prisma.notification.createMany({
+        data: chunk.map((userId) => ({
+          userId,
+          kind: body.kind,
+          title: body.title,
+          body: body.body ?? null,
+          actionUrl: body.actionUrl ?? null,
+        })),
+      }),
+    );
   }
+  const results = await prisma.$transaction(batches);
+  const created = results.reduce((sum, r) => sum + r.count, 0);
 
   await logAudit(c, {
     action: 'broadcast.send',

@@ -336,6 +336,7 @@ model BrandProfile {
   portfolio             String?
   voiceTone             String?  @map("voice_tone")
   visualDirection       String?  @map("visual_direction")
+  typographyStyle       String?  @map("typography_style")
   colorPalette          Json?    @map("color_palette")
   colorPaletteSuggested Json?    @map("color_palette_suggested")
   visualAnalysisSummary String?  @map("visual_analysis_summary")
@@ -419,6 +420,8 @@ model Competitor {
 
   @@index([projectId])
   @@index([userId])
+  @@index([status])
+  @@index([source])
   @@map("competitors")
   @@schema("public")
 }
@@ -461,6 +464,8 @@ model ContentAsset {
   aiDescription      String?   @map("ai_description")
   aestheticScore     Decimal?  @map("aesthetic_score") @db.Decimal
   marketingFeedback  String?   @map("marketing_feedback")
+  isMainLogo         Boolean   @default(false) @map("is_main_logo")
+  isValidLogo        Boolean   @default(false) @map("is_valid_logo")
   tags               String[]
   metadata           Json?
   createdAt          DateTime  @default(now()) @map("created_at")
@@ -492,6 +497,7 @@ model Report {
 
   @@index([projectId])
   @@index([userId])
+  @@index([reportType])
   @@map("reports")
   @@schema("public")
 }
@@ -512,6 +518,7 @@ model Memory {
 
   @@index([projectId])
   @@index([userId])
+  @@index([userId, category, key])
   @@map("memories")
   @@schema("public")
 }
@@ -537,6 +544,7 @@ model Chat {
   @@index([userId])
   @@index([projectId])
   @@index([folderId])
+  @@index([objectiveId])
   @@map("chats")
   @@schema("public")
 }
@@ -672,6 +680,7 @@ model Recommendation {
   user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([userId])
   @@index([status])
   @@index([kind])
   @@map("recommendations")
@@ -696,6 +705,7 @@ model ScheduledReport {
   user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([userId])
   @@index([nextRunAt])
   @@map("scheduled_reports")
   @@schema("public")

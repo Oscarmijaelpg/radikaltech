@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@radikal/db';
+import { BadRequest } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { supabaseAdmin } from '../../../lib/supabase.js';
 import type { ImageVisualAnalysis } from '../image-analyzer.js';
@@ -25,7 +26,7 @@ export async function uploadBuffer(
   if (up.error) throw up.error;
   const pub = supabaseAdmin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   const url = pub.data?.publicUrl ?? '';
-  if (!url) throw new Error('No public URL after upload');
+  if (!url) throw new BadRequest('No se obtuvo URL pública tras subir la imagen');
   return { url, path };
 }
 
@@ -55,6 +56,7 @@ export async function buildBrandContext(
     const brandDna: string[] = [];
     if (brand?.voiceTone) brandDna.push(`TONO DE VOZ: ${brand.voiceTone}`);
     if (brand?.visualDirection) brandDna.push(`DIRECCIÓN VISUAL: ${brand.visualDirection}`);
+    if (brand?.typographyStyle) brandDna.push(`ESTILO TIPOGRÁFICO: ${brand.typographyStyle}`);
     
     const palette = Array.isArray(brand?.colorPalette)
       ? (brand.colorPalette as string[]).filter((c) => typeof c === 'string')
@@ -89,16 +91,16 @@ export async function buildBrandContext(
       if (!hasLogoInRefs) {
         rules.push("CRITICAL: NO logo selected in references. DO NOT invent or include any logo, text or corporate branding.");
       } else {
-        rules.push("NOTE: Logo selected. The system will programmatically overlay the logo after generation. DO NOT attempt to draw the logo yourself. DO NOT include any text or invented symbols.");
+        rules.push("CRITICAL: Logo selected. Incorporate the provided logo ORGANICALLY within the scene. It must blend naturally into the environment (e.g., on a product, a sign, or a premium flat overlay). DO NOT alter its shape, colors or fonts. PROHIBITED: distorted logos, invented text or double branding.");
       }
     } else {
       rules.push("CRITICAL: No references provided. PROHIBITED to invent logos or use text placeholders.");
     }
 
     if (mode === 'referential') {
-      rules.push("MODE: IDENTITY LOCK (STRICT FIDELITY). The user wants EXACT structural and visual consistency with the provided references. You MUST prioritize the subjects and composition of the references over the prompt's creativity. If the prompt contradicts a reference subject, the reference subject WINS. Ignoring reference visual details is considered a FAILURE.");
+      rules.push("MODE: IDENTITY LOCK (STRICT FIDELITY). The user wants EXACT structural and visual consistency with the provided references. You MUST prioritize the subjects and composition of the references over the prompt's creativity. If the prompt contradicts a reference subject, the reference subject WINS. Ignoring reference visual details is considered a FAILURE. NEGATIVE: do not re-create the product, do not change materials, do not add elements if not present, no distorted logos.");
     } else {
-      rules.push("MODE: CREATIVE EXPLORATION. Respect brand essence but allow artistic scene interpretation.");
+      rules.push("MODE: CREATIVE EXPLORATION. Respect brand essence but allow artistic scene interpretation. Ensure the result is premium and cinematic.");
     }
 
     // Construir el bloque de contexto estructurado para el Sintetizador

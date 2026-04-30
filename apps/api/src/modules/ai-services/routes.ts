@@ -318,7 +318,7 @@ aiServicesRouter.post(
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseInstagramHandle(handle ?? url ?? '');
-    if (!parsed) throw new BadRequest('Invalid instagram handle or URL');
+    if (!parsed) throw new BadRequest('Handle o URL de Instagram inválido');
 
     const res = await withCredits(
       {
@@ -361,7 +361,7 @@ aiServicesRouter.post(
     await assertCompetitorOwnerOptional(competitor_id, user.id);
 
     const parsed = parseTikTokHandle(handle ?? url ?? '');
-    if (!parsed) throw new BadRequest('Invalid tiktok handle or URL');
+    if (!parsed) throw new BadRequest('Handle o URL de TikTok inválido');
 
     const res = await withCredits(
       {
@@ -513,13 +513,14 @@ aiServicesRouter.post(
     if (!project) throw new NotFound('Project not found');
     if (project.userId !== user.id) throw new Forbidden();
 
-    // Cobro de créditos (usando la misma clave que autoCompetitorDetect por ahora, o una específica si existe)
+    // Cobro de créditos síncrono para asegurar saldo, pero mantenemos el resto en background
     const charge = await creditService.charge({
       userId: user.id,
-      actionKey: ACTION_KEYS.competitorAnalyze, // Reutilizamos esta acción para el cobro
+      actionKey: ACTION_KEYS.competitorAnalyze,
       metadata: { project_id, type: 'refresh-report' },
     });
 
+    // Desacoplamiento total
     void (async () => {
       try {
         await initialIntelligenceOrchestrator.runCompetitionIntelligence({
@@ -528,6 +529,7 @@ aiServicesRouter.post(
         });
       } catch (err) {
         logger.error({ err, project_id }, 'background competition refresh failed');
+        // Refund if background task fails BEFORE creating its own job (best effort)
         try {
           await creditService.refund({
             transactionId: charge.transactionId,
@@ -539,7 +541,10 @@ aiServicesRouter.post(
       }
     })();
 
-    return c.json(ok({ status: 'running', message: 'Actualización de diagnóstico iniciada' }));
+    return c.json(ok({ 
+      status: 'accepted', 
+      message: 'La regeneración del diagnóstico de competencia ha comenzado en segundo plano.' 
+    }), 202);
   },
 );
 
@@ -560,6 +565,7 @@ aiServicesRouter.post(
       metadata: { project_id, type: 'refresh-news-report' },
     });
 
+    // Desacoplamiento total
     void (async () => {
       try {
         await initialIntelligenceOrchestrator.runIndustryNewsIntelligence({
@@ -579,6 +585,9 @@ aiServicesRouter.post(
       }
     })();
 
-    return c.json(ok({ status: 'running', message: 'Actualización de noticias iniciada' }));
+    return c.json(ok({ 
+      status: 'accepted', 
+      message: 'La actualización de noticias del sector ha comenzado en segundo plano.' 
+    }), 202);
   },
 );

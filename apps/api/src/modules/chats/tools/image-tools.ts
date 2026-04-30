@@ -8,13 +8,13 @@ export const generateImageTool: ToolDefinition = {
     function: {
       name: 'generate_image',
       description:
-        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Solo úsalo DESPUÉS de que el usuario haya seleccionado activos de la galería de get_library_assets. IMPORTANTE SOBRE LOGOS: Si el usuario seleccionó un logo, la imagen DEBE incluir ese logo EXACTO. Si el usuario NO seleccionó ningún logo, la imagen NO debe tener ningún logo y NO debes inventar ninguno.',
+        'Genera una imagen con IA aplicando la identidad de la marca del proyecto. Solo úsalo DESPUÉS de que el usuario haya seleccionado activos de la galería de get_library_assets. IMPORTANTE SOBRE LOGOS: Si el usuario seleccionó un logo, la imagen DEBE incluir ese logo EXACTO integrándolo orgánicamente. Si el usuario NO seleccionó ningún logo, la imagen NO debe tener ningún logo y NO debes inventar ninguno.',
       parameters: {
         type: 'object',
         properties: {
           prompt: { 
             type: 'string',
-            description: 'Descripción detallada de la imagen. REGLA CRÍTICA DE LOGOS: Si el usuario seleccionó un logo (reference_asset_ids), debes instruir "Include the exact provided logo, do not modify it". Si NO seleccionó un logo, debes instruir explícitamente "NO logo, NO text, NO brand marks, do not invent any logo".',
+            description: 'Descripción detallada de la imagen. REGLA CRÍTICA DE LOGOS: Si el usuario seleccionó un logo (reference_asset_ids), debes instruir "Incorporate the provided logo organically and elegantly within the scene, maintaining its exact shape and colors". Si NO seleccionó un logo, debes instruir explícitamente "NO logo, NO text, NO brand marks, do not invent any logo".',
           },
           size: { 
             type: 'string', 
@@ -131,17 +131,30 @@ export const getLibraryAssetsTool: ToolDefinition = {
     if (!ctx.projectId)
       return { summary: 'Este chat no tiene proyecto activo', error: 'no_project' };
     
-    // Fetch logo specifically to ensure it is always proposed if it exists
-    const logos = await prisma.contentAsset.findMany({
+    let logos = await prisma.contentAsset.findMany({
       where: {
         projectId: ctx.projectId,
         tags: { has: 'logo' },
-        // Only raster images — SVGs are not usable for multimodal AI or watermarking
+        OR: [ { isMainLogo: true }, { isValidLogo: true } ],
         NOT: { assetUrl: { endsWith: '.svg' } },
       },
-      take: 2,
+      orderBy: { isMainLogo: 'desc' },
+      take: 5,
       select: { id: true, assetUrl: true, tags: true, aiDescription: true },
     });
+
+    if (logos.length === 0) {
+      logos = await prisma.contentAsset.findMany({
+        where: {
+          projectId: ctx.projectId,
+          tags: { has: 'logo' },
+          NOT: { assetUrl: { endsWith: '.svg' } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        select: { id: true, assetUrl: true, tags: true, aiDescription: true },
+      });
+    }
 
     // Fetch other references (Increased limit to 50 as requested, scrollable in UI)
     const otherAssets = await prisma.contentAsset.findMany({
@@ -157,11 +170,22 @@ export const getLibraryAssetsTool: ToolDefinition = {
       select: { id: true, assetUrl: true, tags: true, aiDescription: true },
     });
 
-    const conceptTerms = args.concept?.toLowerCase().split(' ').filter(t => t.length > 3) || [];
+    const brandElements = await prisma.contentAsset.findMany({
+      where: {
+        projectId: ctx.projectId,
+        tags: { has: 'brand_element' },
+        NOT: { assetUrl: { endsWith: '.svg' } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { id: true, assetUrl: true, tags: true, aiDescription: true },
+    });
 
-    const assets = [...logos, ...otherAssets].map(a => {
+    const conceptTerms = (args.concept as string | undefined)?.toLowerCase().split(' ').filter((t: string) => t.length > 3) || [];
+
+    const assets = [...logos, ...brandElements, ...otherAssets].map(a => {
       const isSuggested = conceptTerms.length > 0 && (
-        a.aiDescription?.toLowerCase().includes(conceptTerms[0]) || 
+        a.aiDescription?.toLowerCase().includes(conceptTerms[0] ?? '') ||
         a.tags.some(t => conceptTerms.includes(t.toLowerCase()))
       );
       
@@ -177,8 +201,10 @@ export const getLibraryAssetsTool: ToolDefinition = {
     return {
       summary: `Se encontraron ${assets.length} activos visuales para proponer.`,
       data: {
-        concept: args.concept,
         assets,
+        logosCount: logos.length,
+        elementsCount: brandElements.length,
+        concept: args.concept
       },
     };
   },

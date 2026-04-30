@@ -16,8 +16,6 @@ import { CustomersTab } from '../components/CustomersTab';
 import { SavedChatsTab } from '../components/SavedChatsTab';
 import { NeuronasTab } from '../components/NeuronasTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
-import { usePageTour } from '@/shared/tour';
 
 type TabId = 'brand' | 'products' | 'customers' | 'saved_chats' | 'neuronas';
 const VALID_TABS: TabId[] = ['brand', 'products', 'customers', 'saved_chats', 'neuronas'];
@@ -37,8 +35,6 @@ export function MemoryPage() {
   const [tab, setTab] = useState<TabId>(
     initial && VALID_TABS.includes(initial as TabId) ? (initial as TabId) : 'brand',
   );
-  usePageTour('memory');
-
   useEffect(() => {
     const t = searchParams.get('tab');
     if (t && VALID_TABS.includes(t as TabId)) setTab(t as TabId);
@@ -61,11 +57,6 @@ export function MemoryPage() {
         <span className="truncate">{ctx.sub}</span>
       </div>
       <div className="p-4 sm:p-6 md:p-8 pt-2 max-w-7xl mx-auto">
-        <FeatureHint
-          id="memory-brand-v1"
-          title="Aquí defines cómo eres como marca"
-          description="Completa tu identidad: esencia, tono de voz y visión. Todo lo que creemos será coherente."
-        >
         <header className="mb-4 sm:mb-6 md:mb-8 relative overflow-hidden rounded-2xl sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-violet-500 to-purple-600 p-4 sm:p-6 md:p-10 text-white shadow-2xl">
           <div className="absolute top-4 right-4 z-20">
             <HelpButton
@@ -96,7 +87,6 @@ export function MemoryPage() {
             </div>
           </div>
         </header>
-        </FeatureHint>
 
         {!activeProject ? (
           <Card className="p-12 text-center">

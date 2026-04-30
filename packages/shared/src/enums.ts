@@ -28,6 +28,7 @@ export const SocialPlatform = {
   X: 'x',
   THREADS: 'threads',
   PINTEREST: 'pinterest',
+  OTHER: 'other',
 } as const;
 export type SocialPlatform = (typeof SocialPlatform)[keyof typeof SocialPlatform];
 
@@ -58,7 +59,6 @@ export const AssetType = {
   VIDEO: 'video',
   DOCUMENT: 'document',
   AUDIO: 'audio',
-  OTHER: 'other',
 } as const;
 export type AssetType = (typeof AssetType)[keyof typeof AssetType];
 

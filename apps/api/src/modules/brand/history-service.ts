@@ -1,15 +1,9 @@
 import { prisma, Prisma } from '@radikal/db';
-import { Forbidden, NotFound } from '../../lib/errors.js';
+import { NotFound, Forbidden } from '../../lib/errors.js';
 import { env } from '../../config/env.js';
 import { preferredChatEndpoint, preferredChatModel } from '../../config/providers.js';
 import { logger } from '../../lib/logger.js';
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) throw new Forbidden('Not project owner');
-  return project;
-}
+import { assertProjectOwner } from '../../lib/guards.js';
 
 async function assertHistoryOwner(id: string, userId: string) {
   const entry = await prisma.brandHistory.findUnique({ where: { id } });

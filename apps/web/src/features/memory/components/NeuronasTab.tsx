@@ -17,9 +17,9 @@ import {
   TabsTrigger,
   Textarea,
 } from '@radikal/ui';
+import { formatDate } from '@radikal/shared';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import {
   useMemories,
   useCreateMemory,
@@ -51,11 +51,6 @@ function extractTitle(value: string): { title: string; body: string } {
   return { title: firstLine.slice(0, 60), body: value };
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 function iconForMime(mime?: string): string {
   if (!mime) return 'description';
@@ -150,22 +145,17 @@ export function NeuronasTab({ projectId }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar en notas y documentos..."
+            aria-label="Buscar en notas y documentos"
             className="pl-10"
           />
         </div>
       </div>
 
       <Tabs defaultValue="notes" className="w-full">
-        <FeatureHint
-          id="neuronas-notes-vs-docs"
-          title="¿Notas o documentos?"
-          description="Notas = ideas o resúmenes cortos que escribes tú. Documentos = archivos completos (briefs, manuales PDF) que la IA lee y cita."
-        >
           <TabsList className="flex overflow-x-auto scrollbar-hide max-w-full flex-nowrap">
             <TabsTrigger value="notes" className="shrink-0">Recuerdos y notas</TabsTrigger>
             <TabsTrigger value="docs" className="shrink-0">Documentos de marca</TabsTrigger>
           </TabsList>
-        </FeatureHint>
 
         <TabsContent value="notes">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">

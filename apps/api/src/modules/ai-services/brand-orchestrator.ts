@@ -58,11 +58,11 @@ async function downloadAndStoreImage(
   }
 }
 
-async function scrapePage(url: string, jl?: JobLogger): Promise<{ html: string; markdown: string } | null> {
+async function scrapePage(url: string, jl?: JobLogger): Promise<{ url: string; html: string; markdown: string } | null> {
   try {
     const res = await firecrawlScrape(url);
     if (res.success && res.data) {
-      return { html: res.data.html ?? '', markdown: res.data.markdown ?? '' };
+      return { url, html: res.data.html ?? '', markdown: res.data.markdown ?? '' };
     }
     if (jl) await jl.warn(`Firecrawl devolvió sin data para ${url}`);
   } catch (err) {
@@ -295,12 +295,13 @@ async function runVisualAgent(homeUrl: string, projectId: string, userId: string
 
   const htmlColors = extractHexColors(res.html);
   
-  const prompt = `Analiza la ESTÉTICA VISUAL y dirección artística basándote en este contenido. Mínimo 80 palabras.
+  const prompt = `Analiza la ESTÉTICA VISUAL, dirección artística y el ESTILO TIPOGRÁFICO basándote en este contenido. Mínimo 80 palabras.
   Contenido:
   ${cleanWebContent(res.markdown)}
   RESPONDE SOLO EN JSON:
   {
     "visual_direction": "...",
+    "typography_style": "...",
     "suggested_colors": ["#hex1", "#hex2"]
   }`;
 
@@ -316,11 +317,13 @@ async function runVisualAgent(homeUrl: string, projectId: string, userId: string
     where: { projectId },
     update: { 
       visualDirection: result.visual_direction || undefined,
+      typographyStyle: result.typography_style || undefined,
       colorPaletteSuggested: finalColors.length > 0 ? finalColors : undefined
     },
     create: { 
       projectId, userId, 
       visualDirection: result.visual_direction || '',
+      typographyStyle: result.typography_style || '',
       colorPaletteSuggested: finalColors
     }
   });
@@ -428,7 +431,7 @@ export class BrandOrchestrator {
         const allPagesData: Array<{ url: string; markdown: string; html: string }> = [];
         const allExtractedImages: string[] = [];
 
-        const collectImages = (results: any[]) => {
+        const collectImages = (results: Array<{ url: string; html: string; markdown: string } | null> | undefined) => {
           if (!results) return;
           results.forEach(r => {
             if (r) {
@@ -511,8 +514,7 @@ export class BrandOrchestrator {
       });
 
       // Lanza la búsqueda de noticias y competencia en background
-      void initialIntelligenceOrchestrator.runInitialIntelligence({ projectId: input.projectId, userId: input.userId })
-        .catch(err => logger.error({ err }, 'Failed to run initial intelligence after brand orchestrator'));
+      initialIntelligenceOrchestrator.runInitialIntelligence({ projectId: input.projectId, userId: input.userId });
 
     } catch (err) {
       logger.error({ err }, 'brand orchestrator failed');

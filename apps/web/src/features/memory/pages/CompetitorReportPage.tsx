@@ -31,8 +31,6 @@ export function CompetitorReportPage() {
   const navigate = useNavigate();
   const { activeProject } = useProject();
 
-  console.debug('[comp-report] mount', { id, activeProjectId: activeProject?.id });
-
   const competitorQ = useCompetitor(id);
   const statsQ = useCompetitorStats(id);
   const postsQ = useCompetitorPosts(id, { limit: POSTS_LIMIT });
@@ -43,22 +41,6 @@ export function CompetitorReportPage() {
   const regenerate = useRegenerateNarrative();
 
   const competitor = competitorQ.data;
-
-  console.debug('[comp-report] render state', {
-    id,
-    competitorLoaded: !!competitor,
-    statsPosts: statsQ.data?.engagement_stats?.total_posts ?? null,
-    postsCount: postsQ.data?.length ?? 0,
-    syncing: syncSocial.isPending,
-    regenerating: regenerate.isPending,
-    narrative: competitor?.narrative
-      ? {
-          summary: competitor.narrative.summary?.slice(0, 60) + '…',
-          aesthetic: competitor.narrative.aesthetic?.slice(0, 60) + '…',
-          opportunity: competitor.narrative.opportunity?.slice(0, 60) + '…',
-        }
-      : null,
-  });
 
   const handleBack = () => navigate('/competitors');
 
@@ -79,13 +61,11 @@ export function CompetitorReportPage() {
 
   const handleSyncSocial = () => {
     if (!competitor) return;
-    console.info('[comp-report] handleSyncSocial clicked', { id: competitor.id });
     syncSocial.mutate({ id: competitor.id, project_id: competitor.project_id });
   };
 
   const handleRegenerate = () => {
     if (!competitor) return;
-    console.info('[comp-report] handleRegenerate clicked', { id: competitor.id });
     regenerate.mutate({ id: competitor.id });
   };
 

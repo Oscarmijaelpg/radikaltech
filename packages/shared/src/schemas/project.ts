@@ -4,7 +4,7 @@ import { WebsiteSource } from '../enums.js';
 
 export const ProjectSchema = z.object({
   id: IdSchema,
-  owner_id: IdSchema,
+  user_id: IdSchema,
   company_name: z.string().min(1),
   industry: z.string().min(1),
   industry_custom: z.string().nullable().optional(),

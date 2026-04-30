@@ -15,11 +15,41 @@ export interface AdminProject {
   user: { id: string; email: string; fullName: string | null };
 }
 
+export interface AdminSocialAccount {
+  id: string;
+  platform: string;
+  handle: string | null;
+  url: string | null;
+  followers: number | null;
+}
+
+export interface AdminBrandProfile {
+  id: string;
+  essence: string | null;
+  voiceTone: string | null;
+  brandValues: string[];
+  aiGenerated: boolean;
+}
+
+export interface AdminObjective {
+  id: string;
+  name: string;
+  status: string;
+  deadline: string | null;
+}
+
+export interface AdminCompetitor {
+  id: string;
+  name: string;
+  website: string | null;
+  status: string;
+}
+
 export interface AdminProjectDetail extends AdminProject {
-  socialAccounts: unknown[];
-  brandProfile: unknown | null;
-  objectives: unknown[];
-  competitors: unknown[];
+  socialAccounts: AdminSocialAccount[];
+  brandProfile: AdminBrandProfile | null;
+  objectives: AdminObjective[];
+  competitors: AdminCompetitor[];
   _count: {
     chats: number;
     contentAssets: number;

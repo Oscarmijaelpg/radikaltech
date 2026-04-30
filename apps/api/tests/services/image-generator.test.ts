@@ -51,37 +51,44 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
-function makeFetchMock(captured: { lastGeminiBody?: string }) {
+// Minimal 1×1 PNG (67 bytes) — passes the >1024 size check via padding
+const TINY_PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+const FAKE_IMAGE_BUF = Buffer.from(TINY_PNG_B64, 'base64');
+// Pad to exceed the 1024 byte minimum for downloadAsBase64
+const PADDED_IMAGE = Buffer.concat([FAKE_IMAGE_BUF, Buffer.alloc(1024)]);
+
+function makeFetchMock(captured: { lastOpenRouterBody?: string }) {
   return vi.fn(async (url: string, init?: RequestInit) => {
     const u = String(url);
     if (u.startsWith('https://cdn.example.com')) {
       // reference image download
-      return new Response(new Uint8Array(1024), {
+      return new Response(PADDED_IMAGE, {
         status: 200,
         headers: { 'content-type': 'image/png' },
       });
     }
-    if (u.includes('generativelanguage')) {
-      captured.lastGeminiBody = String(init?.body ?? '');
-      // Simulate a successful gemini image-generation response
+    if (u.includes('openrouter.ai')) {
+      captured.lastOpenRouterBody = String(init?.body ?? '');
+      const bodyStr = String(init?.body ?? '');
+      // Text synthesis call ("openai/gpt-4o") → fail so synthesizePrompt falls back to raw context
+      if (bodyStr.includes('"openai/gpt-4o"')) {
+        return new Response('{}', { status: 429 });
+      }
+      // Image generation call (google/ models) → return inline image data
+      const imgB64 = Buffer.alloc(16).toString('base64');
       return new Response(
         JSON.stringify({
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    inline_data: { mime_type: 'image/png', data: Buffer.from('x').toString('base64') },
-                  },
-                ],
-              },
+          choices: [{
+            message: {
+              content: [
+                { type: 'image_url', image_url: { url: `data:image/png;base64,${imgB64}` } },
+              ],
             },
-          ],
+          }],
         }),
         { status: 200, headers: { 'content-type': 'application/json' } },
       );
     }
-    // dalle path not used
     return new Response('{}', { status: 500 });
   });
 }
@@ -94,7 +101,7 @@ describe('ImageGenerator brand palette enrichment', () => {
   });
 
   it('includes brand palette in enriched prompt when useBrandPalette=true', async () => {
-    const captured: { lastGeminiBody?: string } = {};
+    const captured: { lastOpenRouterBody?: string } = {};
     vi.stubGlobal('fetch', makeFetchMock(captured));
 
     const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator/index.js');
@@ -103,19 +110,20 @@ describe('ImageGenerator brand palette enrichment', () => {
       prompt: 'a product shot',
       userId: 'u1',
       projectId: 'p1',
-      referenceAssetIds: ['ref1'], // forces gemini path
+      referenceAssetIds: ['ref1'],
       useBrandPalette: true,
     });
 
-    // The enriched prompt is sent on the aiJob.create input, and also sent to gemini.
+    // enrichedPrompt stored in aiJob.create input should contain brand colors
     const firstCreateCall = aiJobCreate.mock.calls[0]?.[0] as { data: { input: { enrichedPrompt: string } } };
-    expect(firstCreateCall.data.input.enrichedPrompt).toContain('#ABCDEF');
-    expect(firstCreateCall.data.input.enrichedPrompt).toContain('#123456');
-    expect(firstCreateCall.data.input.enrichedPrompt).toMatch(/Paleta/i);
+    const enriched = String(firstCreateCall.data.input.enrichedPrompt);
+    expect(enriched).toContain('#ABCDEF');
+    expect(enriched).toContain('#123456');
+    expect(enriched).toMatch(/Paleta/i);
   });
 
   it('omits palette when useBrandPalette=false', async () => {
-    const captured: { lastGeminiBody?: string } = {};
+    const captured: { lastOpenRouterBody?: string } = {};
     vi.stubGlobal('fetch', makeFetchMock(captured));
 
     const { ImageGenerator } = await import('../../src/modules/ai-services/image-generator/index.js');

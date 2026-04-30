@@ -54,6 +54,7 @@ export function SiraAnalysisPage() {
       const interval = setInterval(fetchJobs, 3000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [activeProject, autoRefresh]);
 
   if (!activeProject) {

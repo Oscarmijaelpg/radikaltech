@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { prisma, Prisma } from '@radikal/db';
 import { LLM_MODELS, PROVIDER_URLS } from '../../../config/providers.js';
 import { env } from '../../../config/env.js';
+import { BadRequest, Forbidden, NotFound } from '../../../lib/errors.js';
 import { logger } from '../../../lib/logger.js';
 import { imageAnalyzer, type ImageVisualAnalysis } from '../image-analyzer.js';
 import { watermarkImageWithPadding } from './watermark.js';
@@ -91,13 +92,14 @@ export class ImageGenerator {
               content: `Eres un Director de Arte experto en Prompt Engineering para IAs generativas de imagen (DALL-E 3 y Gemini Pro Vision). 
 Tu misión es transformar el ADN de marca y las referencias visuales en un PROMPT CINEMATOGRÁFICO Y TÉCNICO de alta fidelidad.
 
-REGLAS DE ORO:
-1. NO USES PALABRAS GENÉRICAS como "basado en", "siguiendo". Describe la escena, la luz, la textura y el ángulo de forma poética pero técnica.
-2. LOGOS: Si las reglas dicen NO LOGO, sé agresivo en prohibirlo. Si dicen LOGO SELECCIONADO, descríbelo como un "flat watermark overlay" exacto, sin sombras ni reinterpretaciones.
-3. ADN DE MARCA: Los colores y el tono deben impregnar la descripción de la escena.
-4. MODO REFERENCIAL (IDENTITY LOCK): Si el modo es "referential", activa el protocolo "Identity Lock". Debes describir el sujeto de las referencias (objetos, arquitectura, personas) con precisión fotogramétrica. El entorno puede cambiar si se pide, pero el sujeto principal NO SE REINTERPRETA, se clona.
-5. NO LITERALISMO: Está TERMINANTEMENTE PROHIBIDO dibujar iconos, animales o plantas basándote únicamente en el nombre de la empresa.
-6. NEGATIVE PROMPT: Incluye siempre una sección final de "NEGATIVE PROMPT" prohibiendo logos inventados, texto aleatorio, deformidades, y elementos que contradigan las referencias provistas en modo referencial.`,
+ESTRUCTURA OBLIGATORIA (LOS 5 PILARES):
+Siempre debes devolver el prompt final dividido EXACTAMENTE en estos 5 bloques, adaptándolos al modo (Creative o Referential) indicado en el contexto:
+
+1. [SUJETO]: Define estrictamente quién o qué es el protagonista (Producto, Lugar o Persona). Si el modo es "Referential", describe el sujeto fotogramétricamente exacto a la referencia. Si es "Creative", usa la intención del usuario para imaginarlo en la situación pedida.
+2. [COMPOSICIÓN]: Planimetría, ángulo y lente. Si es "Referential", mantén el encuadre de la referencia (salvo orden expresa). Si es "Creative", usa ángulos cinematográficos.
+3. [ILUMINACIÓN]: Define la luz (ej. estudio suave, luz de recorte, hora dorada).
+4. [ESTILO]: Estética de la marca. Fotorrealismo extremo para "Referential". Exploración artística o editorial para "Creative". (Incluye aquí instrucciones de integración orgánica de Logos si se indica).
+5. [NEGATIVE PROMPT]: Exclusiones. Para "Referential": "NO alterar la forma del producto, NO cambiar materiales". Para "Creative": "NO texturas plásticas, NO render 3D barato". PROHIBIDO logos o textos inventados en ambos modos.`,
             },
             { role: 'user', content: `Sintetiza un prompt maestro basado en este contexto:\n\n${context}` },
           ],
@@ -184,12 +186,26 @@ REGLAS DE ORO:
       // Auto-detect if user requested a logo in the prompt, even if they didn't select it in references
       const lowerPrompt = input.prompt.toLowerCase();
       if (!logoBuf && lowerPrompt.includes('logo') && input.projectId) {
-        const logoAsset = await prisma.contentAsset.findFirst({
-          where: { projectId: input.projectId, tags: { has: 'logo' } },
+        let logoAsset = await prisma.contentAsset.findFirst({
+          where: { projectId: input.projectId, tags: { has: 'logo' }, isMainLogo: true },
         });
+        if (!logoAsset) {
+          logoAsset = await prisma.contentAsset.findFirst({
+            where: { projectId: input.projectId, tags: { has: 'logo' }, isValidLogo: true },
+          });
+        }
+        if (!logoAsset) {
+          logoAsset = await prisma.contentAsset.findFirst({
+            where: { projectId: input.projectId, tags: { has: 'logo' } },
+            orderBy: { createdAt: 'desc' }
+          });
+        }
         if (logoAsset) {
           const logoDl = await downloadAsBase64(logoAsset.assetUrl);
-          if (logoDl) logoBuf = Buffer.from(logoDl.base64, 'base64');
+          if (logoDl) {
+            logoBuf = Buffer.from(logoDl.base64, 'base64');
+            refs.push(logoDl); // Ensure Gemini sees the auto-detected logo!
+          }
         }
       }
 
@@ -217,10 +233,9 @@ REGLAS DE ORO:
         }
         if (!buf || !modelUsed) return null;
 
-        if (logoBuf) {
-          buf = await watermarkImageWithPadding(buf, logoBuf);
-        }
-
+        // Removido: watermarkImageWithPadding, ahora delegamos todo a la IA (Gemini/OpenRouter)
+        // para integrarlo orgánicamente.
+        
         const { url, path } = await uploadBuffer(input.userId, buf);
 
 
@@ -282,8 +297,8 @@ REGLAS DE ORO:
       }
 
       if (variations.length === 0) {
-        throw new Error(
-          'No image generation provider succeeded (check GEMINI/OPENROUTER/OPENAI keys)',
+        throw new BadRequest(
+          'Ningún proveedor de generación de imágenes respondió (revisa las claves GEMINI/OPENROUTER/OPENAI)',
         );
       }
 
@@ -355,8 +370,8 @@ REGLAS DE ORO:
     const source = await prisma.contentAsset.findUnique({
       where: { id: input.sourceAssetId },
     });
-    if (!source) throw new Error('Source asset not found');
-    if (source.userId !== input.userId) throw new Error('Forbidden');
+    if (!source) throw new NotFound('Asset de origen no encontrado');
+    if (source.userId !== input.userId) throw new Forbidden();
 
     const instruction = input.editInstruction.trim();
     const prompt = `Edita esta imagen siguiendo la instrucción: ${instruction}. Mantén los elementos principales y el branding.`;
@@ -402,7 +417,10 @@ REGLAS DE ORO:
           });
           if (logoAsset) {
             const logoDl = await downloadAsBase64(logoAsset.assetUrl);
-            if (logoDl) logoBuf = Buffer.from(logoDl.base64, 'base64');
+            if (logoDl) {
+              logoBuf = Buffer.from(logoDl.base64, 'base64');
+              refs.push(logoDl); // Aseguramos que la IA reciba el logo como referencia para integración
+            }
           }
         }
       }
@@ -429,12 +447,10 @@ REGLAS DE ORO:
         }
       }
       if (!buf || !modelUsed) {
-        throw new Error('No image editor provider succeeded');
+        throw new BadRequest('Ningún proveedor de edición de imágenes respondió');
       }
 
-      if (logoBuf) {
-        buf = await watermarkImageWithPadding(buf, logoBuf);
-      }
+      // Removido: watermarkImageWithPadding, ahora la IA integra el logo.
 
       const { url, path } = await uploadBuffer(input.userId, buf);
 

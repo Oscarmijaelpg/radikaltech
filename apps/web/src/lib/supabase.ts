@@ -16,7 +16,9 @@ if (typeof window !== 'undefined') {
         localStorage.removeItem(k);
       }
     });
-  } catch {}
+  } catch {
+    // localStorage puede no estar disponible en ciertos contextos del navegador; no es crítico.
+  }
 }
 
 export const supabase = createClient(url, key, {

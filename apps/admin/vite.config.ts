@@ -11,11 +11,11 @@ export default defineConfig({
     extensions: ['.mts', '.ts', '.mtsx', '.tsx', '.mjs', '.js', '.jsx', '.json'],
   },
   server: {
-    port: 5555,
+    port: 5173,
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3003',
+        target: 'http://localhost:3004',
         changeOrigin: true,
       },
     },

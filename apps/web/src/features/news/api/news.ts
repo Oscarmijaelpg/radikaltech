@@ -34,6 +34,13 @@ export interface AggregateNewsResponse {
   };
 }
 
+export interface NewsSourceData {
+  pipeline?: string;
+  topic?: string;
+  items?: NewsItem[];
+  analysis?: NewsAnalysis;
+}
+
 export interface SavedReport {
   id: string;
   projectId: string;
@@ -42,8 +49,16 @@ export interface SavedReport {
   reportType: string;
   content: string | null;
   summary: string | null;
-  sourceData: unknown;
+  sourceData: NewsSourceData | null;
   createdAt: string;
+}
+
+export interface ActiveJob {
+  id: string;
+  kind: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  createdAt: string;
+  metadata?: Record<string, unknown>;
 }
 
 export function useAggregateNews() {
