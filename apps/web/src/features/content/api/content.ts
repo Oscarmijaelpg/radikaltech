@@ -29,6 +29,7 @@ export interface AssetFilters {
   type?: AssetType;
   sort?: 'recent' | 'score';
   limit?: number;
+  tags?: string;
 }
 
 export function useAssets(projectId: string | null | undefined, filters: AssetFilters = {}) {
@@ -40,6 +41,7 @@ export function useAssets(projectId: string | null | undefined, filters: AssetFi
       if (filters.type) qs.set('type', filters.type);
       if (filters.sort) qs.set('sort', filters.sort);
       if (filters.limit) qs.set('limit', String(filters.limit));
+      if (filters.tags) qs.set('tags', filters.tags);
       const r = await api.get<{ data: ContentAsset[] }>(`/content?${qs.toString()}`);
       return r.data;
     },

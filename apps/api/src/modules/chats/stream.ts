@@ -283,6 +283,7 @@ export async function handleStreamMessage(c: Context<{ Variables: AuthVariables 
         name: string;
         args: Record<string, unknown>;
         resultSummary: string;
+        data?: unknown;
       }> = [];
 
       const send = (event: string, data: string) =>

@@ -58,6 +58,7 @@ export interface ActiveJob {
   kind: string;
   status: 'queued' | 'running' | 'succeeded' | 'failed';
   createdAt: string;
+  metadata?: Record<string, unknown>;
 }
 
 export function useAggregateNews() {

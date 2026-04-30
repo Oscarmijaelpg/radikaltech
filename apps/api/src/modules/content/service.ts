@@ -70,7 +70,7 @@ export const contentService = {
       },
     });
     
-    if (input.asset_type === 'image' && !input.metadata?.tags?.includes('generated')) {
+    if (input.asset_type === 'image' && !(input.metadata?.tags as string[] | undefined)?.includes('generated')) {
       import('../ai-services/image-analyzer.js').then((m) => {
         m.imageAnalyzer.analyze(input.asset_url).catch(() => null);
       }).catch(() => null);

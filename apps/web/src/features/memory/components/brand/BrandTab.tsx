@@ -229,10 +229,10 @@ export function BrandTab({ projectId }: Props) {
         </DialogContent>
       </Dialog>
 
-      <ImageAnalysisDialog 
-        asset={previewAsset} 
-        open={!!previewAsset} 
-        onOpenChange={(v) => !v && setPreviewAsset(null)} 
+      <ImageAnalysisDialog
+        asset={previewAsset ? { ...previewAsset, tags: previewAsset.tags ?? undefined } : null}
+        open={!!previewAsset}
+        onOpenChange={(v) => !v && setPreviewAsset(null)}
       />
 
       <EditBrandDialog

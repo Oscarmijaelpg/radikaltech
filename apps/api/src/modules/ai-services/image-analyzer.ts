@@ -116,6 +116,8 @@ function safeParse(content: string): ImageVisualAnalysis | null {
           : description;
 
     return {
+      category,
+      subject,
       dominant_colors: Array.isArray(parsed.dominant_colors) ? parsed.dominant_colors.slice(0, 5) : [],
       lighting: String(parsed.lighting || ''),
       mood: String(parsed.mood || ''),

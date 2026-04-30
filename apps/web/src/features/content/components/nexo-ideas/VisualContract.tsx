@@ -81,7 +81,7 @@ export function VisualContract({ idea, open, onOpenChange, onSuccess }: Props) {
     if (open && idea && assets) {
       // 1. Auto-select first logo if available
       if (logos.length > 0 && !selectedLogo) {
-        setSelectedLogo(logos[0].id);
+        setSelectedLogo(logos[0]?.id ?? null);
       }
       // 2. Auto-select recommended assets if none selected yet
       if (selectedRefs.size === 0 && recommendedAssets.length > 0) {

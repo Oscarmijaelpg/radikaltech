@@ -3,6 +3,7 @@ import { brandSynthesizer } from '../ai-services/index.js';
 import { brandHistoryService } from './history-service.js';
 import { logger } from '../../lib/logger.js';
 import { assertProjectOwner } from '../../lib/guards.js';
+import { NotFound } from '../../lib/errors.js';
 
 export interface UpsertBrandInput {
   project_id: string;
@@ -80,7 +81,7 @@ export const brandService = {
         current: updated as unknown as Record<string, unknown>,
       });
     } catch (err) {
-      logger.warn({ err, projectId: input.project_id ?? projectId }, '[brand] history snapshot failed');
+      logger.warn({ err, projectId: input.project_id }, '[brand] history snapshot failed');
     }
     return updated;
   },

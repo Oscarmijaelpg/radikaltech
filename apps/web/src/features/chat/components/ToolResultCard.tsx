@@ -416,10 +416,18 @@ function ReportCreatedCard({
   );
 }
 
+interface MarketRegion {
+  name: string;
+  demandLevel: string;
+  type?: string;
+  keyCharacteristics?: string[];
+  recommendedApproach?: string;
+}
+
 function MarketsCard({ data }: { data: Record<string, unknown> }) {
   const countries = data.countries as string[] | undefined;
-  const regions = data.regions as string[] | undefined;
-  if (!countries?.length) return null;
+  const regions = data.regions as MarketRegion[] | undefined;
+  if (!countries?.length || !regions?.length) return null;
 
   return (
     <CardWrapper>
@@ -444,7 +452,7 @@ function MarketsCard({ data }: { data: Record<string, unknown> }) {
             </div>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">{r.type}</p>
             <div className="flex flex-wrap gap-1 mb-2">
-              {r.keyCharacteristics.slice(0, 2).map((c, j) => (
+              {(r.keyCharacteristics ?? []).slice(0, 2).map((c, j) => (
                 <span key={j} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-medium truncate max-w-full">
                   {c}
                 </span>

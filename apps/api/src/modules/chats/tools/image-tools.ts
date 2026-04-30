@@ -157,11 +157,11 @@ export const getLibraryAssetsTool: ToolDefinition = {
       select: { id: true, assetUrl: true, tags: true, aiDescription: true },
     });
 
-    const conceptTerms = args.concept?.toLowerCase().split(' ').filter(t => t.length > 3) || [];
+    const conceptTerms = (args.concept as string | undefined)?.toLowerCase().split(' ').filter((t: string) => t.length > 3) || [];
 
     const assets = [...logos, ...otherAssets].map(a => {
       const isSuggested = conceptTerms.length > 0 && (
-        a.aiDescription?.toLowerCase().includes(conceptTerms[0]) || 
+        a.aiDescription?.toLowerCase().includes(conceptTerms[0] ?? '') ||
         a.tags.some(t => conceptTerms.includes(t.toLowerCase()))
       );
       
