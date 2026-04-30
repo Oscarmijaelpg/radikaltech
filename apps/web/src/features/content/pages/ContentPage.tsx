@@ -15,8 +15,6 @@ import { ImageGenerator } from '../components/ImageGenerator';
 import { NexoIdeasSection } from '../components/NexoIdeasSection';
 import { ScheduledPostsTab } from '../components/ScheduledPostsTab';
 import { HelpButton } from '@/shared/ui/HelpButton';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
-import { usePageTour } from '@/shared/tour';
 
 type TabId = 'nexo' | 'gallery' | 'generated_library' | 'upload' | 'generate' | 'scheduled';
 const TAB_IDS: TabId[] = ['nexo', 'gallery', 'generated_library', 'upload', 'generate', 'scheduled'];
@@ -29,8 +27,6 @@ export function ContentPage() {
     const t = searchParams.get('tab') as TabId | null;
     if (t && TAB_IDS.includes(t)) setTab(t);
   }, [searchParams]);
-
-  usePageTour('content');
 
   const TAB_SUB: Record<TabId, string> = {
     nexo: 'Ideas de Nexo',
@@ -51,11 +47,6 @@ export function ContentPage() {
         <span className="truncate">Contenido · {TAB_SUB[tab]}</span>
       </div>
       <div className="p-4 sm:p-6 md:p-8 pt-2 max-w-7xl mx-auto">
-        <FeatureHint
-          id="content-first-v1"
-          title="Sube imágenes existentes o genera nuevas con IA"
-          description="Aquí vive tu banco visual. Analizamos cada asset y generamos contenido fiel a tu marca."
-        >
         <header className="mb-8 md:mb-10 relative overflow-hidden rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-amber-500 to-orange-600 p-6 md:p-10 text-white shadow-2xl">
           <div className="absolute top-4 right-4 z-20">
             <HelpButton
@@ -83,7 +74,6 @@ export function ContentPage() {
             </div>
           </div>
         </header>
-        </FeatureHint>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
           <TabsList data-tour="content-tabs">

@@ -52,7 +52,7 @@ const SETUP_STEPS = [
 export function SetupWizard() {
   const navigate = useNavigate();
   const { activeProject } = useProject();
-  const { loading, completedIds, allCompleted } = useFirstTimeProgress(activeProject?.id);
+  const { loading, completedIds } = useFirstTimeProgress(activeProject?.id);
 
   const currentStep = useMemo(() => {
     for (const step of SETUP_STEPS) {
@@ -62,8 +62,9 @@ export function SetupWizard() {
   }, [completedIds]);
 
   const completedCount = SETUP_STEPS.filter((s) => completedIds.has(s.id)).length;
+  const setupAllDone = completedCount === SETUP_STEPS.length;
 
-  if (!activeProject || loading || allCompleted) return null;
+  if (!activeProject || loading || setupAllDone) return null;
 
   return (
     <Card className="relative overflow-hidden p-0 border-2 border-pink-100">

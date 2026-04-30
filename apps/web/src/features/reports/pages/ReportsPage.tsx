@@ -14,10 +14,8 @@ import { ReportGeneratorButton } from '../components/ReportGeneratorButton';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
 import { ScheduledReportsSection } from '../components/ScheduledReportsSection';
 import { HelpButton } from '@/shared/ui/HelpButton';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
-import { usePageTour } from '@/shared/tour';
 
 type Filter = 'all' | ReportType;
 
@@ -46,8 +44,6 @@ export function ReportsPage() {
   const { activeProject } = useProject();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
-  usePageTour('reports');
-
   const reportsQ = useReports(activeProject?.id);
 
   const selectedReport = useMemo(
@@ -89,11 +85,6 @@ export function ReportsPage() {
             />
           </div>
         )}
-        <FeatureHint
-          id="reports-first-v1"
-          title="Los reportes consolidan todo el análisis"
-          description="Genera documentos estratégicos de marca, competencia o noticias. Los puedes descargar y compartir."
-        >
         <header className="mb-6 md:mb-8 relative rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-violet-600 to-fuchsia-600 p-6 md:p-10 text-white shadow-2xl">
           {/* Wrapper interno con overflow-hidden solo para los blobs decorativos;
               el header NO recorta para permitir que los dropdowns (Nuevo reporte)
@@ -127,7 +118,6 @@ export function ReportsPage() {
             <ReportGeneratorButton projectId={activeProject.id} onCreated={handleCreated} />
           </div>
         </header>
-        </FeatureHint>
 
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 md:gap-6 min-w-0">
           <aside>

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button, Card, Icon, Skeleton, Spinner } from '@radikal/ui';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
-import { usePageTour } from '@/shared/tour';
 import { CompetitorModal } from './CompetitorModal';
 import { CompetitionCharts } from './CompetitionCharts';
 import { UserSocialAccountModal } from './UserSocialAccountModal';
@@ -29,7 +28,6 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
   const t = useCompetitorsTab(projectId) as any;
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
-  usePageTour('competitors');
 
   const queryClient = useQueryClient();
   const prevRefreshing = useRef(false);

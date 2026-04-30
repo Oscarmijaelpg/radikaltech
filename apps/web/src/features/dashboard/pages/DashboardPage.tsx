@@ -4,11 +4,10 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useProjectStats, useUserStats } from '../api/stats';
 import { useProjectLogoWithBrightness } from '@/shared/hooks/useProjectLogo';
-import { usePageTour } from '@/shared/tour';
 import { useUpcomingScheduledPosts } from '@/features/content/api/scheduler';
 import { useRecommendations } from '@/features/recommendations/api/recommendations';
 import { TrendingWidget } from '../components/TrendingWidget';
-import { SetupWizard, WelcomeModal } from '@/shared/fte/FirstTimeExperience';
+import { SetupWizard } from '@/shared/fte/FirstTimeExperience';
 import { DashboardHero } from '../components/DashboardHero';
 import { SmartActionsGrid } from '../components/SmartActionsGrid';
 import { SuggestionsCard } from '../components/SuggestionsCard';
@@ -25,8 +24,6 @@ export function DashboardPage() {
     activeProject?.id,
   );
 
-  usePageTour('dashboard');
-
   const projectStats = useProjectStats(activeProject?.id ?? null);
   const userStats = useUserStats(!activeProject);
   const upcomingPosts = useUpcomingScheduledPosts(true, UPCOMING_POSTS_LIMIT);
@@ -42,7 +39,6 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-full overflow-x-hidden bg-gradient-to-br from-pink-50/40 via-white to-cyan-50/40">
-      <WelcomeModal />
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         <DashboardHero
           firstName={firstName}

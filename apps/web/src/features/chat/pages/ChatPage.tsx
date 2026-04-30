@@ -8,7 +8,6 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useProject } from '@/providers/ProjectProvider';
 import { useToast } from '@/shared/ui/Toaster';
 import { HelpButton } from '@/shared/ui/HelpButton';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { AgentPicker } from '../components/AgentPicker';
 import { ChatHeader } from '../components/ChatHeader';
@@ -213,11 +212,6 @@ export function ChatPage() {
                 ]}
               />
             </div>
-            <FeatureHint
-              id="chat-first-v1"
-              title="Habla en español, los agentes te entienden"
-              description="Escribe como hablarías con un colega. Ankor, Sira o Kronos te responderán con el contexto de tu marca."
-            >
               <ChatHeader
                 chatTitle={chatQ.data?.title}
                 titleDraft={titleDraft}
@@ -230,7 +224,6 @@ export function ChatPage() {
                 chatAgents={chatAgents}
                 chatProjectId={chatProjectId}
               />
-            </FeatureHint>
 
             <MessageList
               ref={scrollRef}

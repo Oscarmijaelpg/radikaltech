@@ -20,7 +20,6 @@ import {
 import { formatDate } from '@radikal/shared';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 import {
   useMemories,
   useCreateMemory,
@@ -153,16 +152,10 @@ export function NeuronasTab({ projectId }: Props) {
       </div>
 
       <Tabs defaultValue="notes" className="w-full">
-        <FeatureHint
-          id="neuronas-notes-vs-docs"
-          title="¿Notas o documentos?"
-          description="Notas = ideas o resúmenes cortos que escribes tú. Documentos = archivos completos (briefs, manuales PDF) que la IA lee y cita."
-        >
           <TabsList className="flex overflow-x-auto scrollbar-hide max-w-full flex-nowrap">
             <TabsTrigger value="notes" className="shrink-0">Recuerdos y notas</TabsTrigger>
             <TabsTrigger value="docs" className="shrink-0">Documentos de marca</TabsTrigger>
           </TabsList>
-        </FeatureHint>
 
         <TabsContent value="notes">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">

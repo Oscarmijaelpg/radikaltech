@@ -18,7 +18,6 @@ import {
 import { RecommendationCard } from '../components/RecommendationCard';
 import { HelpButton } from '@/shared/ui/HelpButton';
 import { AnalysisSubnav } from '@/shared/ui/AnalysisSubnav';
-import { FeatureHint } from '@/shared/fte/FirstTimeExperience';
 
 type Filter = 'all' | RecommendationStatus;
 
@@ -117,11 +116,6 @@ export function RecommendationsPage() {
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-5 sm:space-y-6 md:space-y-8">
         <AnalysisSubnav />
         {/* Hero */}
-        <FeatureHint
-          id="recommendations-first-v1"
-          title="Estas tarjetas son tus próximos pasos sugeridos"
-          description="Kronos analiza tu marca y te dice qué hacer a continuación. Completa una y verás el impacto."
-        >
         <header className="relative overflow-hidden rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-pink-500 via-fuchsia-500 to-violet-600 p-6 md:p-10 text-white shadow-2xl">
           <div className="absolute top-4 right-4 z-20">
             <HelpButton
@@ -160,7 +154,6 @@ export function RecommendationsPage() {
             </Button>
           </div>
         </header>
-        </FeatureHint>
 
         {generateMut.isError && (
           <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
