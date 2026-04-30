@@ -10,7 +10,10 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "db:push": "pnpm --filter @radikal/db push",
-    "db:generate": "pnpm --filter @radikal/db generate"
+    "db:generate": "pnpm --filter @radikal/db generate",
+    "db:seed": "pnpm --filter @radikal/db seed",
+    "db:reset": "pnpm --filter @radikal/db reset",
+    "db:studio": "pnpm --filter @radikal/db studio"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

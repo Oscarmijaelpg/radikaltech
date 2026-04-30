@@ -130,6 +130,9 @@ describe('BrandOrchestrator', () => {
   });
 
   it.skip('persists moodboard asset even when visual_analysis is null', async () => {
+    // TODO: actualizar este test — el orquestrador migró de ImageAnalyzer a ContentEvaluator.
+    // La lógica del test sigue siendo válida (null analysis no debe bloquear el asset),
+    // pero las mocks necesitan refactorizarse para matchear el nuevo flujo.
     // Firecrawl returns HTML with an image, analyzer returns null → should still store asset
     const fetchMock = vi.fn(async (url: string) => {
       const u = String(url);
