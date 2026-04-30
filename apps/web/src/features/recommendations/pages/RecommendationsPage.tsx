@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -38,6 +38,22 @@ export function RecommendationsPage() {
   const q = useRecommendations(activeProject?.id);
   const generateMut = useGenerateRecommendations();
 
+  const [genTimedOut, setGenTimedOut] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (generateMut.isPending) {
+      setGenTimedOut(false);
+      timeoutRef.current = setTimeout(() => setGenTimedOut(true), 90_000);
+    } else {
+      setGenTimedOut(false);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [generateMut.isPending]);
+
   const items = useMemo(() => {
     const all = q.data ?? [];
     const filtered =
@@ -69,16 +85,31 @@ export function RecommendationsPage() {
       {generateMut.isPending && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm grid place-items-center p-6">
           <Card className="p-8 max-w-md w-full text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-violet-500 grid place-items-center text-white mb-4 shadow-lg">
-              <Spinner className="text-white" />
-            </div>
-            <h3 className="font-display font-black text-xl mb-2">
-              Estudiando tu marca…
-            </h3>
-            <p className="text-sm text-slate-500">
-              Cruzamos tus datos, competidores, noticias y contenido para proponer acciones
-              concretas. Esto toma unos 30 segundos.
-            </p>
+            {genTimedOut ? (
+              <>
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 grid place-items-center mb-4">
+                  <Icon name="schedule" className="text-amber-600 text-[28px]" />
+                </div>
+                <h3 className="font-display font-black text-xl mb-2">Esto está tardando más de lo habitual</h3>
+                <p className="text-sm text-slate-500 mb-4">
+                  El análisis sigue en segundo plano. Puedes cerrar este diálogo y los resultados aparecerán en unos momentos.
+                </p>
+                <Button variant="outline" onClick={() => generateMut.reset()}>
+                  Cerrar
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-violet-500 grid place-items-center text-white mb-4 shadow-lg">
+                  <Spinner className="text-white" />
+                </div>
+                <h3 className="font-display font-black text-xl mb-2">Estudiando tu marca…</h3>
+                <p className="text-sm text-slate-500">
+                  Cruzamos tus datos, competidores, noticias y contenido para proponer acciones
+                  concretas. Esto toma unos 30 segundos.
+                </p>
+              </>
+            )}
           </Card>
         </div>
       )}
@@ -130,6 +161,28 @@ export function RecommendationsPage() {
           </div>
         </header>
         </FeatureHint>
+
+        {generateMut.isError && (
+          <div className="rounded-2xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
+            <Icon name="error" className="text-red-500 text-[20px] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-800">Error al generar sugerencias</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                {generateMut.error instanceof Error
+                  ? generateMut.error.message
+                  : 'Ocurrió un error inesperado. Intenta de nuevo.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => generateMut.reset()}
+              className="ml-auto text-red-400 hover:text-red-600"
+              aria-label="Cerrar error"
+            >
+              <Icon name="close" className="text-[18px]" />
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">

@@ -1,10 +1,93 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Spinner, Input, Label, Button } from '@radikal/ui';
-import { Gift } from 'lucide-react';
+import { Gift, Pencil, X, Check } from 'lucide-react';
 import { useSystemConfig, useUpsertSystemConfig, type SystemConfigEntry } from '../api/config';
 import { useToast } from '@/shared/ui/Toaster';
 
 const DEFAULT_SIGNUP_BONUS = 1000;
+
+function ConfigEntryRow({ entry }: { entry: SystemConfigEntry }) {
+  const upsert = useUpsertSystemConfig();
+  const { toast } = useToast();
+  const [editing, setEditing] = useState(false);
+  const [raw, setRaw] = useState('');
+  const [parseError, setParseError] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const onEdit = () => {
+    setRaw(JSON.stringify(entry.value, null, 2));
+    setParseError('');
+    setEditing(true);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  const onCancel = () => {
+    setEditing(false);
+    setParseError('');
+  };
+
+  const onSave = async () => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      setParseError('JSON inválido: ' + (e instanceof Error ? e.message : String(e)));
+      return;
+    }
+    try {
+      await upsert.mutateAsync({ key: entry.key, value: parsed });
+      toast({ variant: 'success', title: `${entry.key} actualizado` });
+      setEditing(false);
+    } catch (err) {
+      toast({ variant: 'error', title: 'Error al guardar', description: err instanceof Error ? err.message : undefined });
+    }
+  };
+
+  return (
+    <div className="py-3 text-sm space-y-2">
+      <div className="flex items-center gap-2">
+        <code className="font-mono text-slate-700">{entry.key}</code>
+        {!editing && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="ml-auto text-slate-400 hover:text-slate-700 p-1 rounded"
+            aria-label={`Editar ${entry.key}`}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            ref={textareaRef}
+            value={raw}
+            onChange={(e) => { setRaw(e.target.value); setParseError(''); }}
+            rows={Math.min(12, raw.split('\n').length + 1)}
+            className="w-full font-mono text-xs p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y bg-slate-50"
+            spellCheck={false}
+          />
+          {parseError && <p className="text-xs text-red-600">{parseError}</p>}
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={upsert.isPending}>
+              <Check size={14} />
+              {upsert.isPending ? 'Guardando…' : 'Guardar'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={onCancel}>
+              <X size={14} />
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <code className="block text-xs text-slate-500 bg-slate-50 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap break-all">
+          {JSON.stringify(entry.value, null, 2)}
+        </code>
+      )}
+    </div>
+  );
+}
 
 function readNumber(value: unknown): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -107,11 +190,7 @@ export function ConfigPage() {
           <p className="text-xs text-slate-500">Configuraciones avanzadas (valores JSON).</p>
           <div className="divide-y divide-slate-100">
             {otros.map((e) => (
-              <div key={e.key} className="py-3 text-sm flex flex-wrap items-center gap-2">
-                <code className="font-mono">{e.key}</code>
-                <span className="text-slate-400">=</span>
-                <code className="text-xs text-slate-600">{JSON.stringify(e.value)}</code>
-              </div>
+              <ConfigEntryRow key={e.key} entry={e} />
             ))}
           </div>
         </div>
