@@ -21,7 +21,16 @@ interface PaginatedResponse<T> {
   meta: { page: number; pageSize: number; total: number; totalPages: number };
 }
 
-export function useScheduledReports(filters: Record<string, unknown>) {
+export interface ScheduledReportsFilters {
+  page?: number;
+  pageSize?: number;
+  userId?: string;
+  projectId?: string;
+  kind?: string;
+  enabled?: boolean;
+}
+
+export function useScheduledReports(filters: ScheduledReportsFilters) {
   return useQuery({
     queryKey: ['admin', 'scheduled-reports', filters],
     queryFn: () =>

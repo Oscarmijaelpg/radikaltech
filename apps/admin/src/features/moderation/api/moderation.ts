@@ -41,7 +41,17 @@ interface PaginatedResponse<T> {
   meta: { page: number; pageSize: number; total: number; totalPages: number };
 }
 
-export function useAdminRecommendations(filters: Record<string, unknown>) {
+export interface ModerationFilters {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  userId?: string;
+  projectId?: string;
+  status?: string;
+  kind?: string;
+}
+
+export function useAdminRecommendations(filters: ModerationFilters) {
   return useQuery({
     queryKey: ['admin', 'moderation', 'recommendations', filters],
     queryFn: () =>
@@ -58,7 +68,7 @@ export function useDeleteRecommendation() {
   });
 }
 
-export function useAdminContentAssets(filters: Record<string, unknown>) {
+export function useAdminContentAssets(filters: ModerationFilters) {
   return useQuery({
     queryKey: ['admin', 'moderation', 'content-assets', filters],
     queryFn: () =>
@@ -75,7 +85,7 @@ export function useDeleteContentAsset() {
   });
 }
 
-export function useAdminReports(filters: Record<string, unknown>) {
+export function useAdminReports(filters: ModerationFilters) {
   return useQuery({
     queryKey: ['admin', 'moderation', 'reports', filters],
     queryFn: () => api.get<PaginatedResponse<AdminReport>>(`/admin/moderation/reports${qs(filters)}`),

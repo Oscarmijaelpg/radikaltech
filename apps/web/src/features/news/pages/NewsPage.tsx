@@ -15,6 +15,7 @@ import {
   type NewsAnalysis,
   type NewsItem,
   type SavedReport,
+  type ActiveJob,
 } from '../api/news';
 import { useSiraContextual } from '@/features/sira-contextual';
 import { CharacterEmpty } from '@/shared/ui/CharacterEmpty';
@@ -64,18 +65,18 @@ export function NewsPage() {
   const { data: activeJobs } = useQuery({
     queryKey: ['active-jobs', 'news', activeProject?.id],
     queryFn: async () => {
-      const res = await api.get<{ data: any[] }>(`/jobs/active?project_id=${activeProject?.id}`);
+      const res = await api.get<{ data: ActiveJob[] }>(`/jobs/active?project_id=${activeProject?.id}`);
       return res.data || [];
     },
     enabled: !!activeProject?.id,
     refetchInterval: (query) => {
-      const hasNewsJob = query.state.data?.some((j: any) => j.kind === 'news-refresh');
+      const hasNewsJob = query.state.data?.some((j) => j.kind === 'news-refresh');
       return hasNewsJob ? 3000 : 15000;
     },
   });
 
-  const newsJob = useMemo(() => 
-    activeJobs?.find((j: any) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
+  const newsJob = useMemo(() =>
+    activeJobs?.find((j) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
   [activeJobs]);
 
   useEffect(() => {
@@ -142,10 +143,10 @@ export function NewsPage() {
     setItems([]);
     setAnalysis(null);
     try {
-      const res = (await aggregate.mutateAsync({
+      const res = await aggregate.mutateAsync({
         topic: query,
         project_id: activeProject?.id,
-      })) as any;
+      });
       setItems(res.result.items ?? []);
       setAnalysis(res.result.analysis ?? null);
     } catch {
@@ -175,12 +176,12 @@ export function NewsPage() {
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
   const otherReports = useMemo(() => savedList.filter(r => 
     r.title !== 'Reporte Inicial de Noticias' && 
-    (r.sourceData as any)?.pipeline !== 'initial-intelligence-news'
+    r.sourceData?.pipeline !== 'initial-intelligence-news'
   ), [savedList]);
 
   const initialReport = useMemo(() => savedList.find(r => 
     r.title === 'Reporte Inicial de Noticias' || 
-    (r.sourceData as any)?.pipeline === 'initial-intelligence-news'
+    r.sourceData?.pipeline === 'initial-intelligence-news'
   ), [savedList]);
 
   const showSidebar = view === 'search' || otherReports.length > 0;
