@@ -19,25 +19,22 @@ vi.mock('@radikal/db', () => ({
   },
 }));
 
-describe('ImageAnalyzer fallback', () => {
+describe('ImageAnalyzer', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('falls back from Gemini 404 to OpenRouter', async () => {
+  it('analyzes image via OpenRouter (primary provider)', async () => {
     const calls: string[] = [];
     const fetchMock = vi.fn(async (url: string) => {
       const u = String(url);
       calls.push(u);
       if (u.startsWith('https://cdn.example.com')) {
-        // image download — 1000 bytes of binary
+        // image download — 1024 bytes of binary
         return new Response(new Uint8Array(1024), {
           status: 200,
           headers: { 'content-type': 'image/png' },
         });
-      }
-      if (u.includes('generativelanguage.googleapis.com')) {
-        return new Response('not found', { status: 404 });
       }
       if (u.includes('openrouter.ai')) {
         return new Response(
@@ -52,6 +49,10 @@ describe('ImageAnalyzer fallback', () => {
                     composition: 'centered',
                     style_tags: ['clean'],
                     description: 'a nice image',
+                    aesthetic_score: 7,
+                    suggestions: [],
+                    detected_elements: [],
+                    tags: ['clean'],
                   }),
                 },
               },
@@ -70,7 +71,14 @@ describe('ImageAnalyzer fallback', () => {
 
     expect(out).not.toBeNull();
     expect(out?.dominant_colors).toEqual(['#112233', '#445566']);
-    expect(calls.some((u) => u.includes('generativelanguage'))).toBe(true);
     expect(calls.some((u) => u.includes('openrouter'))).toBe(true);
+  });
+
+  it('returns null when image download fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('error', { status: 404 })));
+    const { ImageAnalyzer } = await import('../../src/modules/ai-services/image-analyzer.js');
+    const analyzer = new ImageAnalyzer();
+    const out = await analyzer.analyze('https://cdn.example.com/missing.png');
+    expect(out).toBeNull();
   });
 });
