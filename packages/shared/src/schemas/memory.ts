@@ -3,18 +3,22 @@ import { IdSchema, DateSchema } from './common.js';
 
 export const MemorySchema = z.object({
   id: IdSchema,
-  project_id: IdSchema,
-  key: z.string().min(1),
+  project_id: IdSchema.nullable(),
+  user_id: IdSchema,
+  category: z.string().min(1),
+  key: z.string(),
   value: z.string(),
-  tags: z.array(z.string()).default([]),
+  metadata: z.record(z.unknown()).nullable().optional(),
   created_at: DateSchema,
   updated_at: DateSchema,
 });
 
 export const CreateMemorySchema = z.object({
-  key: z.string().min(1),
+  project_id: IdSchema,
+  category: z.string().min(1),
+  key: z.string().optional(),
   value: z.string().min(1),
-  tags: z.array(z.string()).optional(),
+  metadata: z.record(z.unknown()).optional().nullable(),
 });
 
 export type Memory = z.infer<typeof MemorySchema>;

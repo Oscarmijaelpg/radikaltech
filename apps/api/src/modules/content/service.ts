@@ -1,6 +1,7 @@
 import { prisma, Prisma } from '@radikal/db';
 import type { AssetType } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 export interface CreateAssetInput {
   userId: string;
@@ -16,12 +17,6 @@ export interface ListFilter {
   offset?: number;
   sort?: 'recent' | 'score';
   tags?: string | string[];
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
 }
 
 export const contentService = {

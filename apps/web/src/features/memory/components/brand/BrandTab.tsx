@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useConfirm } from '@/shared/ui/ConfirmDialog';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton, Dialog, DialogContent, DialogTitle, Button, Icon, Card } from '@radikal/ui';
 import {
@@ -60,14 +61,19 @@ export function BrandTab({ projectId }: Props) {
   const [previewAsset, setPreviewAsset] = useState<import('./utils').ContentAssetLite | null>(null);
   const deleteAsset = useDeleteAsset();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const handleDelete = async (e: React.MouseEvent, assetId: string) => {
     e.stopPropagation();
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta imagen de tu memoria?')) return;
-    
+    const ok = await confirm({
+      title: 'Eliminar imagen',
+      description: '¿Estás seguro de que quieres eliminar esta imagen de tu memoria?',
+      confirmLabel: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await deleteAsset.mutateAsync({ id: assetId, project_id: projectId });
-      // Force refresh assets
       queryClient.invalidateQueries({ queryKey: ['content', 'list', projectId] });
     } catch (err) {
       console.error('Failed to delete asset:', err);

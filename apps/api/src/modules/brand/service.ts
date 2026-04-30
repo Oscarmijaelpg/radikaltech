@@ -1,14 +1,8 @@
 import { prisma } from '@radikal/db';
-import { Forbidden, NotFound } from '../../lib/errors.js';
 import { brandSynthesizer } from '../ai-services/index.js';
 import { brandHistoryService } from './history-service.js';
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) throw new Forbidden('Not project owner');
-  return project;
-}
+import { logger } from '../../lib/logger.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 export interface UpsertBrandInput {
   project_id: string;
@@ -56,8 +50,8 @@ export const brandService = {
         previous: existing as unknown as Record<string, unknown> | null,
         current: updated as unknown as Record<string, unknown>,
       });
-    } catch {
-      /* best-effort */
+    } catch (err) {
+      logger.warn({ err, projectId: project_id }, '[brand] history snapshot failed');
     }
     return updated;
   },
@@ -85,8 +79,8 @@ export const brandService = {
         previous: existing as unknown as Record<string, unknown>,
         current: updated as unknown as Record<string, unknown>,
       });
-    } catch {
-      /* ignore */
+    } catch (err) {
+      logger.warn({ err, projectId: input.project_id ?? projectId }, '[brand] history snapshot failed');
     }
     return updated;
   },
@@ -131,8 +125,8 @@ export const brandService = {
         previous: existing as unknown as Record<string, unknown> | null,
         current: updated as unknown as Record<string, unknown>,
       });
-    } catch {
-      /* ignore */
+    } catch (err) {
+      logger.warn({ err, projectId }, '[brand] history snapshot failed');
     }
     return updated;
   },

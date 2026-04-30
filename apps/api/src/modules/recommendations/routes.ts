@@ -84,15 +84,15 @@ recommendationsRouter.post('/generate', zValidator('json', generateSchema), asyn
   const job = await prisma.aiJob.create({
     data: {
       kind: 'recommendations_generate',
-      status: 'running',
+      status: 'queued',
       input: { project_id },
       projectId: project_id,
       userId: user.id,
-      startedAt: new Date(),
     },
   });
 
   try {
+    await prisma.aiJob.update({ where: { id: job.id }, data: { status: 'running', startedAt: new Date() } });
     const items = await recommendationGenerator.generate({
       projectId: project_id,
       userId: user.id,

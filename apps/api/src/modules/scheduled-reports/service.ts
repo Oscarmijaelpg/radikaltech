@@ -6,6 +6,7 @@ import {
 } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 import {
   generateBrandStrategy,
   generateMonthlyAudit,
@@ -29,12 +30,6 @@ export function computeNextRun(
       break;
   }
   return d;
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
 }
 
 async function assertOwner(id: string, userId: string): Promise<ScheduledReport> {
@@ -165,25 +160,26 @@ export async function executeScheduledReport(sr: ScheduledReport): Promise<void>
       reportTitle = r.title;
     }
 
-    await prisma.notification.create({
-      data: {
-        userId: sr.userId,
-        projectId: sr.projectId,
-        kind: 'report_ready',
-        title: `Nuevo reporte: ${reportTitle}`,
-        body: `Tu reporte programado "${sr.title}" está listo.`,
-        actionUrl: reportId ? `/reports?id=${reportId}` : '/reports',
-      },
-    });
-
     const now = new Date();
-    await prisma.scheduledReport.update({
-      where: { id: sr.id },
-      data: {
-        lastRunAt: now,
-        nextRunAt: computeNextRun(sr.frequency, now),
-      },
-    });
+    await prisma.$transaction([
+      prisma.notification.create({
+        data: {
+          userId: sr.userId,
+          projectId: sr.projectId,
+          kind: 'report_ready',
+          title: `Nuevo reporte: ${reportTitle}`,
+          body: `Tu reporte programado "${sr.title}" está listo.`,
+          actionUrl: reportId ? `/reports?id=${reportId}` : '/reports',
+        },
+      }),
+      prisma.scheduledReport.update({
+        where: { id: sr.id },
+        data: {
+          lastRunAt: now,
+          nextRunAt: computeNextRun(sr.frequency, now),
+        },
+      }),
+    ]);
   } catch (err) {
     logger.error({ err, srId: sr.id }, 'scheduled report execution failed');
     // Still advance nextRunAt so we don't get stuck

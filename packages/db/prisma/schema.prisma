@@ -419,6 +419,8 @@ model Competitor {
 
   @@index([projectId])
   @@index([userId])
+  @@index([status])
+  @@index([source])
   @@map("competitors")
   @@schema("public")
 }
@@ -492,6 +494,7 @@ model Report {
 
   @@index([projectId])
   @@index([userId])
+  @@index([reportType])
   @@map("reports")
   @@schema("public")
 }
@@ -512,6 +515,7 @@ model Memory {
 
   @@index([projectId])
   @@index([userId])
+  @@index([userId, category, key])
   @@map("memories")
   @@schema("public")
 }
@@ -537,6 +541,7 @@ model Chat {
   @@index([userId])
   @@index([projectId])
   @@index([folderId])
+  @@index([objectiveId])
   @@map("chats")
   @@schema("public")
 }
@@ -672,6 +677,7 @@ model Recommendation {
   user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([userId])
   @@index([status])
   @@index([kind])
   @@map("recommendations")
@@ -696,6 +702,7 @@ model ScheduledReport {
   user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([userId])
   @@index([nextRunAt])
   @@map("scheduled_reports")
   @@schema("public")

@@ -5,6 +5,7 @@ import { prisma } from '@radikal/db';
 import type { AuthVariables } from '../../middleware/auth.js';
 import { ok } from '../../lib/response.js';
 import { BadRequest, Forbidden, NotFound } from '../../lib/errors.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 import {
   generateBrandStrategy,
   generateMonthlyAudit,
@@ -28,12 +29,6 @@ const createSchema = z.object({
   key_insights: z.array(z.string()).optional(),
   source_data: z.unknown().optional(),
 });
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
-}
 
 async function assertReportOwner(id: string, userId: string) {
   const r = await prisma.report.findUnique({ where: { id } });

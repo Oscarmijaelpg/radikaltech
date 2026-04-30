@@ -1,11 +1,6 @@
 import { prisma, type Recommendation, RecommendationStatus, RecommendationKind } from '@radikal/db';
 import { Forbidden, NotFound } from '../../lib/errors.js';
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const p = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!p) throw new NotFound('Project not found');
-  if (p.userId !== userId) throw new Forbidden();
-}
+import { assertProjectOwner } from '../../lib/guards.js';
 
 async function assertRecOwner(id: string, userId: string): Promise<Recommendation> {
   const r = await prisma.recommendation.findUnique({ where: { id } });

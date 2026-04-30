@@ -3,6 +3,7 @@ import { corsMiddleware } from './middleware/cors.js';
 import { loggerMiddleware } from './middleware/logger.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { requireAuth, type AuthVariables } from './middleware/auth.js';
+import { securityHeaders } from './middleware/security-headers.js';
 
 import { healthRouter } from './modules/health/routes.js';
 import { usersRouter } from './modules/users/routes.js';
@@ -30,6 +31,7 @@ import { creditsRouter } from './modules/credits/routes.js';
 export function createApp() {
   const app = new Hono<{ Variables: AuthVariables }>();
 
+  app.use('*', securityHeaders);
   app.use('*', corsMiddleware);
   app.use('*', loggerMiddleware);
 

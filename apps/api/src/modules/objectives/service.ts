@@ -1,5 +1,6 @@
 import { prisma, type ObjectiveStatus } from '@radikal/db';
-import { Forbidden, NotFound } from '../../lib/errors.js';
+import { NotFound } from '../../lib/errors.js';
+import { assertProjectOwner } from '../../lib/guards.js';
 
 export interface ObjectiveInput {
   project_id: string;
@@ -9,12 +10,6 @@ export interface ObjectiveInput {
   target_value?: number;
   due_date?: Date | string;
   status?: string;
-}
-
-async function assertProjectOwner(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) throw new NotFound('Project not found');
-  if (project.userId !== userId) throw new Forbidden('Not project owner');
 }
 
 async function assertObjectiveOwner(id: string, userId: string) {
