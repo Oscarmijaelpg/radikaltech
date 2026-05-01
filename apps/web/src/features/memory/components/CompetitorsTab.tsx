@@ -94,10 +94,10 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
       const res = await api.get<{ data: Array<{ title: string; content: string; sourceData?: any }> }>(
         `/reports?project_id=${projectId}&type=competition`,
       );
-      
+
       const reports = res.data || [];
-      const found = reports.find((r) => 
-        r.title === 'Reporte Inicial de Competencia' || 
+      const found = reports.find((r) =>
+        r.title === 'Reporte Inicial de Competencia' ||
         r.sourceData?.pipeline === 'initial-intelligence-comp'
       );
 
@@ -151,7 +151,7 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
           <div className="max-w-md">
             <h3 className="text-2xl font-display font-black text-slate-900 mb-2">Buscando información actualizada</h3>
             <p className="text-slate-600 leading-relaxed">
-              Sira está realizando una investigación profunda de mercado para 2025-2026. 
+              Sira está realizando una investigación profunda de mercado para 2025-2026.
               Este proceso puede tardar un par de minutos mientras navega por la web.
             </p>
           </div>
@@ -175,8 +175,8 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
                   {lastJob?.error?.includes('startup cleanup') || lastJob?.error?.includes('proceso que lo creó')
                     ? 'El servidor se reinició mientras procesaba el análisis.'
                     : lastJob?.error?.includes('timeout') || lastJob?.error?.includes('AbortError')
-                    ? 'La búsqueda tardó demasiado. Inténtalo de nuevo.'
-                    : lastJob?.error || 'Ocurrió un error inesperado al contactar con el buscador inteligente.'}
+                      ? 'La búsqueda tardó demasiado. Inténtalo de nuevo.'
+                      : lastJob?.error || 'Ocurrió un error inesperado al contactar con el buscador inteligente.'}
                 </p>
               </div>
             </div>
@@ -204,10 +204,10 @@ export function CompetitorsTab({ projectId, subTab }: Props) {
                   <p className="text-sm text-slate-500">Análisis inicial de competencia generado por Sira</p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefresh} 
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
                 disabled={refreshing}
                 className="rounded-xl border-cyan-200 text-cyan-700 hover:bg-cyan-50 relative z-10"
               >

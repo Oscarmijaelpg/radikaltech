@@ -76,9 +76,9 @@ export function NewsPage() {
     },
   });
 
-  const newsJob = useMemo(() => 
+  const newsJob = useMemo(() =>
     activeJobs?.find((j: any) => j.kind === 'news-refresh' && (j.status === 'running' || j.status === 'queued')),
-  [activeJobs]);
+    [activeJobs]);
 
   useEffect(() => {
     if (newsJob) {
@@ -175,13 +175,13 @@ export function NewsPage() {
   const loading = aggregate.isPending;
 
   const savedList = useMemo(() => saved.data ?? [], [saved.data]);
-  const otherReports = useMemo(() => savedList.filter(r => 
-    r.title !== 'Reporte Inicial de Noticias' && 
+  const otherReports = useMemo(() => savedList.filter(r =>
+    r.title !== 'Reporte Inicial de Noticias' &&
     (r.sourceData as any)?.pipeline !== 'initial-intelligence-news'
   ), [savedList]);
 
-  const initialReport = useMemo(() => savedList.find(r => 
-    r.title === 'Reporte Inicial de Noticias' || 
+  const initialReport = useMemo(() => savedList.find(r =>
+    r.title === 'Reporte Inicial de Noticias' ||
     (r.sourceData as any)?.pipeline === 'initial-intelligence-news'
   ), [savedList]);
 
@@ -246,9 +246,9 @@ export function NewsPage() {
                   disabled={refreshing || !!newsJob}
                   className="rounded-xl border-white/40 text-white hover:bg-white/10 relative z-10 h-11"
                 >
-                  <Icon 
-                    name="refresh" 
-                    className={cn("mr-2", (refreshing || !!newsJob) && "animate-spin")} 
+                  <Icon
+                    name="refresh"
+                    className={cn("mr-2", (refreshing || !!newsJob) && "animate-spin")}
                   />
                   {refreshing || !!newsJob ? 'Actualizando...' : 'Actualizar análisis'}
                 </Button>
@@ -311,7 +311,7 @@ export function NewsPage() {
                     <div className="max-w-md">
                       <h3 className="text-2xl font-display font-black text-slate-900 mb-2">Buscando información actualizada</h3>
                       <p className="text-slate-600 leading-relaxed">
-                        Sira está analizando las tendencias más relevantes de tu industria para 2025-2026. 
+                        Sira está analizando las tendencias más relevantes de tu industria para 2025-2026.
                         Este proceso puede tardar un par de minutos mientras navega por la web.
                       </p>
                     </div>

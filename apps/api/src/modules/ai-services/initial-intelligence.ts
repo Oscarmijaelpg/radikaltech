@@ -617,13 +617,13 @@ export class InitialIntelligenceOrchestrator {
   runInitialIntelligence(input: { projectId: string; userId: string }) {
     const { projectId, userId } = input;
     logger.info({ projectId, userId }, '[Intelligence] Iniciando orquestación de inteligencia inicial (Background)...');
-    
+
     // Lanzamos ambos en paralelo de forma totalmente desacoplada
-    void this.runIndustryNewsIntelligence({ projectId, userId }).catch(err => 
+    void this.runIndustryNewsIntelligence({ projectId, userId }).catch(err =>
       logger.error({ err, projectId }, 'Fallo crítico en runIndustryNewsIntelligence en segundo plano')
     );
-    
-    void this.runCompetitionIntelligence({ projectId, userId }).catch(err => 
+
+    void this.runCompetitionIntelligence({ projectId, userId }).catch(err =>
       logger.error({ err, projectId }, 'Fallo crítico en runCompetitionIntelligence en segundo plano')
     );
   }
@@ -674,8 +674,9 @@ Asegúrate de que los competidores sean relevantes para los países donde opera 
 
       logger.info('Ejecutando búsqueda de competencia en Kimi...');
       const compSearch = await moonshotWebSearch({
-        systemPrompt: `Eres un analista estratégico senior de McKinsey. HOY ES ${today}. 
+        systemPrompt: `Eres Sira, analista estratégica senior. HOY ES ${today}. 
 Tu única misión es realizar una investigación profunda de competidores y estrategias ACTUALES (2025-2026).
+REGLA DE IDENTIDAD: Si incluyes una firma o encabezado de analista, DEBE decir "Analista: Sira — [Tu Práctica o Especialidad]". NUNCA menciones a McKinsey como el autor.
 REGLA CRÍTICA: No digas "necesito buscar" o "voy a investigar". USA LA HERRAMIENTA $web_search de inmediato.
 Realiza todas las búsquedas necesarias hasta tener datos concretos.
 
@@ -715,10 +716,10 @@ Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, c
           where: { id: existingReport.id },
           data: {
             content: cleanedReport,
-            sourceData: { 
-              pipeline: 'initial-intelligence-comp', 
-              promptUsed: finalCompPrompt || 'Default prompt', 
-              refreshedAt: new Date() 
+            sourceData: {
+              pipeline: 'initial-intelligence-comp',
+              promptUsed: finalCompPrompt || 'Default prompt',
+              refreshedAt: new Date()
             },
           }
         });
@@ -731,9 +732,9 @@ Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, c
             reportType: 'competition',
             content: cleanedReport,
             summary: 'Análisis competitivo inicial generado a partir de investigación web profunda.',
-            sourceData: { 
-              pipeline: 'initial-intelligence-comp', 
-              promptUsed: finalCompPrompt || 'Default prompt' 
+            sourceData: {
+              pipeline: 'initial-intelligence-comp',
+              promptUsed: finalCompPrompt || 'Default prompt'
             },
           },
         });
@@ -749,7 +750,7 @@ Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, c
 
       await prisma.aiJob.update({
         where: { id: job.id },
-        data: { 
+        data: {
           status: 'succeeded',
           finishedAt: new Date(),
           metadata: { step: 'completed' }
@@ -769,7 +770,7 @@ Al finalizar, redacta un reporte ejecutivo tipo McKinsey en Markdown elegante, c
       logger.error({ err }, 'Error en runCompetitionIntelligence');
       await prisma.aiJob.update({
         where: { id: job.id },
-        data: { 
+        data: {
           status: 'failed',
           finishedAt: new Date(),
           error: err.message || 'Error desconocido en el proceso de inteligencia'
@@ -815,12 +816,13 @@ Productos: ${companyData.products || 'Sin productos especificados'}
 
       const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
       logger.info('Ejecutando búsqueda de noticias sectoriales en Kimi...');
-      
+
       const newsSearch = await moonshotWebSearch({
-        systemPrompt: `Eres un analista senior de inteligencia sectorial. HOY ES ${today}. 
+        systemPrompt: `Eres Sira, analista senior de inteligencia sectorial. HOY ES ${today}. 
 Tu única misión es encontrar noticias y tendencias ESTRATÉGICAS para la industria del usuario en 2025-2026.
+REGLA DE IDENTIDAD: Si incluyes una firma o encabezado de analista, DEBE decir "Analista: Sira — [Tu Especialidad]".
 REGLA CRÍTICA: No hables de la empresa del usuario, busca noticias de su SECTOR y su COMPETENCIA.
-No digas "voy a buscar". Usa $web_search de inmediato.
+No digas "voy a buscar". USA LA HERRAMIENTA $web_search de inmediato.
 
 REGLA DE ORO PARA TABLAS MARKDOWN:
 - Las tablas deben tener saltos de línea (\n) reales entre cada fila.
@@ -831,7 +833,8 @@ REQUISITO DE FUENTES Y LINKS:
 - Prioriza portales reconocidos (Portafolio, El Tiempo, Bloomberg, Forbes, Reuters, etc.).
 - Asegúrate de que los links lleven a la noticia específica.
 
-Al finalizar, redacta un REPORTE EJECUTIVO DE INTELIGENCIA SECTORIAL tipo McKinsey.
+Al finalizar, redacta un REPORTE EJECUTIVO DE INTELIGENCIA SECTORIAL.
+REGLA DE IDENTIDAD: En el encabezado del reporte, el campo Analista debe decir: "Analista: Sira — [Tu Especialidad]".
 No incluyas bitácoras de búsqueda. Empieza directamente con el título del reporte.`,
         userPrompt: finalNewsPrompt || 'Busca noticias estratégicas 2025-2026 para el sector de ' + (companyData.industry || 'la industria'),
       });
@@ -858,10 +861,10 @@ No incluyas bitácoras de búsqueda. Empieza directamente con el título del rep
           where: { id: existingReport.id },
           data: {
             content: cleanedReport,
-            sourceData: { 
-              pipeline: 'initial-intelligence-news', 
-              promptUsed: finalNewsPrompt || 'Default prompt', 
-              refreshedAt: new Date() 
+            sourceData: {
+              pipeline: 'initial-intelligence-news',
+              promptUsed: finalNewsPrompt || 'Default prompt',
+              refreshedAt: new Date()
             },
           }
         });
@@ -874,9 +877,9 @@ No incluyas bitácoras de búsqueda. Empieza directamente con el título del rep
             reportType: 'news',
             content: cleanedReport,
             summary: 'Análisis sectorial actualizado con noticias de 2025-2026.',
-            sourceData: { 
-              pipeline: 'initial-intelligence-news', 
-              promptUsed: finalNewsPrompt || 'Default prompt' 
+            sourceData: {
+              pipeline: 'initial-intelligence-news',
+              promptUsed: finalNewsPrompt || 'Default prompt'
             },
           },
         });
@@ -884,7 +887,7 @@ No incluyas bitácoras de búsqueda. Empieza directamente con el título del rep
 
       await prisma.aiJob.update({
         where: { id: job.id },
-        data: { 
+        data: {
           status: 'succeeded',
           finishedAt: new Date(),
           metadata: { step: 'completed' }
@@ -904,7 +907,7 @@ No incluyas bitácoras de búsqueda. Empieza directamente con el título del rep
       logger.error({ err }, 'Error en runIndustryNewsIntelligence');
       await prisma.aiJob.update({
         where: { id: job.id },
-        data: { 
+        data: {
           status: 'failed',
           finishedAt: new Date(),
           error: err.message || 'Error desconocido en el proceso de noticias'
@@ -916,7 +919,7 @@ No incluyas bitácoras de búsqueda. Empieza directamente con el título del rep
   private async getCompanyData(projectId: string) {
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     const brand = await prisma.brandProfile.findUnique({ where: { projectId } });
-    
+
     return {
       name: project?.companyName ?? project?.name,
       website: project?.websiteUrl,
@@ -965,17 +968,17 @@ ${reportText}
       const cleanJson = stripJsonWrapping(extractedCompetitorsStr);
       const parsed = JSON.parse(cleanJson);
       const competitors = Array.isArray(parsed.competitors) ? parsed.competitors : [];
-      
+
       logger.info({ count: competitors.length }, 'Competidores extraídos del reporte');
 
       for (const c of competitors) {
         if (!c.name) continue;
-        
+
         // Evitar duplicados por nombre en el mismo proyecto
         const existing = await prisma.competitor.findFirst({
           where: { projectId, name: { equals: String(c.name), mode: 'insensitive' } }
         });
-        
+
         if (existing) {
           logger.info({ name: c.name }, 'El competidor ya existe, saltando...');
           continue;
